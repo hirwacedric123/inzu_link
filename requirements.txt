@@ -1,34 +1,34 @@
 # Core Django Framework
-Django==5.2
-asgiref==3.9.1
-sqlparse==0.5.3
-tzdata==2025.2
+Django
+asgiref
+sqlparse
+tzdata
 
 # Django REST Framework & Extensions
-djangorestframework==3.16.0
-django-filters==24.2
-django-cors-headers==4.7.0
+djangorestframework
+django-filter
+django-cors-headers
 
 # Image Processing
-Pillow==11.2.1
+Pillow
 
 # QR Code Generation
-qrcode==8.0
-PyJWT==2.9.0
+qrcode
+PyJWT
 
 # PDF Generation (for reports)
-reportlab==4.4.1
+reportlab
 
 # Python Utilities (often installed by above packages but listing for clarity)
-certifi==2025.4.26
-charset-normalizer==3.4.1
-idna==3.10
-requests==2.32.3
-urllib3==2.4.0
-typing_extensions==4.13.2
+certifi
+charset-normalizer
+idna
+requests
+urllib3
+typing_extensions
 
 # Optional: Development/Testing Tools (uncomment if needed)
-# pytest==8.3.5
-# pytest-django==4.11.1
-# flake8==7.2.0
-# black==25.1.0
+# pytest
+# pytest-django
+# flake8
+# black

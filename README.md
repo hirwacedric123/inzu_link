@@ -29,8 +29,8 @@ Before you begin, ensure you have the following installed:
 
 1. Clone the repository
 ```bash
-git clone https://github.com/Bonaparte003/KoraQuest.git
-cd KoraQuest
+git clone https://github.com/hirwacedric123/inzu_link.git
+cd inzu_link
 ```
 
 2. Create a virtual environment
