@@ -9,11 +9,30 @@
 </form>
 {% csrf_token %}
 <style>
-    ::-webkit-scrollbar{
-        display: none;
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
     }
+    
+    ::-webkit-scrollbar-track {
+        background: #F6F4F0;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #6B9080;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #4A7C59;
+    }
+    
     .marketplace-container{
         width: 100%;
+        background: #F6F4F0;
+        min-height: 100vh;
+        padding: 40px;
     }
 </style>
 <div class="marketplace-container">
@@ -155,7 +174,9 @@
     .marketplace-container {
         max-width: 1600px;
         margin: 0 auto;
-        padding: 40px;
+        padding: 40px !important;
+        background: #F6F4F0 !important;
+        min-height: 100vh;
     }
 
     .qr-page-grid {
@@ -171,11 +192,12 @@
         justify-content: center;
     }
     .qr-card {
-        background: #000;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
         border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 8px 32px rgba(107, 144, 128, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.8);
         width: 100%;
         max-width: 600px;
         margin: 0 auto;
@@ -183,16 +205,15 @@
         flex-direction: column;
         align-items: center;
     }
-    .qr-card, .qr-card * {
-        color: #fff;
-    }
+    
     .qr-header {
-        background: rgb(0, 0, 0);
+        background: linear-gradient(135deg, #4A7C59 0%, #6B9080 50%, #A4C3B2 100%);
         color: white;
         padding: 30px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        width: 100%;
     }
 
     .header-content h1 {
@@ -213,7 +234,8 @@
 
     .qr-code-section {
         padding: 30px;
-        background-color: black;
+        background: rgba(246, 244, 240, 0.3);
+        width: 100%;
     }
 
     .qr-code-container {
@@ -226,9 +248,9 @@
     .qr-code-frame {
         background: #ffffff;
         padding: 20px;
-        border-radius: 15px;
-        border: 2px solid #f3f4f6;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border-radius: 16px;
+        border: 3px solid #6B9080;
+        box-shadow: 0 8px 24px rgba(107, 144, 128, 0.15);
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
@@ -239,8 +261,9 @@
     }
 
     .qr-code-frame:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(107, 144, 128, 0.25);
+        border-color: #4A7C59;
     }
 
     .qr-code-frame img {
@@ -261,20 +284,21 @@
     }
 
     .expiry-timer {
-        color: #ffffff;
+        color: #7A8B8F;
         font-size: 14px;
         display: flex;
         align-items: center;
         gap: 6px;
+        font-weight: 500;
     }
 
     .btn-refresh {
         padding: 12px 24px;
-        background: #222;
+        background: #6B9080;
         color: #fff;
         border: none;
         border-radius: 12px;
-        font-weight: 500;
+        font-weight: 600;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -285,9 +309,10 @@
     }
 
     .btn-refresh:hover {
-        background: #333;
+        background: #4A7C59;
         color: #fff;
         transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(107, 144, 128, 0.3);
     }
 
     .btn-refresh:disabled {
@@ -297,14 +322,19 @@
 
     .qr-info {
         padding: 15px;
-        background: #111;
-        color: #fff;
+        background: rgba(107, 144, 128, 0.1);
+        color: #3E4C4F;
         font-size: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        border-top: 1px solid rgba(0,0,0,0.05);
+        border-top: 2px solid rgba(216, 212, 203, 0.5);
+        width: 100%;
+    }
+    
+    .qr-info i {
+        color: #6B9080;
     }
 
     /* Empty States */
@@ -315,52 +345,55 @@
 
     .empty-icon {
         font-size: 3rem;
-        color: #6b7280;
+        color: #6B9080;
         margin-bottom: 20px;
     }
 
-    .empty-state h3 {
+    .empty-state h3, .qr-empty-state h3 {
         font-size: 1.25rem;
-        color: #1f2937;
+        color: #3E4C4F;
         margin-bottom: 8px;
+        font-weight: 600;
     }
 
-    .empty-state p {
-        color: #6b7280;
+    .empty-state p, .qr-empty-state p {
+        color: #7A8B8F;
         margin-bottom: 20px;
     }
 
     /* Pending Items Section */
     .pending-card {
-        background: white;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
         border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 8px 32px rgba(107, 144, 128, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.8);
     }
 
     .pending-header {
         padding: 25px 30px;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
+        border-bottom: 2px solid rgba(216, 212, 203, 0.5);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        background: rgba(246, 244, 240, 0.5);
     }
 
     .pending-header h2 {
         font-size: 1.25rem;
         font-weight: 600;
-        color: #1f2937;
+        color: #3E4C4F;
         margin: 0;
     }
 
     .pending-count {
-        background: #f3f4f6;
-        color: #4b5563;
-        padding: 4px 12px;
+        background: rgba(107, 144, 128, 0.15);
+        color: #4A7C59;
+        padding: 6px 14px;
         border-radius: 20px;
         font-size: 14px;
-        font-weight: 500;
+        font-weight: 600;
     }
 
     .pending-items {
@@ -370,7 +403,7 @@
     .table-container {
         overflow-x: auto;
         border-radius: 12px;
-        border: 1px solid rgba(0,0,0,0.08);
+        border: 2px solid rgba(216, 212, 203, 0.5);
     }
 
     .pending-table {
@@ -381,30 +414,30 @@
     }
 
     .pending-table thead {
-        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        background: linear-gradient(135deg, #F6F4F0, #EAE7E1);
     }
 
     .pending-table th {
         padding: 16px 12px;
         text-align: left;
         font-weight: 600;
-        color: #374151;
-        border-bottom: 2px solid #e5e7eb;
+        color: #3E4C4F;
+        border-bottom: 2px solid rgba(107, 144, 128, 0.3);
         white-space: nowrap;
     }
 
     .pending-table td {
         padding: 16px 12px;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid rgba(216, 212, 203, 0.5);
         vertical-align: middle;
     }
 
     .table-row {
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
     }
 
     .table-row:hover {
-        background: #f8f9fa;
+        background: rgba(107, 144, 128, 0.05);
     }
 
     .table-row:last-child td {
@@ -417,7 +450,7 @@
 
     .product-title {
         font-weight: 600;
-        color: #1f2937;
+        color: #3E4C4F;
         display: block;
     }
 
@@ -427,11 +460,11 @@
     }
 
     .quantity-badge {
-        background: #e0f2fe;
-        color: #0369a1;
+        background: rgba(164, 195, 178, 0.2);
+        color: #4A7C59;
         padding: 4px 12px;
         border-radius: 16px;
-        font-weight: 500;
+        font-weight: 600;
         font-size: 12px;
     }
 
@@ -441,8 +474,8 @@
     }
 
     .price-amount {
-        font-weight: 600;
-        color: #059669;
+        font-weight: 700;
+        color: #6B9080;
         font-size: 15px;
     }
 
@@ -458,7 +491,7 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        color: #6b7280;
+        color: #7A8B8F;
         font-size: 13px;
     }
 
@@ -467,37 +500,37 @@
         padding: 6px 12px;
         border-radius: 20px;
         font-size: 12px;
-        font-weight: 500;
+        font-weight: 600;
         align-items: center;
         gap: 4px;
     }
 
     .status-awaiting_pickup {
-        background: #fef3c7;
-        color: #92400e;
+        background: rgba(204, 182, 155, 0.2);
+        color: #8B6F47;
     }
 
     .status-awaiting_delivery {
-        background: #e0f2fe;
-        color: #0369a1;
+        background: rgba(164, 195, 178, 0.2);
+        color: #4A7C59;
     }
 
     .delivery-info {
         display: flex;
         align-items: center;
         gap: 6px;
-        color: #6b7280;
+        color: #7A8B8F;
         font-size: 14px;
     }
 
     .btn-primary {
         padding: 12px 24px;
-        background: linear-gradient(135deg, #6B9080, #1d4ed8);
+        background: #6B9080;
         color: white;
         border: none;
         border-radius: 12px;
-        font-weight: 500;
-        display: flex;
+        font-weight: 600;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
@@ -507,8 +540,10 @@
 
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(107, 144, 128, 0.2);
+        box-shadow: 0 6px 16px rgba(107, 144, 128, 0.3);
+        background: #4A7C59;
         color: white;
+        text-decoration: none;
     }
 
     /* Responsive Design */
@@ -663,8 +698,8 @@ function refreshQRCode() {
             
             // Show success feedback
             btn.innerHTML = '<i class="bi bi-check-circle"></i><span>Updated!</span>';
-            btn.style.background = '#dcfce7';
-            btn.style.color = '#166534';
+            btn.style.background = '#A4C3B2';
+            btn.style.color = '#fff';
             
             setTimeout(() => {
                 btn.innerHTML = originalContent;
@@ -675,8 +710,8 @@ function refreshQRCode() {
         } else {
             // Show error feedback
             btn.innerHTML = '<i class="bi bi-exclamation-triangle"></i><span>Failed to Update</span>';
-            btn.style.background = '#fee2e2';
-            btn.style.color = '#991b1b';
+            btn.style.background = '#ef4444';
+            btn.style.color = '#fff';
             
             setTimeout(() => {
                 btn.innerHTML = originalContent;
@@ -692,8 +727,8 @@ function refreshQRCode() {
         
         // Show error feedback
         btn.innerHTML = '<i class="bi bi-exclamation-triangle"></i><span>Error</span>';
-        btn.style.background = '#fee2e2';
-        btn.style.color = '#991b1b';
+        btn.style.background = '#ef4444';
+        btn.style.color = '#fff';
         
         setTimeout(() => {
             btn.innerHTML = originalContent;

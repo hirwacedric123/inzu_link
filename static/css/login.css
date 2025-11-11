@@ -2,7 +2,7 @@
 
 body {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -37,18 +37,23 @@ body {
 }
 
 .body-container {
-    flex: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
 }
 
 .container {
-    flex: 1;
+    width: 100%;
+    max-width: 600px;
     display: flex;
     justify-content: center;
-    align-items: stretch;
-    height: 100vh;
+    align-items: center;
+    min-height: 100vh;
     background-color: transparent;
-    overflow: hidden;
-    padding: 20px 5px;
+    padding: 40px 20px;
+    margin: 0 auto;
 }
 
 ::-webkit-scrollbar{
@@ -57,13 +62,12 @@ body {
 
 .sub-container {
     width: 100%;
-    height: 100%;
     background-color: transparent;
-    padding: 2rem 4rem;
-    overflow-y: auto;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    
+    justify-content: center;
+    align-items: center;
 }
 
 .logo {
@@ -185,6 +189,44 @@ body {
     background-color: #fff;
     transform: translateY(-2px);
 }
+
+/* Password Toggle Button */
+.password-input-wrapper {
+    position: relative;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: #7A8B8F;
+    transition: all 0.3s ease;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.password-toggle-btn:hover {
+    color: #6B9080;
+    background-color: rgba(107, 144, 128, 0.1);
+}
+
+.password-toggle-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.password-toggle-btn i {
+    font-size: 1.1rem;
+    pointer-events: none;
+}
+
 /* smaller screen input group 1450px - 800px*/
 @media (max-width: 1450px) {
     .form-container{
@@ -200,6 +242,13 @@ body {
     }
     .form-label{
         font-size: 0.7rem;
+    }
+    .password-toggle-btn {
+        right: 12px;
+        padding: 6px;
+    }
+    .password-toggle-btn i {
+        font-size: 1rem;
     }
 }
 
@@ -360,6 +409,15 @@ body {
         font-size: 0.9rem;
     }
     
+    .password-toggle-btn {
+        right: 12px;
+        padding: 6px;
+    }
+    
+    .password-toggle-btn i {
+        font-size: 0.95rem;
+    }
+    
     .form-label {
         font-size: 0.75rem;
         margin-bottom: 6px;
@@ -414,6 +472,15 @@ body {
     .input-group input {
         padding: 8px 10px;
         font-size: 0.85rem;
+    }
+    
+    .password-toggle-btn {
+        right: 10px;
+        padding: 5px;
+    }
+    
+    .password-toggle-btn i {
+        font-size: 0.9rem;
     }
     
     .form-label {
