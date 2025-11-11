@@ -15,7 +15,7 @@ from decimal import Decimal
 @require_POST
 def get_purchases_by_qr(request):
     """API endpoint to get purchases from a QR code"""
-    if not request.user.is_inzulink():
+    if not request.user.is_koraquest():
         return JsonResponse({'error': 'Access denied. InzuLink role required.', 'purchases': []}, status=403)
     
     try:
@@ -82,7 +82,7 @@ def get_purchases_by_qr(request):
 @require_POST
 def verify_buyer_credentials(request):
     """API endpoint to verify buyer credentials"""
-    if not request.user.is_inzulink():
+    if not request.user.is_koraquest():
         return JsonResponse({'error': 'Access denied. InzuLink role required.'}, status=403)
     
     try:
@@ -119,7 +119,7 @@ def verify_buyer_credentials(request):
 @require_POST
 def send_otp(request):
     """API endpoint to send OTP for purchase verification"""
-    if not request.user.is_inzulink():
+    if not request.user.is_koraquest():
         return JsonResponse({'error': 'Access denied. InzuLink role required.'}, status=403)
     
     try:
@@ -154,7 +154,7 @@ def send_otp(request):
 @require_POST
 def verify_otp_view(request):
     """API endpoint to verify OTP for purchase confirmation"""
-    if not request.user.is_inzulink():
+    if not request.user.is_koraquest():
         return JsonResponse({'error': 'Access denied. InzuLink role required.'}, status=403)
     
     try:
@@ -189,7 +189,7 @@ def verify_otp_view(request):
 @require_POST
 def complete_purchase_pickup(request):
     """API endpoint to complete purchase pickup after OTP verification"""
-    if not request.user.is_inzulink():
+    if not request.user.is_koraquest():
         return JsonResponse({'error': 'Access denied. InzuLink role required.'}, status=403)
     
     try:
@@ -219,7 +219,7 @@ def complete_purchase_pickup(request):
         
         # Complete the purchase
         purchase.status = 'completed'
-        purchase.inzulink_user = request.user
+        purchase.koraquest_user = request.user
         purchase.pickup_confirmed_at = timezone.now()
         purchase.save()
         
@@ -244,7 +244,7 @@ def complete_purchase_pickup(request):
             'success': True,
             'message': 'Purchase confirmed successfully!',
             'vendor_payment': str(purchase.vendor_payment_amount),
-            'inzulink_commission': str(purchase.inzulink_commission_amount)
+            'koraquest_commission': str(purchase.koraquest_commission_amount)
         })
     except Exception as e:
         return JsonResponse({'error': f'Error processing request: {str(e)}'}, status=500)
@@ -255,7 +255,7 @@ def get_vendor_statistics_modal(request, vendor_id):
     if request.method != 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     
-    if not request.user.is_authenticated or not request.user.is_inzulink():
+    if not request.user.is_authenticated or not request.user.is_koraquest():
         return JsonResponse({'error': 'Access denied'}, status=403)
     
     try:
@@ -266,7 +266,7 @@ def get_vendor_statistics_modal(request, vendor_id):
         purchases = Purchase.objects.filter(
             product__user=vendor,
             status='completed'
-        ).select_related('product', 'buyer', 'inzulink_user')
+        ).select_related('product', 'buyer', 'koraquest_user')
         
         # Calculate vendor statistics
         total_sales = purchases.count()
@@ -293,13 +293,13 @@ def get_vendor_statistics_modal(request, vendor_id):
         ).order_by('-total_revenue')[:5])  # Limit to top 5 products
         
         # InzuLink commission from this vendor
-        inzulink_commission = purchases.aggregate(
-            total=Sum('inzulink_commission_amount')
+        koraquest_commission = purchases.aggregate(
+            total=Sum('koraquest_commission_amount')
         )['total'] or 0
         
         # Monthly InzuLink commission
-        monthly_inzulink_commission = monthly_purchases.aggregate(
-            total=Sum('inzulink_commission_amount')
+        monthly_koraquest_commission = monthly_purchases.aggregate(
+            total=Sum('koraquest_commission_amount')
         )['total'] or 0
         
         # Recent transactions
@@ -314,7 +314,7 @@ def get_vendor_statistics_modal(request, vendor_id):
         
         commission_breakdown = {
             'vendor_earnings': float(total_revenue),
-            'inzulink_commission': float(inzulink_commission),
+            'koraquest_commission': float(koraquest_commission),
             'product_commission': float(total_product_price * Decimal('0.2')),
             'delivery_fees': float(total_delivery_fees),
             'total_transaction_value': float(total_product_price + total_delivery_fees)
@@ -339,8 +339,8 @@ def get_vendor_statistics_modal(request, vendor_id):
                 'total_revenue': float(total_revenue),
                 'monthly_revenue': float(monthly_revenue),
                 'monthly_sales': monthly_purchases.count(),
-                'inzulink_commission': float(inzulink_commission),
-                'monthly_inzulink_commission': float(monthly_inzulink_commission),
+                'koraquest_commission': float(koraquest_commission),
+                'monthly_koraquest_commission': float(monthly_koraquest_commission),
                 'commission_rate': 80,
                 'inzulink_rate': 20
             },

@@ -98,7 +98,7 @@ class UserViewSet(ModelViewSet):
     ordering = ['-date_joined']
     
     def get_queryset(self):
-        if self.request.user.is_inzulink():
+        if self.request.user.is_koraquest():
             return User.objects.all()
         elif self.request.user.is_staff_member():
             return User.objects.filter(Q(role='user') | Q(role='vendor'))
@@ -123,7 +123,7 @@ class UserViewSet(ModelViewSet):
     def become_vendor(self, request, pk=None):
         """Convert user to vendor role"""
         user = self.get_object()
-        if user.id != request.user.id and not request.user.is_inzulink():
+        if user.id != request.user.id and not request.user.is_koraquest():
             return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         
         user.is_vendor_role = True
@@ -155,7 +155,7 @@ class PostViewSet(ModelViewSet):
         return PostSerializer
     
     def get_queryset(self):
-        if self.request.user.is_inzulink():
+        if self.request.user.is_koraquest():
             return Post.objects.all()
         else:
             return Post.objects.filter(user=self.request.user)
@@ -267,7 +267,7 @@ class PurchaseViewSet(ModelViewSet):
     ordering = ['-created_at']
     
     def get_queryset(self):
-        if self.request.user.is_inzulink():
+        if self.request.user.is_koraquest():
             return Purchase.objects.all()
         elif self.request.user.is_vendor():
             return Purchase.objects.filter(product__user=self.request.user)
@@ -277,7 +277,7 @@ class PurchaseViewSet(ModelViewSet):
     @action(detail=True, methods=['post'])
     def update_status(self, request, pk=None):
         """Update purchase status (InzuLink only)"""
-        if not request.user.is_inzulink():
+        if not request.user.is_koraquest():
             return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         
         purchase = self.get_object()
@@ -288,7 +288,7 @@ class PurchaseViewSet(ModelViewSet):
         
         purchase.status = new_status
         if new_status == 'completed':
-            purchase.inzulink_user = request.user
+            purchase.koraquest_user = request.user
             purchase.pickup_confirmed_at = timezone.now()
         purchase.save()
         
@@ -326,7 +326,7 @@ class ProductReviewViewSet(ModelViewSet):
     ordering = ['-created_at']
     
     def get_queryset(self):
-        if self.request.user.is_inzulink():
+        if self.request.user.is_koraquest():
             return ProductReview.objects.all()
         else:
             return ProductReview.objects.filter(reviewer=self.request.user)
@@ -340,7 +340,7 @@ class UserQRCodeViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        if self.request.user.is_inzulink():
+        if self.request.user.is_koraquest():
             return UserQRCode.objects.all()
         else:
             return UserQRCode.objects.filter(user=self.request.user)
@@ -376,7 +376,7 @@ class OTPVerificationViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        if self.request.user.is_inzulink():
+        if self.request.user.is_koraquest():
             return OTPVerification.objects.all()
         else:
             return OTPVerification.objects.filter(user=self.request.user)
@@ -396,7 +396,7 @@ class OTPVerificationViewSet(ModelViewSet):
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         
         # Check permissions
-        if not (request.user.is_inzulink() or request.user.id == user_id):
+        if not (request.user.is_koraquest() or request.user.id == user_id):
             return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         
         try:
@@ -436,7 +436,7 @@ class OTPVerificationViewSet(ModelViewSet):
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         
         # Check permissions
-        if not (request.user.is_inzulink() or request.user.id == user_id):
+        if not (request.user.is_koraquest() or request.user.id == user_id):
             return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         
         try:
@@ -505,7 +505,7 @@ def dashboard_stats(request):
 @permission_classes([IsAuthenticated])
 def vendor_statistics(request, vendor_id):
     """Get vendor statistics (InzuLink only)"""
-    if not request.user.is_inzulink():
+    if not request.user.is_koraquest():
         return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     
     try:
@@ -532,9 +532,9 @@ def vendor_statistics(request, vendor_id):
     monthly_revenue = monthly_purchases.aggregate(total=Sum('vendor_payment_amount'))['total'] or 0
     
     # InzuLink commission
-    inzulink_commission = purchases.aggregate(total=Sum('inzulink_commission_amount'))['total'] or 0
-    monthly_inzulink_commission = monthly_purchases.aggregate(
-        total=Sum('inzulink_commission_amount')
+    koraquest_commission = purchases.aggregate(total=Sum('koraquest_commission_amount'))['total'] or 0
+    monthly_koraquest_commission = monthly_purchases.aggregate(
+        total=Sum('koraquest_commission_amount')
     )['total'] or 0
     
     data = {
@@ -544,8 +544,8 @@ def vendor_statistics(request, vendor_id):
             'total_revenue': total_revenue,
             'monthly_revenue': monthly_revenue,
             'monthly_sales': monthly_purchases.count(),
-            'inzulink_commission': inzulink_commission,
-            'monthly_inzulink_commission': monthly_inzulink_commission,
+            'koraquest_commission': koraquest_commission,
+            'monthly_koraquest_commission': monthly_koraquest_commission,
             'commission_rate': 80,
             'inzulink_rate': 20
         }
@@ -559,7 +559,7 @@ def vendor_statistics(request, vendor_id):
 @permission_classes([IsAuthenticated])
 def get_purchases_by_qr(request):
     """Get purchases from QR code (InzuLink only)"""
-    if not request.user.is_inzulink():
+    if not request.user.is_koraquest():
         return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     
     qr_data = request.data.get('qr_data')
@@ -596,7 +596,7 @@ def get_purchases_by_qr(request):
 @permission_classes([IsAuthenticated])
 def complete_purchase_pickup(request):
     """Complete purchase pickup (InzuLink only)"""
-    if not request.user.is_inzulink():
+    if not request.user.is_koraquest():
         return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
     
     purchase_id = request.data.get('purchase_id')
@@ -616,7 +616,7 @@ def complete_purchase_pickup(request):
     
     # Complete the purchase
     purchase.status = 'completed'
-    purchase.inzulink_user = request.user
+    purchase.koraquest_user = request.user
     purchase.pickup_confirmed_at = timezone.now()
     purchase.save()
     
@@ -638,5 +638,5 @@ def complete_purchase_pickup(request):
     return Response({
         'message': 'Purchase confirmed successfully',
         'vendor_payment': str(purchase.vendor_payment_amount),
-        'inzulink_commission': str(purchase.inzulink_commission_amount)
+        'koraquest_commission': str(purchase.koraquest_commission_amount)
     })

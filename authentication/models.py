@@ -38,7 +38,7 @@ class User(AbstractUser):
     def is_vendor(self):
         return self.is_vendor_role
     
-    def is_inzulink(self):
+    def is_koraquest(self):
         return self.role == 'inzulink'
 
 class Post(models.Model):
@@ -144,14 +144,14 @@ class Purchase(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     # InzuLink workflow fields
-    inzulink_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
-                                     related_name='inzulink_purchases', 
+    koraquest_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
+                                     related_name='koraquest_purchases', 
                                      help_text="InzuLink user handling this purchase")
     pickup_confirmed_at = models.DateTimeField(null=True, blank=True)
     vendor_payment_sent = models.BooleanField(default=False)
-    inzulink_commission_sent = models.BooleanField(default=False)
+    koraquest_commission_sent = models.BooleanField(default=False)
     vendor_payment_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    inzulink_commission_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    koraquest_commission_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
     def save(self, *args, **kwargs):
         if not self.order_id:
@@ -169,7 +169,7 @@ class Purchase(models.Model):
             total_amount = self.purchase_price + self.delivery_fee
             product_amount = self.purchase_price
             self.vendor_payment_amount = product_amount * Decimal('0.8')  # 80% of product price to vendor
-            self.inzulink_commission_amount = (product_amount * Decimal('0.2')) + self.delivery_fee  # 20% of product + full delivery fee to InzuLink
+            self.koraquest_commission_amount = (product_amount * Decimal('0.2')) + self.delivery_fee  # 20% of product + full delivery fee to InzuLink
         
         super().save(*args, **kwargs)
     

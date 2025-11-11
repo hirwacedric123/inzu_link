@@ -2,7 +2,7 @@
 
 InzuLink is a Django-based web application that has the purpose of helping people to buy and sell products amongst each other.
 
-![Alt InzuLink](./InzuLink.png)
+![Alt InzuLink](./static/images/hero.png)
 
 ## 🌐 Demo UI
 

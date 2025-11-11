@@ -748,7 +748,7 @@
         <div class="success-amount">
             <h4>Transaction Summary</h4>
             <p>Vendor Payment: <span class="highlight" id="vendor-payment">RWF 0.00</span></p>
-            <p>InzuLink Commission: <span class="highlight" id="inzulink-commission">RWF 0.00</span></p>
+            <p>InzuLink Commission: <span class="highlight" id="koraquest-commission">RWF 0.00</span></p>
         </div>
         <p style="color: #666; font-size: 0.9rem;">Preparing for next scan...</p>
     </div>
@@ -2152,8 +2152,8 @@ function completePurchase() {
             if (data.vendor_payment) {
                 document.getElementById('vendor-payment').textContent = `RWF ${data.vendor_payment}`;
             }
-            if (data.inzulink_commission) {
-                document.getElementById('inzulink-commission').textContent = `RWF ${data.inzulink_commission}`;
+            if (data.koraquest_commission) {
+                document.getElementById('koraquest-commission').textContent = `RWF ${data.koraquest_commission}`;
             }
             
             // Show success animation and refresh for next scan

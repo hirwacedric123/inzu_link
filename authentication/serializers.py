@@ -184,7 +184,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
     """Serializer for Purchase model"""
     buyer = UserSerializer(read_only=True)
     product = PostSerializer(read_only=True)
-    inzulink_user = UserSerializer(read_only=True)
+    koraquest_user = UserSerializer(read_only=True)
     
     class Meta:
         model = Purchase
@@ -192,14 +192,14 @@ class PurchaseSerializer(serializers.ModelSerializer):
             'id', 'order_id', 'buyer', 'product', 'quantity', 'purchase_price',
             'status', 'delivery_method', 'payment_method', 'delivery_fee',
             'delivery_address', 'delivery_latitude', 'delivery_longitude',
-            'created_at', 'updated_at', 'inzulink_user', 'pickup_confirmed_at',
-            'vendor_payment_sent', 'inzulink_commission_sent',
-            'vendor_payment_amount', 'inzulink_commission_amount'
+            'created_at', 'updated_at', 'koraquest_user', 'pickup_confirmed_at',
+            'vendor_payment_sent', 'koraquest_commission_sent',
+            'vendor_payment_amount', 'koraquest_commission_amount'
         ]
         read_only_fields = [
-            'id', 'order_id', 'created_at', 'updated_at', 'inzulink_user',
-            'pickup_confirmed_at', 'vendor_payment_sent', 'inzulink_commission_sent',
-            'vendor_payment_amount', 'inzulink_commission_amount'
+            'id', 'order_id', 'created_at', 'updated_at', 'koraquest_user',
+            'pickup_confirmed_at', 'vendor_payment_sent', 'koraquest_commission_sent',
+            'vendor_payment_amount', 'koraquest_commission_amount'
         ]
 
 
@@ -269,8 +269,8 @@ class VendorStatisticsSerializer(serializers.Serializer):
     total_revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
     monthly_revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
     monthly_sales = serializers.IntegerField()
-    inzulink_commission = serializers.DecimalField(max_digits=12, decimal_places=2)
-    monthly_inzulink_commission = serializers.DecimalField(max_digits=12, decimal_places=2)
+    koraquest_commission = serializers.DecimalField(max_digits=12, decimal_places=2)
+    monthly_koraquest_commission = serializers.DecimalField(max_digits=12, decimal_places=2)
     commission_rate = serializers.IntegerField()
     inzulink_rate = serializers.IntegerField()
 

@@ -415,9 +415,9 @@
         <!-- InzuLink Commission from this vendor -->
         <div class="main-stat-card inzulink-stat-card">
             <div class="stat-icon">💵</div>
-            <div class="stat-value">RWF {{ inzulink_commission|floatformat:2 }}</div>
+            <div class="stat-value">RWF {{ koraquest_commission|floatformat:2 }}</div>
             <div class="stat-label">InzuLink Commission (20%)</div>
-            <div class="stat-change">+{{ monthly_inzulink_commission|floatformat:2 }} this month</div>
+            <div class="stat-change">+{{ monthly_koraquest_commission|floatformat:2 }} this month</div>
         </div>
     </div>
 
@@ -432,7 +432,7 @@
                 <div class="breakdown-label">Vendor Earnings (80%)</div>
             </div>
             <div class="breakdown-item inzulink-item">
-                <div class="breakdown-value">RWF {{ commission_breakdown.inzulink_commission|floatformat:2 }}</div>
+                <div class="breakdown-value">RWF {{ commission_breakdown.koraquest_commission|floatformat:2 }}</div>
                 <div class="breakdown-label">InzuLink Commission (20%)</div>
             </div>
             <div class="breakdown-item">
@@ -459,7 +459,7 @@
             <div class="progress-item">
                 <div class="progress-label">
                     <span>InzuLink Commission (20%)</span>
-                    <span>RWF {{ commission_breakdown.inzulink_commission|floatformat:2 }}</span>
+                    <span>RWF {{ commission_breakdown.koraquest_commission|floatformat:2 }}</span>
                 </div>
                 <div class="progress-bar">
                     <div class="progress-fill inzulink-progress" style="width: 20%"></div>
