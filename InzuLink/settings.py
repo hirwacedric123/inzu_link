@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,23 +22,33 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-yg!+2gbi#185v4j8r!qg&@+%mrl*qti5&1c!7y-sx0d)n(yj&@'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-yg!+2gbi#185v4j8r!qg&@+%mrl*qti5&1c!7y-sx0d)n(yj&@')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['inzulink.bonasolutions.tech', '9aef-105-178-46-181.ngrok-free.app','127.0.0.1', '83fb988dd15a.ngrok-free.app', 'localhost']
+# Get ALLOWED_HOSTS from environment or use defaults
+ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', '')
+if ALLOWED_HOSTS_ENV:
+    ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',')]
+else:
+    ALLOWED_HOSTS = ['inzulink.bonasolutions.tech', '9aef-105-178-46-181.ngrok-free.app','127.0.0.1', '83fb988dd15a.ngrok-free.app', 'localhost', '.onrender.com']
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://9aef-105-178-46-181.ngrok-free.app',
-    'https://7a124993e4dd.ngrok-free.app',
-    'https://inzulink.bonasolutions.tech',
-    'http://127.0.0.1:8000',
-    'http://localhost:8000'
-]
+# Get CSRF_TRUSTED_ORIGINS from environment or use defaults
+CSRF_TRUSTED_ORIGINS_ENV = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if CSRF_TRUSTED_ORIGINS_ENV:
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_TRUSTED_ORIGINS_ENV.split(',')]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'https://9aef-105-178-46-181.ngrok-free.app',
+        'https://7a124993e4dd.ngrok-free.app',
+        'https://inzulink.bonasolutions.tech',
+        'http://127.0.0.1:8000',
+        'http://localhost:8000'
+    ]
 
-# CSRF Configuration - adjusted for mixed HTTP/HTTPS environment
-CSRF_COOKIE_SECURE = False  # Set to False since backend is HTTP
+# CSRF Configuration - adjusted for production
+CSRF_COOKIE_SECURE = not DEBUG  # True in production (HTTPS)
 CSRF_COOKIE_HTTPONLY = False  # Must be False for JavaScript access
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_SAMESITE = 'Lax'
@@ -45,7 +56,15 @@ CSRF_COOKIE_NAME = 'csrftoken'
 CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
 CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
-# For nginx reverse proxy
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+
+# For nginx reverse proxy / Render
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -70,6 +89,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -103,12 +123,22 @@ WSGI_APPLICATION = 'InzuLink.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Use PostgreSQL in production (Render), SQLite in development
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    # Production: Use PostgreSQL from Render
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
-}
+else:
+    # Development: Use SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_USER_MODEL = 'authentication.User'
 
@@ -149,6 +179,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+# WhiteNoise configuration for static files in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (Uploads)
 MEDIA_URL = '/media/'
