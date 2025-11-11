@@ -5,15 +5,32 @@
 
 {% block extra_head %}
 <style>
+    /* Custom Scrollbar */
     ::-webkit-scrollbar {
-        display: none;
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(216, 212, 203, 0.3);
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #6B9080;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #4A7C59;
     }
     
     .statistics-container {
         width: 100%;
         margin: 0 auto;
         padding: 2rem;
-        background: #ffffff;
+        background: #F6F4F0;
         min-height: 100vh;
     }
     
@@ -26,42 +43,56 @@
     }
     
     .main-stat-card {
-        background: white;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
         border-radius: 20px;
         padding: 2rem;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 10px 40px rgba(107, 144, 128, 0.15);
+        border: 2px solid rgba(216, 212, 203, 0.5);
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
     }
     
+    .main-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #6B9080, #A4C3B2);
+        border-radius: 20px 20px 0 0;
+    }
+    
     .main-stat-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        box-shadow: 0 15px 40px rgba(107, 144, 128, 0.25);
+        border-color: #A4C3B2;
     }
     
     .stat-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.8rem;
+        font-size: 2rem;
         margin-bottom: 1rem;
-        color: white;
+        background: rgba(107, 144, 128, 0.1);
+        color: #4A7C59;
     }
     
     .stat-value {
         font-size: 2.5rem;
         font-weight: 700;
-        color: #2d3748;
+        color: #3E4C4F;
         margin-bottom: 0.5rem;
     }
     
     .stat-label {
-        color: #718096;
+        color: #7A8B8F;
         font-size: 1rem;
         font-weight: 500;
         margin-bottom: 0.5rem;
@@ -69,21 +100,34 @@
     
     .stat-change {
         font-size: 0.9rem;
-        color: #ffffff;
-        font-weight: 500;
+        color: #6B9080;
+        font-weight: 600;
+        padding: 4px 12px;
+        background: rgba(107, 144, 128, 0.1);
+        border-radius: 12px;
+        display: inline-block;
     }
     
     .stat-change.negative {
-        color: #f56565;
+        color: #DC6B4A;
+        background: rgba(220, 107, 74, 0.1);
     }
     
     /* Commission Breakdown */
     .commission-breakdown {
-        background: white;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
         border-radius: 20px;
         padding: 2rem;
         margin-bottom: 2rem;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 40px rgba(107, 144, 128, 0.15);
+        border: 2px solid rgba(216, 212, 203, 0.5);
+        transition: all 0.3s ease;
+    }
+    
+    .commission-breakdown:hover {
+        border-color: #A4C3B2;
+        box-shadow: 0 12px 45px rgba(107, 144, 128, 0.2);
     }
     
     .breakdown-header {
@@ -91,12 +135,12 @@
         align-items: center;
         margin-bottom: 1.5rem;
         padding-bottom: 1rem;
-        border-bottom: 2px solid #f7fafc;
+        border-bottom: 2px solid rgba(216, 212, 203, 0.5);
     }
     
     .breakdown-header h3 {
         margin: 0;
-        color: #2d3748;
+        color: #3E4C4F;
         font-size: 1.5rem;
         font-weight: 600;
     }
@@ -108,42 +152,60 @@
     }
     
     .breakdown-item {
-        background: #f7fafc;
+        background: rgba(246, 244, 240, 0.5);
         border-radius: 12px;
         padding: 1.5rem;
         text-align: center;
-        border-left: 4px solid #667eea;
+        border-left: 4px solid #6B9080;
+        transition: all 0.3s ease;
+    }
+    
+    .breakdown-item:hover {
+        background: rgba(164, 195, 178, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(107, 144, 128, 0.15);
     }
     
     .breakdown-value {
         font-size: 1.8rem;
         font-weight: 700;
-        color: #2d3748;
+        color: #3E4C4F;
         margin-bottom: 0.5rem;
     }
     
     .breakdown-label {
-        color: #718096;
+        color: #7A8B8F;
         font-size: 0.9rem;
         font-weight: 500;
     }
     
     /* Product/Vendor Stats */
     .detailed-stats {
-        background: white;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
         border-radius: 20px;
         padding: 2rem;
         margin-bottom: 2rem;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 40px rgba(107, 144, 128, 0.15);
+        border: 2px solid rgba(216, 212, 203, 0.5);
+        transition: all 0.3s ease;
+    }
+    
+    .detailed-stats:hover {
+        border-color: #A4C3B2;
+        box-shadow: 0 12px 45px rgba(107, 144, 128, 0.2);
     }
     
     .detailed-stats h3 {
         margin: 0 0 1.5rem 0;
-        color: #2d3748;
+        color: #3E4C4F;
         font-size: 1.5rem;
         font-weight: 600;
         padding-bottom: 1rem;
-        border-bottom: 2px solid #f7fafc;
+        border-bottom: 2px solid rgba(216, 212, 203, 0.5);
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
     
     .stats-table {
@@ -155,28 +217,46 @@
     .stats-table td {
         padding: 1rem;
         text-align: left;
-        border-bottom: 1px solid #f7fafc;
+        border-bottom: 1px solid rgba(216, 212, 203, 0.3);
     }
     
     .stats-table th {
-        background: #f7fafc;
+        background: rgba(246, 244, 240, 0.5);
         font-weight: 600;
-        color: #4a5568;
+        color: #3E4C4F;
         font-size: 0.9rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
     
-    .stats-table tr:hover {
-        background: #f7fafc;
+    .stats-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    .stats-table tbody tr:hover {
+        background: rgba(107, 144, 128, 0.05);
+        transform: translateX(4px);
+    }
+    
+    .stats-table td {
+        color: #3E4C4F;
+        font-weight: 500;
     }
     
     /* Recent Transactions */
     .recent-transactions {
-        background: white;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
         border-radius: 20px;
         padding: 2rem;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 40px rgba(107, 144, 128, 0.15);
+        border: 2px solid rgba(216, 212, 203, 0.5);
+        transition: all 0.3s ease;
+    }
+    
+    .recent-transactions:hover {
+        border-color: #A4C3B2;
+        box-shadow: 0 12px 45px rgba(107, 144, 128, 0.2);
     }
     
     .transaction-item {
@@ -184,7 +264,13 @@
         justify-content: space-between;
         align-items: center;
         padding: 1rem 0;
-        border-bottom: 1px solid #f7fafc;
+        border-bottom: 1px solid rgba(216, 212, 203, 0.3);
+        transition: all 0.2s ease;
+    }
+    
+    .transaction-item:hover {
+        padding-left: 8px;
+        background: rgba(107, 144, 128, 0.05);
     }
     
     .transaction-item:last-child {
@@ -193,19 +279,20 @@
     
     .transaction-info h4 {
         margin: 0 0 0.25rem 0;
-        color: #2d3748;
+        color: #3E4C4F;
         font-size: 1rem;
+        font-weight: 600;
     }
     
     .transaction-info p {
         margin: 0;
-        color: #718096;
+        color: #7A8B8F;
         font-size: 0.9rem;
     }
     
     .transaction-amount {
         font-weight: 700;
-        color: #2d3748;
+        color: #6B9080;
         font-size: 1.1rem;
     }
     
@@ -264,26 +351,27 @@
         justify-content: space-between;
         margin-bottom: 0.5rem;
         font-size: 0.9rem;
-        color: #4a5568;
+        color: #3E4C4F;
+        font-weight: 500;
     }
     
     .progress-bar {
         width: 100%;
-        height: 8px;
-        background: #e2e8f0;
-        border-radius: 4px;
+        height: 10px;
+        background: rgba(216, 212, 203, 0.3);
+        border-radius: 10px;
         overflow: hidden;
     }
     
     .progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, #667eea, #764ba2);
-        border-radius: 4px;
-        transition: width 0.3s ease;
+        background: linear-gradient(90deg, #6B9080, #A4C3B2);
+        border-radius: 10px;
+        transition: width 0.5s ease;
     }
     
     .vendor-progress .progress-fill {
-        background: linear-gradient(90deg, #48bb78, #38a169);
+        background: linear-gradient(90deg, #4A7C59, #6B9080);
     }
 </style>
 {% endblock %}
@@ -306,7 +394,7 @@
     <!-- Main Statistics Grid -->
     <div class="main-stats-grid">
         {% if user_type == 'vendor' %}
-            <div class="main-stat-card vendor-theme" style="background-color: #f8c50d;">
+            <div class="main-stat-card vendor-theme">
                 <div class="stat-icon">
                     💵
                 </div>
@@ -315,14 +403,14 @@
                 <div class="stat-change">+{{ monthly_revenue|floatformat:2 }} this month</div>
             </div>
             
-            <div class="main-stat-card vendor-theme" style="background-color: rgb(16, 16, 208);">
+            <div class="main-stat-card vendor-theme">
                 <div class="stat-icon">📦</div>
-                <div class="stat-value" style="color: white;">{{ total_sales }}</div>
-                <div class="stat-label" style="color: white;">Total Sales</div>
+                <div class="stat-value">{{ total_sales }}</div>
+                <div class="stat-label">Total Sales</div>
                 <div class="stat-change">+{{ monthly_sales }} this month</div>
             </div>
             
-            <div class="main-stat-card vendor-theme" style="background-color: rgb(16, 208, 77);">
+            <div class="main-stat-card vendor-theme">
                 <div class="stat-icon">📈</div>
                 <div class="stat-value">RWF {{ monthly_revenue|floatformat:2 }}</div>
                 <div class="stat-label">Monthly Revenue</div>
@@ -330,7 +418,7 @@
             </div>
             
         {% elif user_type == 'inzulink' %}
-            <div class="main-stat-card" style="background-color: #f8c50d;">
+            <div class="main-stat-card">
                 <div class="stat-icon">
                     💵
                 </div>
@@ -339,23 +427,23 @@
                 <div class="stat-change">+{{ monthly_commission|floatformat:2 }} this month</div>
             </div>
             
-            <div class="main-stat-card" style="background-color: rgb(16, 16, 208);">
+            <div class="main-stat-card">
                 <div class="stat-icon">🔄</div>
-                <div class="stat-value" style="color: #ffffff;">{{ total_transactions }}</div>
-                <div class="stat-label" style="color: #000000;">Total Transactions</div>
+                <div class="stat-value">{{ total_transactions }}</div>
+                <div class="stat-label">Total Transactions</div>
                 <div class="stat-change">+{{ monthly_transactions }} this month</div>
             </div>
             
-            <div class="main-stat-card" style="background-color: rgb(16, 208, 77);">
+            <div class="main-stat-card">
                 <div class="stat-icon">📊</div>
                 <div class="stat-value">RWF {{ monthly_commission|floatformat:2 }}</div>
                 <div class="stat-label">Monthly Commission</div>
                 <div class="stat-change">Current month earnings</div>
             </div>
             
-            <div class="main-stat-card" style="background-color: rgb(230, 152, 6);">
+            <div class="main-stat-card">
                 <div class="stat-icon">🎯</div>
-                <div class="stat-value" style="color: #ffffff;">{{ commission_rate }}%</div>
+                <div class="stat-value">{{ commission_rate }}%</div>
                 <div class="stat-label">Commission Rate</div>
                 <div class="stat-change">+ delivery fees</div>
             </div>
@@ -471,11 +559,11 @@
     .btn {
         display: inline-block;
         padding: 12px 24px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
+        background: linear-gradient(135deg, #6B9080, #4A7C59);
         color: white;
         text-decoration: none;
         border-radius: 12px;
-        font-weight: 500;
+        font-weight: 600;
         transition: all 0.3s ease;
         border: none;
         cursor: pointer;
@@ -483,13 +571,47 @@
     
     .btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 8px 20px rgba(107, 144, 128, 0.3);
         color: white;
         text-decoration: none;
+        background: linear-gradient(135deg, #4A7C59, #6B9080);
     }
     
     .btn-primary {
-        background: linear-gradient(135deg, #667eea, #764ba2);
+        background: linear-gradient(135deg, #6B9080, #4A7C59);
+    }
+    
+    .btn-export {
+        background: linear-gradient(135deg, #6B9080, #4A7C59) !important;
+        border: none !important;
+        color: white !important;
+        font-weight: 600;
+        padding: 12px 24px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-export:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(107, 144, 128, 0.3);
+        background: linear-gradient(135deg, #4A7C59, #6B9080) !important;
+    }
+    
+    .dropdown-menu {
+        border: 2px solid rgba(216, 212, 203, 0.5);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(107, 144, 128, 0.15);
+    }
+    
+    .dropdown-item {
+        color: #3E4C4F;
+        padding: 10px 20px;
+        transition: all 0.2s ease;
+    }
+    
+    .dropdown-item:hover {
+        background: rgba(107, 144, 128, 0.1);
+        color: #4A7C59;
     }
     
     .table-responsive {
@@ -501,20 +623,23 @@
         align-items: center;
         gap: 0.5rem;
         padding: 0.5rem 1rem;
-        background: black;
+        background: #6B9080;
         color: white;
         text-decoration: none;
         border-radius: 8px;
         font-size: 0.9rem;
-        font-weight: 500;
+        font-weight: 600;
         transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
     }
     
     .btn-view-vendor:hover {
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 5px 15px rgba(107, 144, 128, 0.3);
         color: white;
         text-decoration: none;
+        background: #4A7C59;
     }
     
     /* Modal Styles */
@@ -525,20 +650,22 @@
         top: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0,0,0,0.5);
-        backdrop-filter: blur(5px);
+        background-color: rgba(62, 76, 79, 0.6);
+        backdrop-filter: blur(10px);
     }
     
     .modal-content {
-        background-color: #fefefe;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(30px);
         margin: 2% auto;
         padding: 0;
-        border-radius: 20px;
+        border-radius: 24px;
         width: 90%;
         max-width: 1200px;
         max-height: 90vh;
         overflow-y: auto;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        box-shadow: 0 25px 70px rgba(107, 144, 128, 0.25);
+        border: 2px solid rgba(216, 212, 203, 0.5);
         animation: modalSlideIn 0.3s ease-out;
     }
     
@@ -554,10 +681,10 @@
     }
     
     .modal-header {
-        background: black;
+        background: linear-gradient(135deg, #4A7C59 0%, #6B9080 50%, #A4C3B2 100%);
         color: white;
         padding: 1.5rem 2rem;
-        border-radius: 20px 20px 0 0;
+        border-radius: 24px 24px 0 0;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -567,6 +694,7 @@
         margin: 0;
         font-size: 1.5rem;
         font-weight: 600;
+        color: white;
     }
     
     .close {
@@ -574,23 +702,33 @@
         font-size: 2rem;
         font-weight: bold;
         cursor: pointer;
-        transition: opacity 0.3s ease;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
     }
     
     .close:hover {
-        opacity: 0.7;
+        background: rgba(255, 255, 255, 0.2);
+        transform: rotate(90deg);
     }
     
     .modal-body {
         padding: 2rem;
         max-height: 70vh;
         overflow-y: auto;
+        background: #F6F4F0;
     }
     
     .loading {
         text-align: center;
         padding: 2rem;
-        color: #718096;
+        color: #7A8B8F;
         font-size: 1.1rem;
     }
     
@@ -609,28 +747,36 @@
     }
     
     .modal-stat-card {
-        background: white;
-        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
         padding: 1.5rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 8px 25px rgba(107, 144, 128, 0.15);
+        border: 2px solid rgba(216, 212, 203, 0.5);
         text-align: center;
         width: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    .modal-stat-card:hover {
+        border-color: #A4C3B2;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(107, 144, 128, 0.2);
     }
     
     .modal-stat-value {
         font-size: 1.5rem;
         font-weight: 700;
-        color: #2d3748;
+        color: #3E4C4F;
         margin-bottom: 0.5rem;
     }
     
     .modal-stat-label {
-        color: #718096;
+        color: #7A8B8F;
         font-size: 0.9rem;
         font-weight: 500;
     }
@@ -639,20 +785,38 @@
         width: 100%;
         border-collapse: collapse;
         margin-top: 1rem;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        overflow: hidden;
     }
     
     .modal-table th,
     .modal-table td {
         padding: 0.75rem;
         text-align: left;
-        border-bottom: 1px solid #f7fafc;
+        border-bottom: 1px solid rgba(216, 212, 203, 0.3);
     }
     
     .modal-table th {
-        background: #f7fafc;
+        background: rgba(246, 244, 240, 0.8);
         font-weight: 600;
-        color: #4a5568;
+        color: #3E4C4F;
         font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .modal-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    .modal-table tbody tr:hover {
+        background: rgba(107, 144, 128, 0.05);
+    }
+    
+    .modal-table td {
+        color: #3E4C4F;
+        font-weight: 500;
     }
     
     .modal-section {
@@ -660,12 +824,12 @@
     }
     
     .modal-section h3 {
-        color: #2d3748;
+        color: #3E4C4F;
         font-size: 1.3rem;
         font-weight: 600;
         margin-bottom: 1rem;
         padding-bottom: 0.5rem;
-        border-bottom: 2px solid #f7fafc;
+        border-bottom: 2px solid rgba(216, 212, 203, 0.5);
     }
     
     @media (max-width: 768px) {
