@@ -1,6 +1,6 @@
-# CORS Configuration for KoraQuest API
+# CORS Configuration for InzuLink API
 
-This guide explains the CORS (Cross-Origin Resource Sharing) configuration for your KoraQuest API.
+This guide explains the CORS (Cross-Origin Resource Sharing) configuration for your InzuLink API.
 
 ## 🔧 Current CORS Setup
 
@@ -17,7 +17,7 @@ This guide explains the CORS (Cross-Origin Resource Sharing) configuration for y
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",      # React development server
     "http://127.0.0.1:3000",      # Alternative localhost
-    "https://koraquest.bonasolutions.tech",  # Production domain
+    "https://inzulink.bonasolutions.tech",  # Production domain
 ]
 
 CORS_ALLOW_CREDENTIALS = True  # Allows cookies and authentication headers
@@ -40,9 +40,9 @@ if DEBUG:
 ```python
 # For production - specific origins only
 CORS_ALLOWED_ORIGINS = [
-    "https://koraquest.bonasolutions.tech",
-    "https://www.koraquest.bonasolutions.tech",
-    "https://app.koraquest.bonasolutions.tech",
+    "https://inzulink.bonasolutions.tech",
+    "https://www.inzulink.bonasolutions.tech",
+    "https://app.inzulink.bonasolutions.tech",
 ]
 ```
 
@@ -200,12 +200,12 @@ import os
 # Environment-specific CORS origins
 if os.getenv('ENVIRONMENT') == 'production':
     CORS_ALLOWED_ORIGINS = [
-        "https://koraquest.bonasolutions.tech",
-        "https://www.koraquest.bonasolutions.tech",
+        "https://inzulink.bonasolutions.tech",
+        "https://www.inzulink.bonasolutions.tech",
     ]
 elif os.getenv('ENVIRONMENT') == 'staging':
     CORS_ALLOWED_ORIGINS = [
-        "https://staging.koraquest.bonasolutions.tech",
+        "https://staging.inzulink.bonasolutions.tech",
     ]
 else:  # development
     CORS_ALLOWED_ORIGINS = [

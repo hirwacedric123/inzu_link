@@ -2,11 +2,11 @@
 {% load static %}
 {% load currency_filters %}
 
-{% block title %}KoraQuest Dashboard{% endblock %}
+{% block title %}InzuLink Dashboard{% endblock %}
 
 {% block extra_head %}
 <style>
-    .koraquest-dashboard {
+    .inzulink-dashboard {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
         padding: 20px;
@@ -143,24 +143,24 @@
 </style>
 {% endblock %}
 
-{% block koraquest_nav %}
-<div class="koraquest-top-nav">
-    <div class="koraquest-nav-content">
-        <div class="koraquest-nav-title">
+{% block inzulink_nav %}
+<div class="inzulink-top-nav">
+    <div class="inzulink-nav-content">
+        <div class="inzulink-nav-title">
             <i class="bi bi-shield-check"></i>
-            KoraQuest Control Center
+            InzuLink Control Center
         </div>
-        <div class="koraquest-nav-actions">
-            <a href="{% url 'koraquest_dashboard' %}" 
-               class="koraquest-nav-btn {% if request.resolver_match.url_name == 'koraquest_dashboard' %}active{% endif %}">
+        <div class="inzulink-nav-actions">
+            <a href="{% url 'inzulink_dashboard' %}" 
+               class="inzulink-nav-btn {% if request.resolver_match.url_name == 'inzulink_dashboard' %}active{% endif %}">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
             <a href="{% url 'scan_qr_code' %}" 
-               class="koraquest-nav-btn {% if request.resolver_match.url_name == 'scan_qr_code' %}active{% endif %}">
+               class="inzulink-nav-btn {% if request.resolver_match.url_name == 'scan_qr_code' %}active{% endif %}">
                 <i class="bi bi-qr-code-scan"></i> QR Scanner
             </a>
-            <a href="{% url 'koraquest_purchase_history' %}" 
-               class="koraquest-nav-btn {% if request.resolver_match.url_name == 'koraquest_purchase_history' %}active{% endif %}">
+            <a href="{% url 'inzulink_purchase_history' %}" 
+               class="inzulink-nav-btn {% if request.resolver_match.url_name == 'inzulink_purchase_history' %}active{% endif %}">
                 <i class="bi bi-clock-history"></i> History
             </a>
         </div>
@@ -169,9 +169,9 @@
 {% endblock %}
 
 {% block content %}
-<div class="koraquest-dashboard">
+<div class="inzulink-dashboard">
     <div class="dashboard-header">
-        <h1>🏪 KoraQuest Dashboard</h1>
+        <h1>🏪 InzuLink Dashboard</h1>
         <p>Managing marketplace transactions and verifications</p>
         <div style="margin-top: 1rem;">
             <a href="{% url 'sales_statistics' %}" class="btn" style="background: #4caf50; margin-right: 1rem;">
@@ -301,7 +301,7 @@
                         Customer: {{ purchase.buyer.username }} | 
                         Order: {{ purchase.order_id }} | 
                         Vendor Payment: RWF{{ purchase.vendor_payment_amount|floatformat:2 }} | 
-                        Commission: RWF{{ purchase.koraquest_commission_amount|floatformat:2 }}
+                        Commission: RWF{{ purchase.inzulink_commission_amount|floatformat:2 }}
                     </small><br>
                     <span class="status completed">Completed</span>
                 </div>
@@ -345,7 +345,7 @@
     <div style="text-align: center; margin-top: 30px;">
         <a href="{% url 'dashboard' %}" class="btn">Back to Main Dashboard</a>
         <a href="{% url 'scan_qr_code' %}" class="btn" style="background: #4caf50;">QR Scanner</a>
-        <a href="{% url 'koraquest_purchase_history' %}" class="btn">Purchase History</a>
+        <a href="{% url 'inzulink_purchase_history' %}" class="btn">Purchase History</a>
     </div>
 </div>
 {% endblock %}

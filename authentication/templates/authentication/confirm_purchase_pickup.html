@@ -317,8 +317,8 @@ Confirm Purchase Pickup
                     <span>RWF{{ purchase.vendor_payment_amount|floatformat:2 }}</span>
                 </div>
                 <div class="payment-item">
-                    <span>KoraQuest Commission (20% + delivery fee)</span>
-                    <span>RWF{{ purchase.koraquest_commission_amount|floatformat:2 }}</span>
+                    <span>InzuLink Commission (20% + delivery fee)</span>
+                    <span>RWF{{ purchase.inzulink_commission_amount|floatformat:2 }}</span>
                 </div>
                 <div class="payment-item">
                     <span>Total Amount</span>
@@ -406,7 +406,7 @@ Confirm Purchase Pickup
         <!-- Navigation -->
         <div style="text-align: center; margin-top: 30px;">
             <a href="{% url 'scan_qr_code' %}" class="btn">Back to QR Scanner</a>
-            <a href="{% url 'koraquest_dashboard' %}" class="btn">Dashboard</a>
+            <a href="{% url 'inzulink_dashboard' %}" class="btn">Dashboard</a>
         </div>
     </div>
 </div>

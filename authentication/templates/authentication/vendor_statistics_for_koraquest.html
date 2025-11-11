@@ -1,7 +1,7 @@
 {% extends "authentication/base.html" %}
 {% load static %}
 
-{% block title %}Vendor Statistics - {{ vendor.username }} - KoraQuest{% endblock %}
+{% block title %}Vendor Statistics - {{ vendor.username }} - InzuLink{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -120,7 +120,7 @@
         background: linear-gradient(90deg, #48bb78, #38a169);
     }
     
-    .koraquest-stat-card::before {
+    .inzulink-stat-card::before {
         background: linear-gradient(90deg, #667eea, #764ba2);
     }
     
@@ -141,7 +141,7 @@
         background: linear-gradient(135deg, #48bb78, #38a169);
     }
     
-    .koraquest-stat-card .stat-icon {
+    .inzulink-stat-card .stat-icon {
         background: linear-gradient(135deg, #667eea, #764ba2);
     }
     
@@ -211,7 +211,7 @@
         border-left-color: #48bb78;
     }
     
-    .breakdown-item.koraquest-item {
+    .breakdown-item.inzulink-item {
         border-left-color: #667eea;
     }
     
@@ -344,7 +344,7 @@
         background: linear-gradient(90deg, #48bb78, #38a169);
     }
     
-    .koraquest-progress .progress-fill {
+    .inzulink-progress .progress-fill {
         background: linear-gradient(90deg, #667eea, #764ba2);
     }
     
@@ -412,12 +412,12 @@
             <div class="stat-change">Current month earnings</div>
         </div>
         
-        <!-- KoraQuest Commission from this vendor -->
-        <div class="main-stat-card koraquest-stat-card">
+        <!-- InzuLink Commission from this vendor -->
+        <div class="main-stat-card inzulink-stat-card">
             <div class="stat-icon">💵</div>
-            <div class="stat-value">RWF {{ koraquest_commission|floatformat:2 }}</div>
-            <div class="stat-label">KoraQuest Commission (20%)</div>
-            <div class="stat-change">+{{ monthly_koraquest_commission|floatformat:2 }} this month</div>
+            <div class="stat-value">RWF {{ inzulink_commission|floatformat:2 }}</div>
+            <div class="stat-label">InzuLink Commission (20%)</div>
+            <div class="stat-change">+{{ monthly_inzulink_commission|floatformat:2 }} this month</div>
         </div>
     </div>
 
@@ -431,9 +431,9 @@
                 <div class="breakdown-value">RWF {{ commission_breakdown.vendor_earnings|floatformat:2 }}</div>
                 <div class="breakdown-label">Vendor Earnings (80%)</div>
             </div>
-            <div class="breakdown-item koraquest-item">
-                <div class="breakdown-value">RWF {{ commission_breakdown.koraquest_commission|floatformat:2 }}</div>
-                <div class="breakdown-label">KoraQuest Commission (20%)</div>
+            <div class="breakdown-item inzulink-item">
+                <div class="breakdown-value">RWF {{ commission_breakdown.inzulink_commission|floatformat:2 }}</div>
+                <div class="breakdown-label">InzuLink Commission (20%)</div>
             </div>
             <div class="breakdown-item">
                 <div class="breakdown-value">RWF {{ commission_breakdown.delivery_fees|floatformat:2 }}</div>
@@ -458,11 +458,11 @@
             </div>
             <div class="progress-item">
                 <div class="progress-label">
-                    <span>KoraQuest Commission (20%)</span>
-                    <span>RWF {{ commission_breakdown.koraquest_commission|floatformat:2 }}</span>
+                    <span>InzuLink Commission (20%)</span>
+                    <span>RWF {{ commission_breakdown.inzulink_commission|floatformat:2 }}</span>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill koraquest-progress" style="width: 20%"></div>
+                    <div class="progress-fill inzulink-progress" style="width: 20%"></div>
                 </div>
             </div>
         </div>
@@ -527,7 +527,7 @@
     <!-- Navigation -->
     <div style="text-align: center; margin-top: 2rem;">
         <a href="{% url 'sales_statistics' %}" class="btn btn-primary">Back to Statistics</a>
-        <a href="{% url 'koraquest_dashboard' %}" class="btn btn-secondary">KoraQuest Dashboard</a>
+        <a href="{% url 'inzulink_dashboard' %}" class="btn btn-secondary">InzuLink Dashboard</a>
     </div>
 </div>
 

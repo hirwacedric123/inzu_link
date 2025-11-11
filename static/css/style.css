@@ -1,23 +1,27 @@
-/* KoraQuest Custom Styles */
+/* InzuLink Custom Styles - Modern Calm Theme */
 
 :root {
-    --kora-white: #ffffff;
-    --kora-blue: #1e88e5;
-    --kora-blue-light: #bbdefb;
-    --kora-blue-dark: #0d47a1;
-    --kora-black: #212121;
-    --kora-light-gray: #f5f5f5;
-    --kora-gray: #e0e0e0;
-    --kora-dark-gray: #757575;
-    --kora-border: #e0e0e0;
-    --kora-text: #212121;
-    --kora-text-secondary: #757575;
-    --kora-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    --inzu-white: #ffffff;
+    --inzu-primary: #6B9080;
+    --inzu-primary-light: #A4C3B2;
+    --inzu-primary-dark: #4A7C59;
+    --inzu-secondary: #CCB69B;
+    --inzu-accent: #9D8BB3;
+    --inzu-background: #F6F4F0;
+    --inzu-card-bg: #FDFCFA;
+    --inzu-text: #3E4C4F;
+    --inzu-text-secondary: #7A8B8F;
+    --inzu-light-gray: #EAE7E1;
+    --inzu-gray: #D4CFC4;
+    --inzu-dark-gray: #8A9196;
+    --inzu-border: #D8D4CB;
+    --inzu-shadow: 0 4px 20px rgba(107, 144, 128, 0.15);
+    --inzu-hover-bg: #F0EDE7;
 }
 
 /* Animated gradient button - use for special actions */
 .btn-gradient {
-    background: linear-gradient(45deg, var(--kora-blue), #00bcd4);
+    background: linear-gradient(45deg, var(--inzu-primary), var(--inzu-accent));
     border: none;
     color: white;
     transition: all 0.3s ease;
@@ -27,7 +31,7 @@
 .btn-gradient:hover {
     background-position: right center;
     color: white;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 20px rgba(107, 144, 128, 0.25);
 }
 
 /* Masonry layout styles */
@@ -44,7 +48,7 @@
     transition: all 0.3s ease;
     border: none;
     overflow: hidden;
-    box-shadow: var(--kora-shadow);
+    box-shadow: var(--inzu-shadow);
 }
 
 .masonry-item .card:hover {
@@ -100,23 +104,28 @@
 }
 
 .btn-primary {
-    background-color: var(--kora-blue);
-    border-color: var(--kora-blue);
+    background-color: var(--inzu-primary);
+    border-color: var(--inzu-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--inzu-primary-dark);
+    border-color: var(--inzu-primary-dark);
 }
 
 .btn-outline-primary {
-    color: var(--kora-blue);
-    border-color: var(--kora-blue);
+    color: var(--inzu-primary);
+    border-color: var(--inzu-primary);
 }
 
 .btn-outline-primary:hover {
-    background-color: var(--kora-blue);
-    color: var(--kora-white);
+    background-color: var(--inzu-primary);
+    color: var(--inzu-white);
 }
 
 /* Like button animation */
 .like-btn i.bi-heart-fill {
-    color: #e91e63;
+    color: #D97398;
 }
 
 .like-btn:hover {
@@ -144,27 +153,27 @@
 }
 
 .form-control:focus {
-    border-color: var(--kora-blue);
-    box-shadow: 0 0 0 0.25rem rgba(30, 136, 229, 0.15);
+    border-color: var(--inzu-primary);
+    box-shadow: 0 0 0 0.25rem rgba(107, 144, 128, 0.15);
 }
 
 .form-label {
     font-weight: 500;
     margin-bottom: 0.5rem;
-    color: var(--kora-text-secondary);
+    color: var(--inzu-text-secondary);
 }
 
 /* Login and register card styling */
 .auth-card {
-    box-shadow: var(--kora-shadow);
+    box-shadow: var(--inzu-shadow);
     border-radius: 12px;
     border: none;
     overflow: hidden;
 }
 
 .auth-card .card-header {
-    background-color: var(--kora-white);
-    border-bottom: 1px solid var(--kora-border);
+    background-color: var(--inzu-white);
+    border-bottom: 1px solid var(--inzu-border);
     padding: 1.5rem;
 }
 
@@ -173,8 +182,8 @@
 }
 
 .auth-card .card-footer {
-    background-color: var(--kora-white);
-    border-top: 1px solid var(--kora-border);
+    background-color: var(--inzu-white);
+    border-top: 1px solid var(--inzu-border);
     padding: 1.25rem;
 }
 
@@ -214,16 +223,16 @@
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--kora-light-gray);
+    background: var(--inzu-light-gray);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--kora-blue);
+    background: var(--inzu-primary);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--kora-blue-dark);
+    background: var(--inzu-primary-dark);
 }
 
 /* Loading animation */
@@ -231,9 +240,9 @@
     display: inline-block;
     width: 50px;
     height: 50px;
-    border: 3px solid rgba(30, 136, 229, 0.3);
+    border: 3px solid rgba(107, 144, 128, 0.3);
     border-radius: 50%;
-    border-top-color: var(--kora-blue);
+    border-top-color: var(--inzu-primary);
     animation: spin 1s ease-in-out infinite;
 }
 
@@ -249,7 +258,7 @@
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--kora-white);
+    border: 2px solid var(--inzu-white);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -277,11 +286,11 @@
 }
 
 .badge-featured {
-    background-color: rgba(233, 30, 99, 0.8);
+    background-color: rgba(157, 139, 179, 0.9);
 }
 
 .badge-new {
-    background-color: rgba(30, 136, 229, 0.8);
+    background-color: rgba(107, 144, 128, 0.9);
 }
 
 /* Responsive adjustments */

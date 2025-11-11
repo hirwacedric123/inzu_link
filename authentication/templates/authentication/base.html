@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}KoraQuest{% endblock %}</title>
+    <title>{% block title %}InzuLink{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,27 +16,29 @@
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="icon" href="{% static 'images/apple-touch-icon.svg'}">
     <style>
-        /* Light Theme CSS Variables */
+        /* Modern Calm Theme CSS Variables */
         :root {
-            --kora-white: #ffffff;
-            --kora-blue: #60a5fa;
-            --kora-blue-light: #93c5fd;
-            --kora-blue-dark: #3b82f6;
-            --kora-black: #1f2937;
-            --kora-light-gray: #f7f7f7;
-            --kora-gray: #e5e7eb;
-            --kora-dark-gray: #9ca3af;
-            --kora-border: #e5e7eb;
-            --kora-text: #1f2937;
-            --kora-text-secondary: #6b7280;
-            --kora-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            --kora-card-bg: #ffffff;
-            --kora-hover-bg: #f3f4f6;
+            --inzu-white: #ffffff;
+            --inzu-primary: #6B9080;
+            --inzu-primary-light: #A4C3B2;
+            --inzu-primary-dark: #4A7C59;
+            --inzu-secondary: #CCB69B;
+            --inzu-accent: #9D8BB3;
+            --inzu-background: #F6F4F0;
+            --inzu-card-bg: #FDFCFA;
+            --inzu-text: #3E4C4F;
+            --inzu-text-secondary: #7A8B8F;
+            --inzu-light-gray: #EAE7E1;
+            --inzu-gray: #D4CFC4;
+            --inzu-dark-gray: #8A9196;
+            --inzu-border: #D8D4CB;
+            --inzu-shadow: 0 4px 20px rgba(107, 144, 128, 0.15);
+            --inzu-hover-bg: #F0EDE7;
         }
 
         body {
-            background-color: #ffffff;
-            color: var(--kora-text);
+            background-color: var(--inzu-background);
+            color: var(--inzu-text);
             font-family: 'Poppins', sans-serif;
             min-height: 100vh;
             display: flex;
@@ -53,7 +55,7 @@
 
         /* Navigation styles */
         .header-container {
-            background: white;
+            background: var(--inzu-card-bg);
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
@@ -64,6 +66,7 @@
             /* border-radius: 100px; */
             height: 50px;
             width: 98%;
+            box-shadow: 0 2px 10px rgba(107, 144, 128, 0.08);
         }
 
         .nav-brand-section {
@@ -73,7 +76,7 @@
         }
 
         .nav-brand {
-            color: var(--kora-blue) !important;
+            color: var(--inzu-primary) !important;
             display: flex;
             align-items: center;
             text-decoration: none;
@@ -82,7 +85,7 @@
         .nav-brand i {
             margin-right: 8px;
             font-size: 2rem;
-            color: var(--kora-blue);
+            color: var(--inzu-primary);
         }
 
         .nav-tab {
@@ -120,14 +123,14 @@
             width: 30px;
             height: 30px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--kora-blue), var(--kora-blue-dark));
+            background: linear-gradient(135deg, var(--inzu-primary), var(--inzu-primary-dark));
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: bold;
             font-size: 14px;
-            border: 1px solid rgba(96, 165, 250, 0.2);
+            border: 1px solid rgba(107, 144, 128, 0.2);
             padding: 5px;
         }
 
@@ -135,7 +138,7 @@
         .main-wrapper {
             flex: 1;
             width: 100%;
-            background-color: #ffffff;
+            background-color: var(--inzu-background);
             margin: 0 auto;
             border-radius: 20px;
             display: flex;
@@ -174,7 +177,7 @@
         }
         
         .nav-tabs{
-            background-color: black;
+            background: linear-gradient(180deg, #3E4C4F 0%, #2A3638 100%);
             height: 90%;
             display: flex;
             justify-content: space-evenly;
@@ -182,6 +185,7 @@
             align-items: center;
             border-radius: 100px;
             transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(62, 76, 79, 0.3);
         }
 
         /* Mobile Navigation Styles */
@@ -327,7 +331,7 @@
             <a href="{% url 'bookmarks' %}" class="nav-tab {% if request.resolver_match.url_name == 'bookmarks' %}active{% endif %}">
                 <i class="bi bi-bookmark"></i>
             </a>
-            {% if not user.is_koraquest %}
+            {% if not user.is_inzulink %}
             <a href="{% url 'user_qr_code' %}" class="nav-tab {% if request.resolver_match.url_name == 'user_qr_code' %}active{% endif %}">
                 <i class="bi bi-qr-code"></i>
             </a>
@@ -373,7 +377,7 @@
                 <i class="bi bi-bookmark"></i>
                 <span>Saved</span>
             </a>
-            {% if not user.is_koraquest %}
+            {% if not user.is_inzulink %}
             <a href="{% url 'user_qr_code' %}" class="mobile-nav-tab {% if request.resolver_match.url_name == 'user_qr_code' %}active{% endif %}">
                 <i class="bi bi-qr-code"></i>
                 <span>QR</span>
@@ -403,7 +407,7 @@
         <div class="header-container">
                 <div class="nav-brand-section">
                     <div class="logo">
-                        <h3 style="color: rgb(6, 6, 6); margin-bottom: 0;">Kora<span style="color: rgb(22, 47, 191);"><i class="bi bi-search"style="color: blue;"></i>uest</span></h3>
+                        <h3 style="color: #3E4C4F; margin-bottom: 0;">Inzu<span style="color: #6B9080;"><i class="bi bi-link-45deg" style="color: #6B9080;"></i>Link</span></h3>
                     </div>
                 </div>
             </div>

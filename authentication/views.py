@@ -863,7 +863,7 @@ def purchase_product(request, post_id):
         # Determine initial status based on delivery method
         initial_status = 'awaiting_delivery' if delivery_method == 'delivery' else 'awaiting_pickup'
         
-        # Create a new purchase with KoraQuest workflow
+        # Create a new purchase with InzuLink workflow
         purchase = Purchase(
             buyer=request.user,
             product=product,
@@ -899,9 +899,9 @@ def purchase_product(request, post_id):
         
         # Success message based on delivery method
         if delivery_method == 'delivery':
-            messages.success(request, f'You have successfully purchased {quantity} {product.title}! Total: RWF {total_price + delivery_fee:,.2f} (including RWF {delivery_fee:,.2f} delivery fee). KoraQuest will deliver to your address.')
+            messages.success(request, f'You have successfully purchased {quantity} {product.title}! Total: RWF {total_price + delivery_fee:,.2f} (including RWF {delivery_fee:,.2f} delivery fee). InzuLink will deliver to your address.')
         else:
-            messages.success(request, f'You have successfully purchased {quantity} {product.title}! Please go to KoraQuest to collect your items.')
+            messages.success(request, f'You have successfully purchased {quantity} {product.title}! Please go to InzuLink to collect your items.')
         
         return redirect('purchase_history')
     
@@ -1303,7 +1303,7 @@ def edit_product(request, product_id):
     
     return render(request, 'authentication/edit_product.html', context)
 
-# KoraQuest Views
+# InzuLink Views
 @login_required
 @ensure_csrf_cookie
 def user_qr_code(request):
@@ -1326,10 +1326,10 @@ def user_qr_code(request):
     return render(request, 'authentication/user_qr_code.html', context)
 
 @login_required
-def koraquest_dashboard(request):
-    """Dashboard for KoraQuest users to manage purchases and inventory"""
-    if not request.user.is_koraquest():
-        messages.error(request, 'Access denied. KoraQuest role required.')
+def inzulink_dashboard(request):
+    """Dashboard for InzuLink users to manage purchases and inventory"""
+    if not request.user.is_inzulink():
+        messages.error(request, 'Access denied. InzuLink role required.')
         return redirect('dashboard')
     
     # Get all purchases awaiting pickup
@@ -1350,18 +1350,18 @@ def koraquest_dashboard(request):
     # Get completed purchases for revenue tracking
     completed_purchases = Purchase.objects.filter(
         status='completed',
-        koraquest_user=request.user
+        inzulink_user=request.user
     ).select_related('buyer', 'product')
     
     # Calculate revenue statistics
     total_commission = completed_purchases.aggregate(
-        total=Sum('koraquest_commission_amount')
+        total=Sum('inzulink_commission_amount')
     )['total'] or 0
     
     monthly_commission = completed_purchases.filter(
         pickup_confirmed_at__month=timezone.now().month,
         pickup_confirmed_at__year=timezone.now().year
-    ).aggregate(total=Sum('koraquest_commission_amount'))['total'] or 0
+    ).aggregate(total=Sum('inzulink_commission_amount'))['total'] or 0
     
     context = {
         'awaiting_purchases': awaiting_purchases,
@@ -1373,14 +1373,14 @@ def koraquest_dashboard(request):
         'total_completed': completed_purchases.count(),
     }
     
-    return render(request, 'authentication/koraquest_dashboard.html', context)
+    return render(request, 'authentication/inzulink_dashboard.html', context)
 
 @login_required
 def scan_qr_code(request):
-    """QR code scanner interface for KoraQuest users"""
+    """QR code scanner interface for InzuLink users"""
     try:
-        if not request.user.is_koraquest():
-            messages.error(request, 'Access denied. KoraQuest role required.')
+        if not request.user.is_inzulink():
+            messages.error(request, 'Access denied. InzuLink role required.')
             return redirect('dashboard')
         
         # Create context for rendering
@@ -1431,7 +1431,7 @@ def scan_qr_code(request):
                         
                         # Complete the purchase directly (fallback from JS flow)
                         purchase.status = 'completed'
-                        purchase.koraquest_user = request.user
+                        purchase.inzulink_user = request.user
                         purchase.pickup_confirmed_at = timezone.now()
                         purchase.save()
                         
@@ -1445,11 +1445,11 @@ def scan_qr_code(request):
                         buyer.save()
                         
                         # Success message
-                        context['success_message'] = f'Purchase {purchase.order_id} confirmed successfully! Vendor payment: RWF{purchase.vendor_payment_amount}, KoraQuest commission: RWF{purchase.koraquest_commission_amount}'
+                        context['success_message'] = f'Purchase {purchase.order_id} confirmed successfully! Vendor payment: RWF{purchase.vendor_payment_amount}, InzuLink commission: RWF{purchase.inzulink_commission_amount}'
                         messages.success(request, context['success_message'])
                         
                         # Redirect to dashboard after successful completion
-                        return redirect('koraquest_dashboard')
+                        return redirect('inzulink_dashboard')
                     except Purchase.DoesNotExist:
                         context['error_message'] = f'Purchase not found with ID: {purchase_id}'
                         messages.error(request, context['error_message'])
@@ -1488,13 +1488,13 @@ def scan_qr_code(request):
         
     except Exception as e:
         messages.error(request, f"System error: {str(e)}")
-        return redirect('koraquest_dashboard')
+        return redirect('inzulink_dashboard')
 
 @login_required
 def confirm_purchase_pickup(request, purchase_id):
     """Confirm purchase pickup and initiate OTP verification"""
-    if not request.user.is_koraquest():
-        messages.error(request, 'Access denied. KoraQuest role required.')
+    if not request.user.is_inzulink():
+        messages.error(request, 'Access denied. InzuLink role required.')
         return redirect('dashboard')
     
     purchase = get_object_or_404(Purchase, id=purchase_id, status='awaiting_pickup')
@@ -1534,7 +1534,7 @@ def confirm_purchase_pickup(request, purchase_id):
             
             # Complete the purchase
             purchase.status = 'completed'
-            purchase.koraquest_user = request.user
+            purchase.inzulink_user = request.user
             purchase.pickup_confirmed_at = timezone.now()
             purchase.save()
             
@@ -1556,7 +1556,7 @@ def confirm_purchase_pickup(request, purchase_id):
                 'success': True,
                 'message': 'Purchase confirmed successfully!',
                 'vendor_payment': str(purchase.vendor_payment_amount),
-                'koraquest_commission': str(purchase.koraquest_commission_amount)
+                'inzulink_commission': str(purchase.inzulink_commission_amount)
             })
     
     context = {
@@ -1569,8 +1569,8 @@ def confirm_purchase_pickup(request, purchase_id):
 @login_required
 def confirm_delivery(request, purchase_id):
     """Confirm delivery completion and initiate OTP verification"""
-    if not request.user.is_koraquest():
-        messages.error(request, 'Access denied. KoraQuest role required.')
+    if not request.user.is_inzulink():
+        messages.error(request, 'Access denied. InzuLink role required.')
         return redirect('dashboard')
     
     purchase = get_object_or_404(Purchase, id=purchase_id, status__in=['awaiting_delivery', 'out_for_delivery'])
@@ -1620,7 +1620,7 @@ def confirm_delivery(request, purchase_id):
             
             # Complete the delivery
             purchase.status = 'completed'
-            purchase.koraquest_user = request.user
+            purchase.inzulink_user = request.user
             purchase.pickup_confirmed_at = timezone.now()  # Using same field for delivery confirmation time
             purchase.save()
             
@@ -1642,7 +1642,7 @@ def confirm_delivery(request, purchase_id):
                 'success': True,
                 'message': 'Delivery confirmed successfully!',
                 'vendor_payment': str(purchase.vendor_payment_amount),
-                'koraquest_commission': str(purchase.koraquest_commission_amount)
+                'inzulink_commission': str(purchase.inzulink_commission_amount)
             })
     
     context = {
@@ -1676,14 +1676,14 @@ def update_qr_code_ajax(request):
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 @login_required
-def koraquest_purchase_history(request):
-    """View purchase history for KoraQuest users"""
-    if not request.user.is_koraquest():
-        messages.error(request, 'Access denied. KoraQuest role required.')
+def inzulink_purchase_history(request):
+    """View purchase history for InzuLink users"""
+    if not request.user.is_inzulink():
+        messages.error(request, 'Access denied. InzuLink role required.')
         return redirect('dashboard')
     
     purchases = Purchase.objects.filter(
-        koraquest_user=request.user,
+        inzulink_user=request.user,
         status='completed'
     ).select_related('buyer', 'product', 'product__user').order_by('-pickup_confirmed_at')
     
@@ -1691,15 +1691,15 @@ def koraquest_purchase_history(request):
     context = {
         'purchases': purchases,
         'total_commission': purchases.aggregate(
-            total=Sum('koraquest_commission_amount')
+            total=Sum('inzulink_commission_amount')
         )['total'] or 0
     }
     
-    return render(request, 'authentication/koraquest_purchase_history.html', context)
+    return render(request, 'authentication/inzulink_purchase_history.html', context)
 
 @login_required
 def sales_statistics(request):
-    """Sales statistics view showing detailed financial breakdown for vendors and KoraQuest agents"""
+    """Sales statistics view showing detailed financial breakdown for vendors and InzuLink agents"""
     
     # Check if export is requested
     export_format = request.GET.get('export')
@@ -1782,20 +1782,20 @@ def sales_statistics(request):
             'product_stats': product_stats,
             'recent_transactions': recent_transactions,
             'commission_rate': 80,  # Vendor gets 80%
-            'koraquest_rate': 20,   # KoraQuest gets 20%
+            'inzulink_rate': 20,   # InzuLink gets 20%
         }
         
-    elif request.user.is_koraquest():
-        # KoraQuest agent statistics - show their commission (20% of product price + delivery fees)
+    elif request.user.is_inzulink():
+        # InzuLink agent statistics - show their commission (20% of product price + delivery fees)
         purchases = Purchase.objects.filter(
-            koraquest_user=request.user,
+            inzulink_user=request.user,
             status='completed'
         ).select_related('product', 'buyer', 'product__user')
         
-        # Calculate KoraQuest statistics
+        # Calculate InzuLink statistics
         total_transactions = purchases.count()
         total_commission = purchases.aggregate(
-            total=Sum('koraquest_commission_amount')
+            total=Sum('inzulink_commission_amount')
         )['total'] or 0
         
         # Monthly statistics
@@ -1806,13 +1806,13 @@ def sales_statistics(request):
             pickup_confirmed_at__year=current_year
         )
         monthly_commission = monthly_purchases.aggregate(
-            total=Sum('koraquest_commission_amount')
+            total=Sum('inzulink_commission_amount')
         )['total'] or 0
         
         # Breakdown by commission type
         total_product_price = purchases.aggregate(total=Sum('purchase_price'))['total'] or 0
         total_delivery_fees = purchases.aggregate(total=Sum('delivery_fee'))['total'] or 0
-        total_commission_amount = purchases.aggregate(total=Sum('koraquest_commission_amount'))['total'] or 0
+        total_commission_amount = purchases.aggregate(total=Sum('inzulink_commission_amount'))['total'] or 0
         
         commission_breakdown = {
             'product_commission': total_product_price * Decimal('0.2'),
@@ -1826,8 +1826,8 @@ def sales_statistics(request):
         # Use values() to get unique vendors with their aggregated stats
         vendor_aggregates = purchases.values('product__user__id', 'product__user__username').annotate(
             total_transactions=Count('id'),
-            total_commission=Sum('koraquest_commission_amount'),
-            avg_commission=Avg('koraquest_commission_amount')
+            total_commission=Sum('inzulink_commission_amount'),
+            avg_commission=Avg('inzulink_commission_amount')
         ).order_by('-total_commission')
         
         for vendor_data in vendor_aggregates:
@@ -1844,7 +1844,7 @@ def sales_statistics(request):
         # Recent transactions
         recent_transactions = purchases.order_by('-pickup_confirmed_at')[:10]
         
-        # Handle export for KoraQuest
+        # Handle export for InzuLink
         if export_format in ['csv', 'pdf']:
             if export_format == 'csv':
                 headers = ['Vendor', 'Transactions', 'Total Commission', 'Average Commission']
@@ -1856,7 +1856,7 @@ def sales_statistics(request):
                         f"RWF {vendor['total_commission']:,.1f}",
                         f"RWF {vendor['avg_commission']:,.1f}"
                     ])
-                filename = f"koraquest_commission_{request.user.username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                filename = f"inzulink_commission_{request.user.username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                 return generate_csv_report(data, filename, headers)
             elif export_format == 'pdf':
                 headers = ['Vendor', 'Transactions', 'Total Commission', 'Average Commission']
@@ -1875,12 +1875,12 @@ def sales_statistics(request):
                     'Commission Rate': '20% + Delivery Fees',
                     'Report Generated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
-                filename = f"koraquest_commission_{request.user.username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-                title = f"KoraQuest Commission Report - {request.user.get_full_name() or request.user.username}"
+                filename = f"inzulink_commission_{request.user.username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                title = f"InzuLink Commission Report - {request.user.get_full_name() or request.user.username}"
                 return generate_pdf_report(data, filename, title, headers, summary_data)
         
         context = {
-            'user_type': 'koraquest',
+            'user_type': 'inzulink',
             'total_transactions': total_transactions,
             'total_commission': total_commission,
             'monthly_commission': monthly_commission,
@@ -1888,7 +1888,7 @@ def sales_statistics(request):
             'commission_breakdown': commission_breakdown,
             'vendor_stats': vendor_stats,
             'recent_transactions': recent_transactions,
-            'commission_rate': 20,  # KoraQuest gets 20%
+            'commission_rate': 20,  # InzuLink gets 20%
             'vendor_rate': 80,      # Vendor gets 80%
         }
         
@@ -1950,10 +1950,10 @@ def sales_statistics(request):
     return render(request, 'authentication/sales_statistics.html', context)
 
 @login_required
-def vendor_statistics_for_koraquest(request, vendor_id):
-    """KoraQuest users can view detailed statistics for a specific vendor"""
-    if not request.user.is_koraquest():
-        messages.error(request, 'Access denied. KoraQuest role required.')
+def vendor_statistics_for_inzulink(request, vendor_id):
+    """InzuLink users can view detailed statistics for a specific vendor"""
+    if not request.user.is_inzulink():
+        messages.error(request, 'Access denied. InzuLink role required.')
         return redirect('dashboard')
     
     # Get the vendor
@@ -1963,9 +1963,9 @@ def vendor_statistics_for_koraquest(request, vendor_id):
     purchases = Purchase.objects.filter(
         product__user=vendor,
         status='completed'
-    ).select_related('product', 'buyer', 'koraquest_user')
+    ).select_related('product', 'buyer', 'inzulink_user')
     
-    # Calculate vendor statistics (as if KoraQuest is viewing the vendor's dashboard)
+    # Calculate vendor statistics (as if InzuLink is viewing the vendor's dashboard)
     total_sales = purchases.count()
     total_revenue = purchases.aggregate(
         total=Sum('vendor_payment_amount')
@@ -1989,14 +1989,14 @@ def vendor_statistics_for_koraquest(request, vendor_id):
         avg_price=Avg('vendor_payment_amount')
     ).order_by('-total_revenue')
     
-    # KoraQuest commission from this vendor
-    koraquest_commission = purchases.aggregate(
-        total=Sum('koraquest_commission_amount')
+    # InzuLink commission from this vendor
+    inzulink_commission = purchases.aggregate(
+        total=Sum('inzulink_commission_amount')
     )['total'] or 0
     
-    # Monthly KoraQuest commission
-    monthly_koraquest_commission = monthly_purchases.aggregate(
-        total=Sum('koraquest_commission_amount')
+    # Monthly InzuLink commission
+    monthly_inzulink_commission = monthly_purchases.aggregate(
+        total=Sum('inzulink_commission_amount')
     )['total'] or 0
     
     # Recent transactions
@@ -2008,7 +2008,7 @@ def vendor_statistics_for_koraquest(request, vendor_id):
     
     commission_breakdown = {
         'vendor_earnings': total_revenue,
-        'koraquest_commission': koraquest_commission,
+        'inzulink_commission': inzulink_commission,
         'product_commission': total_product_price * Decimal('0.2'),
         'delivery_fees': total_delivery_fees,
         'total_transaction_value': total_product_price + total_delivery_fees
@@ -2022,11 +2022,11 @@ def vendor_statistics_for_koraquest(request, vendor_id):
         'monthly_sales': monthly_purchases.count(),
         'product_stats': product_stats,
         'recent_transactions': recent_transactions,
-        'koraquest_commission': koraquest_commission,
-        'monthly_koraquest_commission': monthly_koraquest_commission,
+        'inzulink_commission': inzulink_commission,
+        'monthly_inzulink_commission': monthly_inzulink_commission,
         'commission_breakdown': commission_breakdown,
         'commission_rate': 80,  # Vendor gets 80%
-        'koraquest_rate': 20,   # KoraQuest gets 20%
+        'inzulink_rate': 20,   # InzuLink gets 20%
     }
     
-    return render(request, 'authentication/vendor_statistics_for_koraquest.html', context)
+    return render(request, 'authentication/vendor_statistics_for_inzulink.html', context)

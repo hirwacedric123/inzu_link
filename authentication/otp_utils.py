@@ -12,7 +12,7 @@ def generate_otp():
 
 def send_otp_email(user, otp_code, purpose='purchase_confirmation'):
     """Send OTP via email with beautiful HTML template"""
-    subject = '🔐 KoraQuest - Your Verification Code'
+    subject = '🔐 InzuLink - Your Verification Code'
     
     # Create HTML email template
     if purpose == 'purchase_confirmation':
@@ -30,7 +30,7 @@ def send_otp_email(user, otp_code, purpose='purchase_confirmation'):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>KoraQuest Verification</title>
+        <title>InzuLink Verification</title>
         <style>
             * {{
                 margin: 0;
@@ -181,7 +181,7 @@ def send_otp_email(user, otp_code, purpose='purchase_confirmation'):
     <body>
         <div class="email-container">
             <div class="header">
-                <h1>🛡️ KoraQuest</h1>
+                <h1>🛡️ InzuLink</h1>
                 <p>{email_title}</p>
             </div>
             
@@ -213,10 +213,10 @@ def send_otp_email(user, otp_code, purpose='purchase_confirmation'):
             </div>
             
             <div class="footer">
-                <p>This email was sent by <a href="#" class="brand">KoraQuest</a></p>
+                <p>This email was sent by <a href="#" class="brand">InzuLink</a></p>
                 <p>Your trusted marketplace for secure transactions</p>
                 <p style="margin-top: 15px; font-size: 12px; color: #868e96;">
-                    © 2025 KoraQuest. All rights reserved.
+                    © 2025 InzuLink. All rights reserved.
                 </p>
             </div>
         </div>
@@ -226,7 +226,7 @@ def send_otp_email(user, otp_code, purpose='purchase_confirmation'):
     
     # Plain text version for email clients that don't support HTML
     text_content = f"""
-    KoraQuest - {email_title}
+    InzuLink - {email_title}
     
     Hello {user.first_name or user.username}!
     
@@ -239,7 +239,7 @@ def send_otp_email(user, otp_code, purpose='purchase_confirmation'):
     If you didn't request this code, please ignore this email.
     
     Best regards,
-    KoraQuest Team
+    InzuLink Team
     """
     
     try:

@@ -1,7 +1,7 @@
 {% extends "authentication/base.html" %}
 {% load static %}
 
-{% block title %}Create Product Listing - KoraQuest{% endblock %}
+{% block title %}Create Product Listing - InzuLink{% endblock %}
 
 {% block content %}
 <style>
@@ -272,9 +272,9 @@
     textarea:focus,
     select:focus {
         outline: none;
-        border-color: #2563eb;
+        border-color: #6B9080;
         background: white;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        box-shadow: 0 0 0 4px rgba(107, 144, 128, 0.1);
     }
 
     .price-input {
@@ -313,7 +313,7 @@
     }
 
     .image-upload-container:hover {
-        border-color: #2563eb;
+        border-color: #6B9080;
         background: #f3f4f6;
     }
 
@@ -337,7 +337,7 @@
 
     .upload-placeholder i {
         font-size: 2rem;
-        color: #2563eb;
+        color: #6B9080;
     }
 
     .upload-placeholder span {
@@ -373,7 +373,7 @@
 
     .btn-primary {
         padding: 12px 24px;
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        background: linear-gradient(135deg, #6B9080, #1d4ed8);
         color: white;
         border: none;
         border-radius: 12px;
@@ -386,7 +386,7 @@
 
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+        box-shadow: 0 10px 20px rgba(107, 144, 128, 0.2);
     }
 
     .btn-secondary {
@@ -479,7 +479,7 @@
 
     .preview-category {
         background: #eff6ff;
-        color: #2563eb;
+        color: #6B9080;
         padding: 4px 12px;
         border-radius: 20px;
         font-size: 14px;
@@ -498,7 +498,7 @@
     .preview-price {
         font-size: 1.5rem;
         font-weight: 700;
-        color: #2563eb;
+        color: #6B9080;
         margin-bottom: 16px;
     }
 
@@ -654,7 +654,7 @@
         uploadContainers.forEach(container => {
             container.addEventListener('dragover', function(e) {
                 e.preventDefault();
-                this.style.borderColor = '#2563eb';
+                this.style.borderColor = '#6B9080';
                 this.style.background = '#eff6ff';
             });
             

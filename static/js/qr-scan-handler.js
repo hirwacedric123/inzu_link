@@ -417,12 +417,12 @@ function completePurchasePickup() {
             debugLog('Purchase pickup completed successfully!');
             
             // Show success message with payment details
-            const successMessage = `Purchase confirmed! Vendor payment: RWF${data.vendor_payment}, KoraQuest commission: RWF${data.koraquest_commission}`;
+            const successMessage = `Purchase confirmed! Vendor payment: RWF${data.vendor_payment}, InzuLink commission: RWF${data.inzulink_commission}`;
             showCameraStatus(successMessage, 'success');
             
             // Redirect to dashboard after a short delay
             setTimeout(() => {
-                window.location.href = '/auth/koraquest-dashboard/';
+                window.location.href = '/auth/inzulink-dashboard/';
             }, 3000);
         } else {
             showError(data.error || 'Failed to complete purchase pickup');

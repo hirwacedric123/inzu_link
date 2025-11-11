@@ -1,6 +1,6 @@
-# KoraQuest REST API
+# InzuLink REST API
 
-A comprehensive REST API for the KoraQuest marketplace platform built with Django REST Framework.
+A comprehensive REST API for the InzuLink marketplace platform built with Django REST Framework.
 
 ## 🚀 Quick Start
 
@@ -14,7 +14,7 @@ A comprehensive REST API for the KoraQuest marketplace platform built with Djang
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd KoraQuest
+   cd InzuLink
    ```
 
 2. **Install dependencies**
@@ -55,7 +55,7 @@ The API uses Django's session-based authentication. Most endpoints require authe
 - `POST /auth/logout/` - Logout user
 
 #### Users
-- `GET /users/` - List users (KoraQuest only)
+- `GET /users/` - List users (InzuLink only)
 - `GET /users/me/` - Get current user profile
 - `PUT /users/update_me/` - Update current user profile
 - `POST /users/{id}/become_vendor/` - Convert user to vendor
@@ -74,7 +74,7 @@ The API uses Django's session-based authentication. Most endpoints require authe
 #### Purchases
 - `GET /purchases/` - List purchases
 - `GET /purchases/{id}/` - Get purchase details
-- `POST /purchases/{id}/update_status/` - Update purchase status (KoraQuest only)
+- `POST /purchases/{id}/update_status/` - Update purchase status (InzuLink only)
 
 #### Bookmarks
 - `GET /bookmarks/` - List user bookmarks
@@ -97,9 +97,9 @@ The API uses Django's session-based authentication. Most endpoints require authe
 
 #### Dashboard & Statistics
 - `GET /dashboard/stats/` - Get dashboard statistics
-- `GET /vendors/{id}/statistics/` - Get vendor statistics (KoraQuest only)
+- `GET /vendors/{id}/statistics/` - Get vendor statistics (InzuLink only)
 
-#### KoraQuest Specific
+#### InzuLink Specific
 - `POST /qr/purchases/` - Get purchases by QR code
 - `POST /purchases/complete-pickup/` - Complete purchase pickup
 
@@ -121,7 +121,7 @@ The API uses Django's session-based authentication. Most endpoints require authe
 - View all users and posts
 - Moderate content
 
-### KoraQuest Role
+### InzuLink Role
 - Full access to all endpoints
 - Manage all purchases
 - View vendor statistics
@@ -198,7 +198,7 @@ EMAIL_HOST_PASSWORD=your-app-password
 ```
 
 ### Django Settings
-Key settings in `KoraQuest/settings.py`:
+Key settings in `InzuLink/settings.py`:
 
 ```python
 # REST Framework Configuration
@@ -307,4 +307,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Django REST Framework for the excellent API framework
 - Django for the robust web framework
-- All contributors and users of the KoraQuest platform
+- All contributors and users of the InzuLink platform

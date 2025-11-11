@@ -1,7 +1,7 @@
 {% extends "authentication/base.html" %}
 {% load static %}
 
-{% block title %}KoraQuest Purchase History{% endblock %}
+{% block title %}InzuLink Purchase History{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -267,24 +267,24 @@
 </style>
 {% endblock %}
 
-{% block koraquest_nav %}
-<div class="koraquest-top-nav">
-    <div class="koraquest-nav-content">
-        <div class="koraquest-nav-title">
+{% block inzulink_nav %}
+<div class="inzulink-top-nav">
+    <div class="inzulink-nav-content">
+        <div class="inzulink-nav-title">
             <i class="bi bi-clock-history"></i>
             Transaction History
         </div>
-        <div class="koraquest-nav-actions">
-            <a href="{% url 'koraquest_dashboard' %}" 
-               class="koraquest-nav-btn {% if request.resolver_match.url_name == 'koraquest_dashboard' %}active{% endif %}">
+        <div class="inzulink-nav-actions">
+            <a href="{% url 'inzulink_dashboard' %}" 
+               class="inzulink-nav-btn {% if request.resolver_match.url_name == 'inzulink_dashboard' %}active{% endif %}">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
             <a href="{% url 'scan_qr_code' %}" 
-               class="koraquest-nav-btn {% if request.resolver_match.url_name == 'scan_qr_code' %}active{% endif %}">
+               class="inzulink-nav-btn {% if request.resolver_match.url_name == 'scan_qr_code' %}active{% endif %}">
                 <i class="bi bi-qr-code-scan"></i> QR Scanner
             </a>
-            <a href="{% url 'koraquest_purchase_history' %}" 
-               class="koraquest-nav-btn {% if request.resolver_match.url_name == 'koraquest_purchase_history' %}active{% endif %}">
+            <a href="{% url 'inzulink_purchase_history' %}" 
+               class="inzulink-nav-btn {% if request.resolver_match.url_name == 'inzulink_purchase_history' %}active{% endif %}">
                 <i class="bi bi-clock-history"></i> History
             </a>
         </div>
@@ -295,7 +295,7 @@
 {% block content %}
 <div class="history-container">
     <div class="history-header">
-        <h1>📊 KoraQuest Purchase History</h1>
+        <h1>📊 InzuLink Purchase History</h1>
         <p>Complete transaction history and commission tracking</p>
     </div>
 
@@ -358,7 +358,7 @@
             </div>
             <div style="text-align: center;">
                 <button type="submit" class="btn btn-filter">Apply Filters</button>
-                <a href="{% url 'koraquest_purchase_history' %}" class="btn">Clear Filters</a>
+                <a href="{% url 'inzulink_purchase_history' %}" class="btn">Clear Filters</a>
             </div>
         </form>
     </div>
@@ -415,8 +415,8 @@
                         <span><strong>RWF{{ purchase.vendor_payment_amount|floatformat:2 }}</strong></span>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
-                        <span><strong>KoraQuest Commission (20%):</strong></span>
-                        <span><strong>RWF{{ purchase.koraquest_commission_amount|floatformat:2 }}</strong></span>
+                        <span><strong>InzuLink Commission (20%):</strong></span>
+                        <span><strong>RWF{{ purchase.inzulink_commission_amount|floatformat:2 }}</strong></span>
                     </div>
                 </div>
                 {% endif %}
@@ -426,7 +426,7 @@
                 <div class="empty-state-icon">📦</div>
                 <h3>No purchases found</h3>
                 <p>No purchases match your current filters.</p>
-                <a href="{% url 'koraquest_purchase_history' %}" class="btn">View All Purchases</a>
+                <a href="{% url 'inzulink_purchase_history' %}" class="btn">View All Purchases</a>
             </div>
         {% endfor %}
         
@@ -453,10 +453,10 @@
         <div class="export-section">
             <h3>📤 Export Data</h3>
             <p>Download your transaction history for record keeping</p>
-            <a href="{% url 'koraquest_purchase_history' %}?export=csv{{ request.GET.urlencode|slice:'5:' }}" class="btn">
+            <a href="{% url 'inzulink_purchase_history' %}?export=csv{{ request.GET.urlencode|slice:'5:' }}" class="btn">
                 Export as CSV
             </a>
-            <a href="{% url 'koraquest_purchase_history' %}?export=pdf{{ request.GET.urlencode|slice:'5:' }}" class="btn">
+            <a href="{% url 'inzulink_purchase_history' %}?export=pdf{{ request.GET.urlencode|slice:'5:' }}" class="btn">
                 Export as PDF
             </a>
         </div>
@@ -464,7 +464,7 @@
 
     <!-- Navigation -->
     <div style="text-align: center; margin-top: 30px;">
-        <a href="{% url 'koraquest_dashboard' %}" class="btn">Back to Dashboard</a>
+        <a href="{% url 'inzulink_dashboard' %}" class="btn">Back to Dashboard</a>
         <a href="{% url 'scan_qr_code' %}" class="btn">QR Scanner</a>
     </div>
 </div>

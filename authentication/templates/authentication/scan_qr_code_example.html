@@ -679,24 +679,24 @@
 <script src="{% static 'js/qr-purchase-handler.js' %}"></script>
 {% endblock %}
 
-{% block koraquest_nav %}
-<div class="koraquest-top-nav">
-    <div class="koraquest-nav-content">
-        <div class="koraquest-nav-title">
+{% block inzulink_nav %}
+<div class="inzulink-top-nav">
+    <div class="inzulink-nav-content">
+        <div class="inzulink-nav-title">
             <i class="bi bi-qr-code-scan"></i>
             QR Code Scanner
         </div>
-        <div class="koraquest-nav-actions">
-            <a href="{% url 'koraquest_dashboard' %}" 
-               class="koraquest-nav-btn {% if request.resolver_match.url_name == 'koraquest_dashboard' %}active{% endif %}">
+        <div class="inzulink-nav-actions">
+            <a href="{% url 'inzulink_dashboard' %}" 
+               class="inzulink-nav-btn {% if request.resolver_match.url_name == 'inzulink_dashboard' %}active{% endif %}">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
             <a href="{% url 'scan_qr_code' %}" 
-               class="koraquest-nav-btn {% if request.resolver_match.url_name == 'scan_qr_code' %}active{% endif %}">
+               class="inzulink-nav-btn {% if request.resolver_match.url_name == 'scan_qr_code' %}active{% endif %}">
                 <i class="bi bi-qr-code-scan"></i> QR Scanner
             </a>
-            <a href="{% url 'koraquest_purchase_history' %}" 
-               class="koraquest-nav-btn {% if request.resolver_match.url_name == 'koraquest_purchase_history' %}active{% endif %}">
+            <a href="{% url 'inzulink_purchase_history' %}" 
+               class="inzulink-nav-btn {% if request.resolver_match.url_name == 'inzulink_purchase_history' %}active{% endif %}">
                 <i class="bi bi-clock-history"></i> History
             </a>
         </div>
@@ -715,7 +715,7 @@
         <div class="instruction-box">
             <h3>📋 How to Use QR Scanner</h3>
             <ul class="instruction-list">
-                <li>Ask customer to show their QR code from the KoraQuest app</li>
+                <li>Ask customer to show their QR code from the InzuLink app</li>
                 <li>Use the camera scanner below or manually enter QR code data</li>
                 <li>Verify purchase details and product information</li>
                 <li>Confirm physical product matches the order</li>
@@ -867,7 +867,7 @@
         </div>
         {% endif %}        <!-- Navigation -->
         <div style="text-align: center; margin-top: 30px;">
-            <a href="{% url 'koraquest_dashboard' %}" class="btn">Back to Dashboard</a>
+            <a href="{% url 'inzulink_dashboard' %}" class="btn">Back to Dashboard</a>
         </div>
     </div>
 </div>
@@ -903,7 +903,7 @@
         <button class="popup-close" onclick="closePopup('auth-popup')">&times;</button>
         <div class="popup-header">
             <h2 class="popup-title">Buyer Verification</h2>
-            <p class="popup-subtitle">Please ask the buyer to enter their KoraQuest credentials</p>
+            <p class="popup-subtitle">Please ask the buyer to enter their InzuLink credentials</p>
         </div>
         <div id="auth-form-container">
             <div class="auth-form-group">
@@ -2010,12 +2010,12 @@ function completePurchasePickup() {
             debugLog('Purchase pickup completed successfully!');
             
             // Show success message with payment details
-            const successMessage = `Purchase confirmed! Vendor payment: RWF ${data.vendor_payment}, KoraQuest commission: RWF${data.koraquest_commission}`;
+            const successMessage = `Purchase confirmed! Vendor payment: RWF ${data.vendor_payment}, InzuLink commission: RWF${data.inzulink_commission}`;
             showCameraStatus(successMessage, 'success');
             
             // Redirect to dashboard after a short delay
             setTimeout(() => {
-                window.location.href = '{% url "koraquest_dashboard" %}';
+                window.location.href = '{% url "inzulink_dashboard" %}';
             }, 3000);
         } else {
             showError(data.error || 'Failed to complete purchase pickup');

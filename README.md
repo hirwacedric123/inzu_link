@@ -1,12 +1,12 @@
-# KoraQuest
+# InzuLink
 
-KoraQuest is a Django-based web application that has the purpose of helping people to buy and sell products amongst each other.
+InzuLink is a Django-based web application that has the purpose of helping people to buy and sell products amongst each other.
 
-![Alt KoraQuest](./KoraQuest.png)
+![Alt InzuLink](./InzuLink.png)
 
 ## 🌐 Demo UI
 
-- **Live Website**: [KoraQuest Marketplace](https://koraquest.bonasolutions.tech)
+- **Live Website**: [InzuLink Marketplace](https://inzulink.bonasolutions.tech)
 - **Demo Video**: [Watch Demo](https://youtu.be/x3JjtgzZsGA?si=6HRMwlj9GTLLGAjL)
 
 ## 🚀 Features
@@ -35,13 +35,16 @@ cd inzu_link
 
 2. Create a virtual environment
 ```bash
-python -m venv venv
+# Create virtual environment
+python3 -m venv cedenv
 
-# On Windows
-venv\Scripts\activate
+# Activate virtual environment
 
-# On macOS/Linux
-source venv/bin/activate
+# On Windows:
+cedenv\Scripts\activate
+
+# On macOS/Linux:
+source cedenv/bin/activate
 ```
 
 3. Install dependencies
@@ -67,7 +70,7 @@ python manage.py collectstatic
 ## ⚙️ Configuration
 
 
-1. Update email settings in `KoraQuest/settings.py` if needed:
+1. Update email settings in `InzuLink/settings.py` if needed:
 ```python
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -95,9 +98,9 @@ python manage.py runserver
 ## 📁 Project Structure
 
 ```
-KoraQuest/
+InzuLink/
 ├── authentication/       # Authentication app
-├── KoraQuest/          # Main project directory
+├── InzuLink/          # Main project directory
 ├── static/             # Static files
 ├── media/              # User uploaded files
 ├── templates/          # HTML templates
@@ -124,6 +127,43 @@ KoraQuest/
 - Static files are served from the 'staticfiles' directory
 - Media files are stored in the 'media' directory
 - The project uses Django's built-in authentication system with custom user model
+
+## 🔧 Troubleshooting
+
+### Virtual Environment Issues
+If you're having trouble with the virtual environment:
+
+**On Linux/macOS:**
+```bash
+# Make sure to use 'source' to activate
+source cedenv/bin/activate
+
+# Verify activation (you should see (cedenv) in your prompt)
+which python
+
+# Run Django commands
+python manage.py runserver
+```
+
+**On Windows:**
+```bash
+# Activate with:
+cedenv\Scripts\activate
+
+# Run Django commands
+python manage.py runserver
+```
+
+### Common Errors
+
+**"Command 'python' not found"**
+- Solution: Use `python3` instead of `python`, or install `python-is-python3` package
+
+**"No module named 'django'"**
+- Solution: Make sure your virtual environment is activated (you should see `(cedenv)` in your terminal prompt)
+
+**"externally-managed-environment" error**
+- Solution: Always activate your virtual environment before installing packages
 
 ## 🤝 Contributing
 

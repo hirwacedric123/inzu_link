@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-KoraQuest API Setup Script
+InzuLink API Setup Script
 
-This script helps set up the KoraQuest API by:
+This script helps set up the InzuLink API by:
 1. Installing required dependencies
 2. Running database migrations
 3. Creating a superuser (optional)
@@ -32,7 +32,7 @@ def setup_django():
     print("🔄 Setting up Django environment...")
     
     # Set Django settings module
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'KoraQuest.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'InzuLink.settings')
     
     # Setup Django
     django.setup()
@@ -82,14 +82,14 @@ def create_superuser():
         
         # Create superuser
         username = "admin"
-        email = "admin@koraquest.com"
+        email = "admin@inzulink.com"
         password = "admin123"
         
         User.objects.create_superuser(
             username=username,
             email=email,
             password=password,
-            role='koraquest'
+            role='inzulink'
         )
         
         print(f"✅ Superuser created successfully")
@@ -117,7 +117,7 @@ def test_api_endpoints():
 
 def main():
     """Main setup function"""
-    print("🚀 KoraQuest API Setup")
+    print("🚀 InzuLink API Setup")
     print("=" * 50)
     
     # Change to project directory

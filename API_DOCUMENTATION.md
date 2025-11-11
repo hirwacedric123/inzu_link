@@ -1,6 +1,6 @@
-# KoraQuest API Documentation
+# InzuLink API Documentation
 
-This document provides comprehensive documentation for the KoraQuest REST API endpoints.
+This document provides comprehensive documentation for the InzuLink REST API endpoints.
 
 ## Base URL
 ```
@@ -50,7 +50,7 @@ POST /auth/api/rest/auth/logout/
 
 ### User Management
 
-#### Get All Users (KoraQuest only)
+#### Get All Users (InzuLink only)
 ```http
 GET /auth/api/rest/users/
 ```
@@ -173,7 +173,7 @@ GET /auth/api/rest/purchases/
 GET /auth/api/rest/purchases/{purchase_id}/
 ```
 
-#### Update Purchase Status (KoraQuest only)
+#### Update Purchase Status (InzuLink only)
 ```http
 POST /auth/api/rest/purchases/{purchase_id}/update_status/
 ```
@@ -280,12 +280,12 @@ POST /auth/api/rest/otp/verify_otp/
 GET /auth/api/rest/dashboard/stats/
 ```
 
-#### Get Vendor Statistics (KoraQuest only)
+#### Get Vendor Statistics (InzuLink only)
 ```http
 GET /auth/api/rest/vendors/{vendor_id}/statistics/
 ```
 
-### KoraQuest Specific Endpoints
+### InzuLink Specific Endpoints
 
 #### Get Purchases by QR Code
 ```http
@@ -367,7 +367,7 @@ All API responses follow this format:
 - Can view all users and posts
 - Can moderate content
 
-### KoraQuest Role
+### InzuLink Role
 - Full access to all endpoints
 - Can manage all purchases
 - Can view vendor statistics

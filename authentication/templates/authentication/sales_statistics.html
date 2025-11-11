@@ -1,7 +1,7 @@
 {% extends "authentication/base.html" %}
 {% load static %}
 
-{% block title %}Sales Statistics - KoraQuest{% endblock %}
+{% block title %}Sales Statistics - InzuLink{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -242,7 +242,7 @@
         background: linear-gradient(135deg, #48bb78, #38a169);
     }
     
-    .koraquest-theme .stat-icon {
+    .inzulink-theme .stat-icon {
         background: linear-gradient(135deg, #667eea, #764ba2);
     }
     
@@ -329,7 +329,7 @@
                 <div class="stat-change">Current month earnings</div>
             </div>
             
-        {% elif user_type == 'koraquest' %}
+        {% elif user_type == 'inzulink' %}
             <div class="main-stat-card" style="background-color: #f8c50d;">
                 <div class="stat-icon">
                     💵
@@ -415,7 +415,7 @@
     </div>
     {% endif %}
 
-    {% if user_type == 'koraquest' and vendor_stats %}
+    {% if user_type == 'inzulink' and vendor_stats %}
     <!-- Vendor Performance -->
     <div class="detailed-stats">
         <h3>Vendors</h3>
@@ -744,8 +744,8 @@ function displayVendorModal(data) {
                 <div class="modal-stat-label">Monthly Revenue</div>
             </div>
             <div class="modal-stat-card">
-                <div class="modal-stat-value">RWF ${stats.koraquest_commission.toFixed(2)}</div>
-                <div class="modal-stat-label">KoraQuest Commission (20%)</div>
+                <div class="modal-stat-value">RWF ${stats.inzulink_commission.toFixed(2)}</div>
+                <div class="modal-stat-label">InzuLink Commission (20%)</div>
             </div>
             <div class="modal-stat-card">
                     <div class="modal-stat-value">RWF ${breakdown.delivery_fees.toFixed(2)}</div>

@@ -23,7 +23,7 @@ urlpatterns = [
     path('dashboard/stats/', api_views_rest.dashboard_stats, name='api-dashboard-stats'),
     path('vendors/<int:vendor_id>/statistics/', api_views_rest.vendor_statistics, name='api-vendor-statistics'),
     
-    # QR Code purchase flow (KoraQuest specific)
+    # QR Code purchase flow (InzuLink specific)
     path('qr/purchases/', api_views_rest.get_purchases_by_qr, name='api-qr-purchases'),
     path('purchases/complete-pickup/', api_views_rest.complete_purchase_pickup, name='api-complete-pickup'),
     

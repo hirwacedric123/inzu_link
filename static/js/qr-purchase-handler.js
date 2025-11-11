@@ -558,7 +558,7 @@ function completePurchasePickup() {
             console.log('Purchase pickup completed successfully!');
             
             // Show success message with payment details
-            const successMessage = `Purchase confirmed! Vendor payment: RWF${data.vendor_payment}, KoraQuest commission: RWF${data.koraquest_commission}`;
+            const successMessage = `Purchase confirmed! Vendor payment: RWF${data.vendor_payment}, InzuLink commission: RWF${data.inzulink_commission}`;
             showCameraStatus(successMessage, 'success');
             
             // Show success section
@@ -585,7 +585,7 @@ function completePurchasePickup() {
                                 <h5 style="margin: 0 0 10px 0; color: #495057;">📋 Payment Details</h5>
                                 <strong>Total Price:</strong> RWF${selectedPurchase.price}<br>
                                 <strong>Vendor Payment:</strong> RWF${data.vendor_payment}<br>
-                                <strong>KoraQuest Commission:</strong> RWF${data.koraquest_commission}
+                                <strong>InzuLink Commission:</strong> RWF${data.inzulink_commission}
                             </div>
                         </div>
                     </div>
@@ -594,7 +594,7 @@ function completePurchasePickup() {
             
             // Redirect to dashboard after a short delay
             setTimeout(() => {
-                window.location.href = '/auth/koraquest-dashboard/';
+                window.location.href = '/auth/inzulink-dashboard/';
             }, 5000);
         } else {
             showError(data.error || 'Failed to complete purchase pickup');

@@ -31,16 +31,16 @@ urlpatterns = [
     # Legacy paths (kept for compatibility)
     path('become-vendor/', views.become_vendor, name='become_vendor'),
     
-    # KoraQuest specific URLs
+    # InzuLink specific URLs
     path('qr-code/', views.user_qr_code, name='user_qr_code'),
-    path('koraquest-dashboard/', views.koraquest_dashboard, name='koraquest_dashboard'),
+    path('inzulink-dashboard/', views.inzulink_dashboard, name='inzulink_dashboard'),
     path('scan-qr/', views.scan_qr_code, name='scan_qr_code'),
     path('confirm-pickup/<int:purchase_id>/', views.confirm_purchase_pickup, name='confirm_purchase_pickup'),
     path('confirm-delivery/<int:purchase_id>/', views.confirm_delivery, name='confirm_delivery'),
     path('update-qr-ajax/', views.update_qr_code_ajax, name='update_qr_code_ajax'),
-    path('koraquest-history/', views.koraquest_purchase_history, name='koraquest_purchase_history'),
+    path('inzulink-history/', views.inzulink_purchase_history, name='inzulink_purchase_history'),
     path('sales-statistics/', views.sales_statistics, name='sales_statistics'),
-    path('vendor-statistics/<int:vendor_id>/', views.vendor_statistics_for_koraquest, name='vendor_statistics_for_koraquest'),
+    path('vendor-statistics/<int:vendor_id>/', views.vendor_statistics_for_inzulink, name='vendor_statistics_for_inzulink'),
     
     # API endpoints for QR code scanning and verification flow
     path('api/purchases/by-qr/', api_views.get_purchases_by_qr, name='api_get_purchases_by_qr'),
