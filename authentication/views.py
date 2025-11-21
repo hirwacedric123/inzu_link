@@ -102,6 +102,29 @@ def generate_pdf_report(data, filename, title, headers, summary_data=None):
     doc.build(elements)
     return response
 
+def home(request):
+    """
+    Home page view displaying featured products
+    """
+    # Get all available products (with inventory > 0)
+    featured_products = Post.objects.filter(inventory__gt=0).order_by('-created_at')[:12]
+    
+    # Get products by category
+    categories = Post.CATEGORY_CHOICES
+    
+    # Get some statistics
+    total_products = Post.objects.filter(inventory__gt=0).count()
+    total_vendors = User.objects.filter(is_vendor_role=True).count()
+    
+    context = {
+        'featured_products': featured_products,
+        'categories': categories,
+        'total_products': total_products,
+        'total_vendors': total_vendors,
+    }
+    
+    return render(request, 'authentication/home.html', context)
+
 def register(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)

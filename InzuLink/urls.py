@@ -19,12 +19,13 @@ from django.urls import path, include
 from django.shortcuts import redirect
 from django.conf import settings
 from django.conf.urls.static import static
+from authentication import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('authentication.urls')),
-    # Add a redirect from home to login page
-    path('', lambda request: redirect('login')),
+    # Home page
+    path('', views.home, name='home'),
 ]
 
 # Serve media files in development

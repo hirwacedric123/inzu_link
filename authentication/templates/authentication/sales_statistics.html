@@ -30,8 +30,27 @@
         width: 100%;
         margin: 0 auto;
         padding: 2rem;
-        background: #F6F4F0;
+        background: 
+            linear-gradient(135deg, rgba(107, 144, 128, 0.05) 0%, rgba(164, 195, 178, 0.05) 100%),
+            linear-gradient(45deg, #F6F4F0 25%, transparent 25%, transparent 75%, #F6F4F0 75%, #F6F4F0),
+            linear-gradient(45deg, #F6F4F0 25%, #FDFCFA 25%, #FDFCFA 75%, #F6F4F0 75%, #F6F4F0);
+        background-size: 100% 100%, 60px 60px, 60px 60px;
+        background-position: 0 0, 0 0, 30px 30px;
         min-height: 100vh;
+        position: relative;
+    }
+    
+    .statistics-container::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 20% 50%, rgba(107, 144, 128, 0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(164, 195, 178, 0.08) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
     }
     
     /* Main Stats Grid */
@@ -43,15 +62,41 @@
     }
     
     .main-stat-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
+        background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.9) 0%,
+            rgba(255, 255, 255, 0.7) 100%
+        );
+        backdrop-filter: blur(40px) saturate(180%);
+        -webkit-backdrop-filter: blur(40px) saturate(180%);
+        border-radius: 24px;
         padding: 2rem;
-        box-shadow: 0 10px 40px rgba(107, 144, 128, 0.15);
-        border: 2px solid rgba(216, 212, 203, 0.5);
-        transition: all 0.3s ease;
+        box-shadow: 
+            0 8px 32px rgba(107, 144, 128, 0.12),
+            0 2px 8px rgba(0, 0, 0, 0.04),
+            inset 0 1px 1px rgba(255, 255, 255, 0.9),
+            inset 0 -1px 1px rgba(107, 144, 128, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         position: relative;
         overflow: hidden;
+    }
+    
+    .main-stat-card::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+            circle,
+            rgba(255, 255, 255, 0.4) 0%,
+            transparent 60%
+        );
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
     }
     
     .main-stat-card::before {
@@ -61,27 +106,63 @@
         left: 0;
         right: 0;
         height: 4px;
-        background: linear-gradient(90deg, #6B9080, #A4C3B2);
-        border-radius: 20px 20px 0 0;
+        background: linear-gradient(90deg, #6B9080, #A4C3B2, #6B9080);
+        background-size: 200% 100%;
+        border-radius: 24px 24px 0 0;
+        animation: gradientSlide 3s ease infinite;
+    }
+    
+    @keyframes gradientSlide {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
     }
     
     .main-stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(107, 144, 128, 0.25);
-        border-color: #A4C3B2;
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 
+            0 20px 50px rgba(107, 144, 128, 0.2),
+            0 10px 20px rgba(0, 0, 0, 0.08),
+            inset 0 1px 1px rgba(255, 255, 255, 1);
+        border-color: rgba(255, 255, 255, 0.8);
+        background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.95) 0%,
+            rgba(255, 255, 255, 0.8) 100%
+        );
+    }
+    
+    .main-stat-card:hover::after {
+        opacity: 1;
     }
     
     .stat-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 2rem;
         margin-bottom: 1rem;
-        background: rgba(107, 144, 128, 0.1);
+        background: linear-gradient(
+            135deg,
+            rgba(107, 144, 128, 0.15) 0%,
+            rgba(164, 195, 178, 0.15) 100%
+        );
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
         color: #4A7C59;
+        box-shadow: 
+            0 4px 15px rgba(107, 144, 128, 0.1),
+            inset 0 1px 1px rgba(255, 255, 255, 0.6);
+        transition: all 0.3s ease;
+    }
+    
+    .main-stat-card:hover .stat-icon {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 
+            0 6px 20px rgba(107, 144, 128, 0.2),
+            inset 0 1px 1px rgba(255, 255, 255, 0.8);
     }
     
     .stat-value {
@@ -100,34 +181,92 @@
     
     .stat-change {
         font-size: 0.9rem;
-        color: #6B9080;
+        color: #4A7C59;
         font-weight: 600;
-        padding: 4px 12px;
-        background: rgba(107, 144, 128, 0.1);
-        border-radius: 12px;
+        padding: 6px 14px;
+        background: linear-gradient(
+            135deg,
+            rgba(107, 144, 128, 0.15) 0%,
+            rgba(164, 195, 178, 0.15) 100%
+        );
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(107, 144, 128, 0.2);
+        border-radius: 20px;
         display: inline-block;
+        box-shadow: 0 2px 8px rgba(107, 144, 128, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .stat-change:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(107, 144, 128, 0.15);
     }
     
     .stat-change.negative {
         color: #DC6B4A;
-        background: rgba(220, 107, 74, 0.1);
+        background: linear-gradient(
+            135deg,
+            rgba(220, 107, 74, 0.15) 0%,
+            rgba(220, 107, 74, 0.1) 100%
+        );
+        border: 1px solid rgba(220, 107, 74, 0.2);
+        box-shadow: 0 2px 8px rgba(220, 107, 74, 0.1);
     }
     
     /* Commission Breakdown */
     .commission-breakdown {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
+        background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.85) 0%,
+            rgba(255, 255, 255, 0.65) 100%
+        );
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        border-radius: 24px;
         padding: 2rem;
         margin-bottom: 2rem;
-        box-shadow: 0 10px 40px rgba(107, 144, 128, 0.15);
-        border: 2px solid rgba(216, 212, 203, 0.5);
-        transition: all 0.3s ease;
+        box-shadow: 
+            0 8px 32px rgba(107, 144, 128, 0.12),
+            0 2px 8px rgba(0, 0, 0, 0.04),
+            inset 0 1px 1px rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .commission-breakdown::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+            circle,
+            rgba(164, 195, 178, 0.1) 0%,
+            transparent 70%
+        );
+        animation: pulse 4s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+        50% { transform: translate(10%, 10%) scale(1.1); opacity: 0.8; }
     }
     
     .commission-breakdown:hover {
-        border-color: #A4C3B2;
-        box-shadow: 0 12px 45px rgba(107, 144, 128, 0.2);
+        border-color: rgba(255, 255, 255, 0.7);
+        box-shadow: 
+            0 20px 50px rgba(107, 144, 128, 0.18),
+            0 10px 20px rgba(0, 0, 0, 0.06),
+            inset 0 1px 1px rgba(255, 255, 255, 0.9);
+        transform: translateY(-5px);
+        background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.9) 0%,
+            rgba(255, 255, 255, 0.7) 100%
+        );
     }
     
     .breakdown-header {
@@ -152,18 +291,51 @@
     }
     
     .breakdown-item {
-        background: rgba(246, 244, 240, 0.5);
-        border-radius: 12px;
+        background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.6) 0%,
+            rgba(255, 255, 255, 0.4) 100%
+        );
+        backdrop-filter: blur(15px);
+        border-radius: 16px;
         padding: 1.5rem;
         text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.4);
         border-left: 4px solid #6B9080;
-        transition: all 0.3s ease;
+        box-shadow: 
+            0 4px 15px rgba(107, 144, 128, 0.08),
+            inset 0 1px 1px rgba(255, 255, 255, 0.6);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .breakdown-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 0;
+        background: linear-gradient(180deg, #6B9080, #A4C3B2);
+        transition: height 0.4s ease;
     }
     
     .breakdown-item:hover {
-        background: rgba(164, 195, 178, 0.15);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(107, 144, 128, 0.15);
+        background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.8) 0%,
+            rgba(255, 255, 255, 0.6) 100%
+        );
+        transform: translateY(-5px) scale(1.03);
+        box-shadow: 
+            0 10px 25px rgba(107, 144, 128, 0.15),
+            inset 0 1px 1px rgba(255, 255, 255, 0.8);
+        border-color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .breakdown-item:hover::before {
+        height: 100%;
     }
     
     .breakdown-value {
@@ -181,19 +353,55 @@
     
     /* Product/Vendor Stats */
     .detailed-stats {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
+        background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.85) 0%,
+            rgba(255, 255, 255, 0.65) 100%
+        );
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        border-radius: 24px;
         padding: 2rem;
         margin-bottom: 2rem;
-        box-shadow: 0 10px 40px rgba(107, 144, 128, 0.15);
-        border: 2px solid rgba(216, 212, 203, 0.5);
-        transition: all 0.3s ease;
+        box-shadow: 
+            0 8px 32px rgba(107, 144, 128, 0.12),
+            0 2px 8px rgba(0, 0, 0, 0.04),
+            inset 0 1px 1px rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .detailed-stats::after {
+        content: '';
+        position: absolute;
+        top: -100%;
+        left: -100%;
+        width: 300%;
+        height: 300%;
+        background: linear-gradient(
+            45deg,
+            transparent 30%,
+            rgba(255, 255, 255, 0.3) 50%,
+            transparent 70%
+        );
+        animation: shimmer 6s ease-in-out infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translate(-100%, -100%); }
+        50% { transform: translate(0%, 0%); }
+        100% { transform: translate(100%, 100%); }
     }
     
     .detailed-stats:hover {
-        border-color: #A4C3B2;
-        box-shadow: 0 12px 45px rgba(107, 144, 128, 0.2);
+        border-color: rgba(255, 255, 255, 0.7);
+        box-shadow: 
+            0 20px 50px rgba(107, 144, 128, 0.18),
+            0 10px 20px rgba(0, 0, 0, 0.06),
+            inset 0 1px 1px rgba(255, 255, 255, 0.9);
+        transform: translateY(-5px);
     }
     
     .detailed-stats h3 {
@@ -221,12 +429,18 @@
     }
     
     .stats-table th {
-        background: rgba(246, 244, 240, 0.5);
+        background: linear-gradient(
+            135deg,
+            rgba(107, 144, 128, 0.12) 0%,
+            rgba(164, 195, 178, 0.08) 100%
+        );
+        backdrop-filter: blur(10px);
         font-weight: 600;
         color: #3E4C4F;
         font-size: 0.9rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        border: 1px solid rgba(255, 255, 255, 0.4);
     }
     
     .stats-table tbody tr {
@@ -234,8 +448,14 @@
     }
     
     .stats-table tbody tr:hover {
-        background: rgba(107, 144, 128, 0.05);
-        transform: translateX(4px);
+        background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.6) 0%,
+            rgba(255, 255, 255, 0.3) 100%
+        );
+        backdrop-filter: blur(10px);
+        transform: translateX(8px);
+        box-shadow: 0 2px 8px rgba(107, 144, 128, 0.08);
     }
     
     .stats-table td {
@@ -245,18 +465,31 @@
     
     /* Recent Transactions */
     .recent-transactions {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
+        background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.85) 0%,
+            rgba(255, 255, 255, 0.65) 100%
+        );
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        border-radius: 24px;
         padding: 2rem;
-        box-shadow: 0 10px 40px rgba(107, 144, 128, 0.15);
-        border: 2px solid rgba(216, 212, 203, 0.5);
-        transition: all 0.3s ease;
+        box-shadow: 
+            0 8px 32px rgba(107, 144, 128, 0.12),
+            0 2px 8px rgba(0, 0, 0, 0.04),
+            inset 0 1px 1px rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
     }
     
     .recent-transactions:hover {
-        border-color: #A4C3B2;
-        box-shadow: 0 12px 45px rgba(107, 144, 128, 0.2);
+        border-color: rgba(255, 255, 255, 0.7);
+        box-shadow: 
+            0 20px 50px rgba(107, 144, 128, 0.18),
+            0 10px 20px rgba(0, 0, 0, 0.06),
+            inset 0 1px 1px rgba(255, 255, 255, 0.9);
+        transform: translateY(-5px);
     }
     
     .transaction-item {
@@ -269,8 +502,15 @@
     }
     
     .transaction-item:hover {
-        padding-left: 8px;
-        background: rgba(107, 144, 128, 0.05);
+        padding-left: 12px;
+        background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.6) 0%,
+            rgba(255, 255, 255, 0.2) 100%
+        );
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(107, 144, 128, 0.1);
     }
     
     .transaction-item:last-child {
