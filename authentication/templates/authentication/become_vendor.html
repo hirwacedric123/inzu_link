@@ -4,54 +4,486 @@
 {% block title %}Become a Vendor - InzuLink{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center fade-in">
-    <div class="col-lg-8">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h3 class="text-center my-3 fw-bold text-primary">Become a Vendor</h3>
-                <p class="text-center text-muted mb-0">Upgrade your account to sell products on InzuLink</p>
+<style>
+    .vendor-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
+        background: #F6F4F0;
+        min-height: 100vh;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1.25rem;
+        background: linear-gradient(135deg, #6B9080 0%, #A4C3B2 100%);
+        color: white;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-title {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+
+    .hero-subtitle {
+        font-size: 1.25rem;
+        color: #6B7280;
+        max-width: 600px;
+        margin: 0 auto 2rem;
+        line-height: 1.6;
+    }
+
+    /* Benefits Grid */
+    .benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-bottom: 4rem;
+    }
+
+    .benefit-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        border: 1px solid #E5E7EB;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .benefit-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, #6B9080 0%, #A4C3B2 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .benefit-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+        border-color: #6B9080;
+    }
+
+    .benefit-card:hover::before {
+        opacity: 1;
+    }
+
+    .benefit-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #6B9080 0%, #A4C3B2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        color: white;
+        margin-bottom: 1.5rem;
+    }
+
+    .benefit-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.75rem;
+    }
+
+    .benefit-description {
+        font-size: 0.938rem;
+        color: #6B7280;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* Form Card */
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        border: 1px solid #E5E7EB;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .form-header h2 {
+        font-size: 1.875rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.75rem;
+    }
+
+    .form-header p {
+        font-size: 1rem;
+        color: #6B7280;
+    }
+
+    /* Features List */
+    .features-list {
+        background: #F9FAFB;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .features-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .features-title i {
+        color: #6B9080;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        transition: background 0.2s ease;
+    }
+
+    .feature-item:hover {
+        background: white;
+    }
+
+    .feature-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .feature-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #6B9080 0%, #A4C3B2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .feature-text {
+        flex: 1;
+        font-size: 0.938rem;
+        color: #374151;
+        line-height: 1.6;
+    }
+
+    /* Terms Checkbox */
+    .terms-box {
+        background: #FEF3C7;
+        border: 1px solid #FCD34D;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .terms-check {
+        display: flex;
+        align-items: start;
+        gap: 1rem;
+    }
+
+    .terms-check input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-top: 2px;
+        cursor: pointer;
+        accent-color: #6B9080;
+        flex-shrink: 0;
+    }
+
+    .terms-label {
+        font-size: 0.938rem;
+        color: #78350F;
+        line-height: 1.6;
+        cursor: pointer;
+    }
+
+    .terms-label a {
+        color: #D97706;
+        font-weight: 600;
+        text-decoration: underline;
+        transition: color 0.2s ease;
+    }
+
+    .terms-label a:hover {
+        color: #B45309;
+    }
+
+    /* Action Buttons */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-cancel {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.75rem;
+        background: white;
+        color: #6B7280;
+        border: 2px solid #E5E7EB;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.938rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #F3F4F6;
+        border-color: #D1D5DB;
+        color: #374151;
+    }
+
+    .btn-upgrade {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 2rem;
+        background: linear-gradient(135deg, #6B9080 0%, #A4C3B2 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.938rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(107, 144, 128, 0.3);
+    }
+
+    .btn-upgrade:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(107, 144, 128, 0.4);
+        background: linear-gradient(135deg, #4A7C59 0%, #6B9080 100%);
+    }
+
+    .btn-upgrade:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .vendor-container {
+            padding: 2rem 1rem;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+
+        .benefits-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-card {
+            padding: 2rem 1.5rem;
+        }
+
+        .form-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn-cancel,
+        .btn-upgrade {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="vendor-container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="hero-badge">
+            <i class="bi bi-star-fill"></i>
+            <span>Seller Program</span>
+        </div>
+        <h1 class="hero-title">Become a Vendor</h1>
+        <p class="hero-subtitle">
+            Join thousands of successful sellers on InzuLink and start selling your properties today
+        </p>
+    </div>
+
+    <!-- Benefits Grid -->
+    <div class="benefits-grid">
+        <div class="benefit-card">
+            <div class="benefit-icon">
+                <i class="bi bi-shop"></i>
             </div>
-            <div class="card-body p-4">
-                <div class="mb-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-6 mb-4 mb-md-0">
-                            <h5 class="fw-bold">Benefits of becoming a vendor:</h5>
-                            <ul class="mt-3">
-                                <li class="mb-2">Create product listings to reach potential customers</li>
-                                <li class="mb-2">Connect with a wide audience of interested buyers</li>
-                                <li class="mb-2">Build your brand and reputation on the platform</li>
-                                <li class="mb-2">Access to sales analytics and customer insights</li>
-                            </ul>
+            <h3 class="benefit-title">List Your Properties</h3>
+            <p class="benefit-description">
+                Create unlimited property listings to showcase your houses, land plots, and furniture to a wide audience.
+            </p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-icon">
+                <i class="bi bi-people"></i>
+            </div>
+            <h3 class="benefit-title">Reach More Buyers</h3>
+            <p class="benefit-description">
+                Connect with interested buyers actively searching for properties. Get inquiries and close deals faster.
+            </p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-icon">
+                <i class="bi bi-graph-up"></i>
+            </div>
+            <h3 class="benefit-title">Track Your Performance</h3>
+            <p class="benefit-description">
+                Access detailed analytics, sales reports, and insights to optimize your listings and grow your business.
+            </p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-icon">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <h3 class="benefit-title">Secure Transactions</h3>
+            <p class="benefit-description">
+                Benefit from our secure payment system and buyer protection, ensuring safe and reliable transactions.
+            </p>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="form-card">
+        <div class="form-header">
+            <h2>Ready to Start Selling?</h2>
+            <p>Upgrade your account to unlock vendor features</p>
+        </div>
+
+        <!-- Features List -->
+        <div class="features-list">
+            <div class="features-title">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>What You'll Get:</span>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="bi bi-house-add"></i>
+                </div>
+                <div class="feature-text">
+                    Create and manage property listings (houses, land, furniture)
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="bi bi-chat-dots"></i>
+                </div>
+                <div class="feature-text">
+                    Receive and respond to buyer inquiries directly
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="bi bi-bar-chart"></i>
                         </div>
-                        <div class="col-md-6 text-center">
-                            <img src="{% static 'img/vendor.svg' %}" alt="Vendor" onerror="this.src='https://via.placeholder.com/300x200?text=Vendor'" class="img-fluid" style="max-width: 250px;">
+                <div class="feature-text">
+                    Access to sales statistics and performance metrics
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <i class="bi bi-trophy"></i>
+                </div>
+                <div class="feature-text">
+                    Build your brand and establish credibility on the platform
                         </div>
                     </div>
                 </div>
                 
-                <form method="POST" class="mt-4">
+        <!-- Form -->
+        <form method="POST" id="vendorForm">
                     {% csrf_token %}
                     
-                    <div class="mb-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="terms" required>
-                            <label class="form-check-label" for="terms">
-                                I agree to the <a href="#" class="text-primary">Vendor Terms of Service</a> and <a href="#" class="text-primary">Privacy Policy</a>
+            <!-- Terms Checkbox -->
+            <div class="terms-box">
+                <div class="terms-check">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms" class="terms-label">
+                        I agree to the <a href="#" onclick="event.preventDefault();">Vendor Terms of Service</a> and <a href="#" onclick="event.preventDefault();">Privacy Policy</a>. I understand the responsibilities of being a vendor on InzuLink.
                             </label>
                         </div>
                     </div>
                     
-                    <div class="mb-3 d-flex justify-content-between">
-                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left me-1"></i> Cancel
-                        </a>
-                        <button type="submit" class="btn btn-gradient px-4">
-                            <i class="bi bi-shop me-1"></i> Upgrade to Vendor
+            <!-- Action Buttons -->
+            <div class="form-actions">
+                <a href="{% url 'dashboard' %}" class="btn-cancel">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Cancel</span>
+                </a>
+                <button type="submit" class="btn-upgrade" id="submitBtn">
+                    <i class="bi bi-shop"></i>
+                    <span>Upgrade to Vendor</span>
                         </button>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
-</div>
+
+<script>
+    // Enable/disable submit button based on checkbox
+    const termsCheckbox = document.getElementById('terms');
+    const submitBtn = document.getElementById('submitBtn');
+
+    termsCheckbox.addEventListener('change', function() {
+        submitBtn.disabled = !this.checked;
+    });
+
+    // Initially disable submit button
+    submitBtn.disabled = !termsCheckbox.checked;
+</script>
 {% endblock %} 

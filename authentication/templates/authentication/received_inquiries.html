@@ -369,12 +369,12 @@
                 </div>
                 <div class="inquiry-count-badge">
                     <i class="bi bi-chat-dots-fill"></i>
-                    {{ property_data.inquiries|length }} inquiries
+                        {{ property_data.inquiries|length }} inquiries
                 </div>
             </div>
             
             <ul class="inquiries-list">
-                {% for inquiry in property_data.inquiries %}
+                    {% for inquiry in property_data.inquiries %}
                 <a href="{% url 'inquiry_detail' inquiry.inquiry_id %}" class="inquiry-item">
                     <div class="inquiry-top">
                         <div class="buyer-info">
@@ -399,27 +399,27 @@
                             {% elif inquiry.status == 'completed' %}
                                 <i class="bi bi-check-circle-fill"></i>
                             {% endif %}
-                            {{ inquiry.get_status_display }}
-                        </span>
+                                {{ inquiry.get_status_display }}
+                            </span>
                     </div>
                     
                     <p class="inquiry-message">{{ inquiry.message|truncatewords:20 }}</p>
                     
                     <div class="inquiry-bottom">
-                        {% if inquiry.offered_price %}
+                            {% if inquiry.offered_price %}
                         <div class="offer-chip">
                             <i class="bi bi-tag-fill"></i>
                             Offered: {{ inquiry.offered_price|currency }}
                         </div>
                         {% else %}
                         <div></div>
-                        {% endif %}
+                            {% endif %}
                         <div style="font-size: 0.875rem; color: #6B9080; font-weight: 500;">
                             View details <i class="bi bi-arrow-right"></i>
                         </div>
-                    </div>
-                </a>
-                {% endfor %}
+                        </div>
+                    </a>
+                    {% endfor %}
             </ul>
         </div>
         {% endfor %}

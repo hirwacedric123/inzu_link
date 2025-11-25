@@ -310,10 +310,10 @@
                 Pay Listing Fee
             </h1>
             <p>Activate your property listing on InzuLink</p>
-        </div>
+                </div>
 
         <div class="payment-body">
-            <!-- Property Info -->
+                    <!-- Property Info -->
             <div class="property-section">
                 <h2>Property Details</h2>
                 <div class="property-title">{{ property_listing.title }}</div>
@@ -347,14 +347,14 @@
                         <li><strong>1M - 5M RWF:</strong> 200 RWF/day</li>
                         <li><strong>5M - 10M RWF:</strong> 500 RWF/day</li>
                         <li><strong>Over 10M RWF:</strong> 1,000 RWF/day</li>
-                    </ul>
+                            </ul>
                 </div>
-            </div>
+                    </div>
 
-            <!-- Payment Form -->
+                    <!-- Payment Form -->
             <form method="POST" id="paymentForm">
-                {% csrf_token %}
-                
+                        {% csrf_token %}
+                        
                 <div class="form-group">
                     <label for="id_days_paid" class="form-label">
                         Number of Days <span class="required">*</span>
@@ -372,7 +372,7 @@
                     <span class="form-help">
                         Minimum 1 day, maximum 365 days. We recommend 30 days for optimal visibility.
                     </span>
-                </div>
+                        </div>
 
                 <div class="form-group">
                     <label for="id_payment_reference" class="form-label">
@@ -389,7 +389,7 @@
                     <span class="form-help">
                         Enter the transaction ID or reference number from your payment
                     </span>
-                </div>
+                        </div>
 
                 <div class="form-check">
                     <input 
@@ -400,20 +400,20 @@
                     >
                     <label for="id_auto_renew" class="form-check-label">
                         <strong>Auto-renew</strong> my listing when it expires
-                    </label>
-                </div>
+                            </label>
+                        </div>
 
                 <!-- Total Amount -->
                 <div class="total-card">
                     <div class="total-label">Total Amount</div>
                     <div class="total-amount" id="totalAmount">0 RWF</div>
-                </div>
+                        </div>
 
                 <!-- Submit Button -->
                 <button type="submit" class="btn-submit">
                     <i class="bi bi-check-circle"></i>
                     Confirm Payment
-                </button>
+                        </button>
 
                 <!-- Security Note -->
                 <div class="security-note">

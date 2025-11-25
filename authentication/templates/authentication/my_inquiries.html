@@ -287,7 +287,7 @@
         <p>Track inquiries you've sent to property sellers</p>
     </div>
     
-    {% if inquiries %}
+        {% if inquiries %}
         <div class="inquiries-grid">
             {% for inquiry in inquiries %}
             <div class="inquiry-card">
@@ -318,8 +318,8 @@
                             {% elif inquiry.status == 'completed' %}
                                 <i class="bi bi-check-circle-fill"></i>
                             {% endif %}
-                            {{ inquiry.get_status_display }}
-                        </span>
+                                {{ inquiry.get_status_display }}
+                            </span>
                     </div>
 
                     <div class="info-row">
@@ -332,7 +332,7 @@
                         <span class="info-value">{{ inquiry.created_at|date:"M d, Y" }}</span>
                     </div>
 
-                    {% if inquiry.offered_price %}
+                        {% if inquiry.offered_price %}
                     <div class="offer-highlight">
                         <div class="offer-label">Your Offer</div>
                         <div class="offer-amount">{{ inquiry.offered_price|currency }}</div>
@@ -349,7 +349,7 @@
             </div>
             {% endfor %}
         </div>
-    {% else %}
+        {% else %}
         <div class="empty-state">
             <div class="empty-icon">
                 <i class="bi bi-envelope-open"></i>
@@ -360,7 +360,7 @@
                 <i class="bi bi-grid"></i>
                 Browse Properties
             </a>
-        </div>
-    {% endif %}
+            </div>
+        {% endif %}
 </div>
 {% endblock %}
