@@ -13,47 +13,58 @@
         rel="stylesheet">
     {% load static %}
     <link href="{% static 'css/login.css' %}" rel="stylesheet">
+    <link href="{% static 'css/accessibility.css' %}" rel="stylesheet">
 </head>
 
 <body>
+    <!-- Skip Links -->
+    <a href="#login-form" class="skip-link">Skip to login form</a>
+    
     <div class="body-container">
         <div class="logo">
-            <h3 style="color: #3E4C4F;">Inzu<span style="color: #6B9080;"><i class="bi bi-link-45deg" style="color: #6B9080;"></i>Link</span></h3>
+            <h3 style="color: #3E4C4F;">Inzu<span style="color: #6B9080;"><i class="bi bi-link-45deg" style="color: #6B9080;" aria-hidden="true"></i>Link</span></h3>
         </div>
     </div>
     <div class="container">
         <div class="sub-container">
             <div class="login-container">
                 <div class="">
-                    <h3 class="login-title">Login</h3>
+                    <h1 class="login-title">Login</h1>
                 </div>
                 <div class="form-container">
-                    <form method="POST">
+                    <form method="POST" id="login-form" aria-label="Login form">
                         {% csrf_token %}
 
                         <div class="mb-4">
-                            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                            <label for="{{ form.username.id_for_label }}" class="form-label">
+                                Username
+                                <span class="required" aria-label="required">*</span>
+                            </label>
                             <div class="input-group">
                                 {{ form.username }}
                             </div>
                             {% if form.username.errors %}
-                            <div class="text-danger mt-1 small">{{ form.username.errors }}</div>
+                            <div class="form-error" role="alert" id="username-error">{{ form.username.errors }}</div>
                             {% endif %}
                         </div>
 
                         <div class="mb-4">
                             <div class="d-flex justify-content-between">
-                                <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                                <label for="{{ form.password.id_for_label }}" class="form-label">
+                                    Password
+                                    <span class="required" aria-label="required">*</span>
+                                </label>
                             </div>
                             <div class="input-group password-input-wrapper">
                                 {{ form.password }}
-                                <button type="button" class="password-toggle-btn" id="togglePassword" aria-label="Toggle password visibility">
-                                    <i class="bi bi-eye" id="toggleIcon"></i>
+                                <button type="button" class="password-toggle-btn" id="togglePassword" aria-label="Show password">
+                                    <i class="bi bi-eye" id="toggleIcon" aria-hidden="true"></i>
+                                    <span class="sr-only" id="password-toggle-text">Show password</span>
                                 </button>
                             </div>
                             
                             {% if form.password.errors %}
-                            <div class="text-danger mt-1 small">{{ form.password.errors }}</div>
+                            <div class="form-error" role="alert" id="password-error">{{ form.password.errors }}</div>
                             {% endif %}
                         </div>
 
@@ -63,8 +74,8 @@
                         </div>
 
                         <div class="signin_button_div">
-                            <button type="submit" class="sigin_button">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                            <button type="submit" class="sigin_button" aria-label="Sign in to your account">
+                                <i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>Sign In
                             </button>
                         </div>
                     </form>
@@ -90,13 +101,19 @@
                     const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                     passwordInput.setAttribute('type', type);
                     
-                    // Toggle icon
+                    // Toggle icon and ARIA label
                     if (type === 'text') {
                         toggleIcon.classList.remove('bi-eye');
                         toggleIcon.classList.add('bi-eye-slash');
+                        togglePasswordBtn.setAttribute('aria-label', 'Hide password');
+                        const srText = document.getElementById('password-toggle-text');
+                        if (srText) srText.textContent = 'Hide password';
                     } else {
                         toggleIcon.classList.remove('bi-eye-slash');
                         toggleIcon.classList.add('bi-eye');
+                        togglePasswordBtn.setAttribute('aria-label', 'Show password');
+                        const srText = document.getElementById('password-toggle-text');
+                        if (srText) srText.textContent = 'Show password';
                     }
                 });
             }

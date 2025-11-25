@@ -1263,37 +1263,44 @@
             }
         }
     </style>
-    <div class="search-section">
-        <form method="get" id="search-form">
+    <div class="search-section" role="search">
+        <form method="get" id="search-form" aria-label="Product search form">
             <!-- Search Bar -->
             <div class="search-bar">
-                <i class="bi bi-search search-icon"></i>
-                <input type="text" 
+                <label for="search-input" class="sr-only">Search products</label>
+                <i class="bi bi-search search-icon" aria-hidden="true"></i>
+                <input type="search" 
+                       id="search-input"
                        name="q" 
                        class="search-input" 
                        placeholder="Search for products, categories, or vendors..." 
                        value="{{ search_query }}" 
+                       aria-label="Search for products, categories, or vendors"
                        onchange="submitForm()">
             </div>
             <div class="heading-search-section">
                 <!-- Category Buttons -->
-                <div class="category-filter">
+                <div class="category-filter" role="group" aria-label="Filter by category">
                     <input type="hidden" name="category" id="category-input" value="{{ selected_category }}">
                     <div class="category-buttons">
                         <button type="button" 
                                 class="category-btn {% if not selected_category %}active{% endif %}"
-                                data-category="">All</button>
+                                data-category=""
+                                aria-label="Show all products"
+                                {% if not selected_category %}aria-pressed="true"{% else %}aria-pressed="false"{% endif %}>All</button>
                         {% for category_value, category_name in categories %}
                             <button type="button" 
                                    class="category-btn {% if selected_category == category_value %}active{% endif %}"
-                                   data-category="{{ category_value }}">
+                                   data-category="{{ category_value }}"
+                                   aria-label="Filter by {{ category_name }}"
+                                   {% if selected_category == category_value %}aria-pressed="true"{% else %}aria-pressed="false"{% endif %}>
                                 {{ category_name }}
                             </button>
                         {% endfor %}
                     </div>
                     <div class="filters-actions">
-                        <button type="button" class="advanced-filters-toggle" onclick="toggleAdvancedFilters()">
-                            <i class="bi bi-sliders" style="padding-right: 5px;"></i>
+                        <button type="button" class="advanced-filters-toggle" onclick="toggleAdvancedFilters()" aria-label="Toggle advanced filters" aria-expanded="false">
+                            <i class="bi bi-sliders" style="padding-right: 5px;" aria-hidden="true"></i>
                             Advanced Filters
                         </button>
                         {% if search_query or selected_category or min_price or max_price %}
@@ -1368,59 +1375,69 @@
             submitForm();
         }
     </script>
-    <div class="listing-container">
+    <div class="listing-container" role="main" aria-label="Product listings">
         <!-- Pinterest Grid -->
         {% if posts %}
-        <div class="pinterest-grid" id="pinterest-grid">
+        <div class="pinterest-grid" id="pinterest-grid" role="list" aria-label="Available products">
             {% for post in posts %}
-            <div class="pinterest-card" data-post="{{ post.id }}" onclick="navigateToProduct('{{ post.id }}')">
+            <article class="pinterest-card" data-post="{{ post.id }}" onclick="navigateToProduct('{{ post.id }}')" role="listitem" aria-labelledby="product-title-{{ post.id }}">
                 <div class="card-image-container">
-                    <img src="{{ post.image.url }}" alt="{{ post.title }}" class="card-image">
-                    <div class="category-badge">{{ post.get_category_display }}</div>
+                    <img src="{{ post.image.url }}" alt="{{ post.title }} - {{ post.get_category_display }}" class="card-image">
+                    <div class="category-badge" role="note" aria-label="Category">{{ post.get_category_display }}</div>
                 </div>
 
                 <div class="card-overlay">
                 <div class="card-content">
-                    <h3 class="card-title">{{ post.title }}</h3>
-                    <div class="card-price">{{ post.price|currency }}</div>
+                    <h3 id="product-title-{{ post.id }}" class="card-title">{{ post.title }}</h3>
+                    <div class="card-price" aria-label="Price">{{ post.price|currency }}</div>
 
-                        <div class="card-vendor">
-                            <div class="vendor-avatar">{{ post.user.username|first|upper }}</div>
+                        <div class="card-vendor" aria-label="Vendor">
+                            <div class="vendor-avatar" aria-hidden="true">{{ post.user.username|first|upper }}</div>
                             <span>{{ post.user.username }}</span>
                         </div>
 
-                        <div class="card-actions" data-bookmark="{{ post.id }}" data-like="{{ post.id }}" onclick="stopPropagation(event)">
-                            <button class="action-btn1 {% if post.id in liked_posts %}active{% endif %}" data-like="{{ post.id }}" onclick="toggleLike('{{ post.id }}', event)">
-                                <i class="bi bi-heart{% if post.id in liked_posts %}-fill{% endif %}"></i>
+                        <div class="card-actions" data-bookmark="{{ post.id }}" data-like="{{ post.id }}" onclick="stopPropagation(event)" role="group" aria-label="Product actions">
+                            <button class="action-btn1 {% if post.id in liked_posts %}active{% endif %}" 
+                                    data-like="{{ post.id }}" 
+                                    onclick="toggleLike('{{ post.id }}', event)"
+                                    aria-label="{% if post.id in liked_posts %}Unlike{% else %}Like{% endif %} {{ post.title }}"
+                                    aria-pressed="{% if post.id in liked_posts %}true{% else %}false{% endif %}"
+                                    type="button">
+                                <i class="bi bi-heart{% if post.id in liked_posts %}-fill{% endif %}" aria-hidden="true"></i>
                                 <span>Like</span>
                             </button>
-                            <button class="action-btn {% if post.id in bookmarked_posts %}bookmarked{% endif %}" data-bookmark="{{ post.id }}" onclick="toggleBookmark('{{ post.id }}', event)">
-                                <i class="bi bi-bookmark{% if post.id in bookmarked_posts %}-fill{% endif %}"></i>
+                            <button class="action-btn {% if post.id in bookmarked_posts %}bookmarked{% endif %}" 
+                                    data-bookmark="{{ post.id }}" 
+                                    onclick="toggleBookmark('{{ post.id }}', event)"
+                                    aria-label="{% if post.id in bookmarked_posts %}Remove {{ post.title }} from bookmarks{% else %}Save {{ post.title }} to bookmarks{% endif %}"
+                                    aria-pressed="{% if post.id in bookmarked_posts %}true{% else %}false{% endif %}"
+                                    type="button">
+                                <i class="bi bi-bookmark{% if post.id in bookmarked_posts %}-fill{% endif %}" aria-hidden="true"></i>
                                 <span>Save</span>
                             </button>
                         </div>
                     </div>
                 </div>
-            </div>
+            </article>
             {% endfor %}
         </div>
     </div>
 
     <!-- Pagination -->
     {% if posts.has_other_pages %}
-    <div class="pagination">
+    <nav class="pagination" aria-label="Product pagination">
         {% if posts.has_previous %}
-            <a href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="page-link">First</a>
-            <a href="?page={{ posts.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="page-link">Previous</a>
+            <a href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="page-link" aria-label="Go to first page">First</a>
+            <a href="?page={{ posts.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="page-link" aria-label="Go to previous page">Previous</a>
         {% endif %}
         
-        <span class="page-link active">Page {{ posts.number }} of {{ posts.paginator.num_pages }}</span>
+        <span class="page-link active" aria-current="page">Page {{ posts.number }} of {{ posts.paginator.num_pages }}</span>
         
         {% if posts.has_next %}
-            <a href="?page={{ posts.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="page-link">Next</a>
-            <a href="?page={{ posts.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="page-link">Last</a>
+            <a href="?page={{ posts.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="page-link" aria-label="Go to next page">Next</a>
+            <a href="?page={{ posts.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="page-link" aria-label="Go to last page">Last</a>
         {% endif %}
-    </div>
+    </nav>
     {% endif %}
 
     {% else %}

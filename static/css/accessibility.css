@@ -1,0 +1,504 @@
+/**
+ * InzuLink - Accessibility Utilities
+ * Clean, minimal, professional accessibility styles
+ * These are invisible to sighted users but essential for screen readers
+ */
+
+/* ========================================
+   SCREEN READER ONLY TEXT
+   ======================================== */
+
+/**
+ * Hide content visually while keeping it accessible to screen readers
+ * Use for: Icon labels, additional context, helpful hints
+ */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/**
+ * Allow screen reader text to be focusable when navigated to via keyboard
+ * Useful for skip links
+ */
+.sr-only-focusable:focus,
+.sr-only-focusable:active {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+}
+
+
+/* ========================================
+   SKIP NAVIGATION LINKS
+   ======================================== */
+
+/**
+ * Skip links allow keyboard users to bypass repetitive navigation
+ * Hidden by default, visible when focused
+ */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    z-index: 10000;
+    padding: 1rem 1.5rem;
+    background: #6B9080;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 0 0 8px 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: top 0.2s ease-in-out;
+}
+
+.skip-link:focus {
+    top: 0;
+    outline: 3px solid #4A7C59;
+    outline-offset: 2px;
+}
+
+.skip-link:hover {
+    background: #4A7C59;
+}
+
+
+/* ========================================
+   FOCUS INDICATORS
+   ======================================== */
+
+/**
+ * Enhanced focus indicators for keyboard navigation
+ * Ensures all interactive elements are clearly visible when focused
+ */
+*:focus {
+    outline: 2px solid #6B9080;
+    outline-offset: 2px;
+}
+
+/* Remove default outline and add custom style for specific elements */
+button:focus,
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid #6B9080;
+    outline-offset: 2px;
+}
+
+/* Focus within - highlight parent when child is focused */
+.focus-within:focus-within {
+    outline: 2px solid #6B9080;
+    outline-offset: 2px;
+}
+
+
+/* ========================================
+   LIVE REGIONS
+   ======================================== */
+
+/**
+ * Live regions announce dynamic content changes to screen readers
+ * Visually hidden but announced
+ */
+[aria-live="polite"],
+[aria-live="assertive"],
+[role="status"],
+[role="alert"] {
+    /* These are typically invisible but can be styled if needed */
+}
+
+/* Alert styling (visible) */
+.alert-visible[role="alert"] {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border-left: 4px solid;
+}
+
+.alert-visible.alert-success {
+    background: rgba(107, 144, 128, 0.1);
+    border-color: #6B9080;
+    color: #3E4C4F;
+}
+
+.alert-visible.alert-error {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: #dc3545;
+    color: #721c24;
+}
+
+.alert-visible.alert-info {
+    background: rgba(13, 110, 253, 0.1);
+    border-color: #0d6efd;
+    color: #084298;
+}
+
+
+/* ========================================
+   FORM ACCESSIBILITY
+   ======================================== */
+
+/**
+ * Required field indicators
+ */
+.required {
+    color: #dc3545;
+    font-weight: bold;
+    margin-left: 0.25rem;
+}
+
+/**
+ * Form hints and descriptions
+ */
+.form-hint {
+    display: block;
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+/**
+ * Error messages
+ */
+.form-error {
+    display: block;
+    font-size: 0.875rem;
+    color: #dc3545;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+/**
+ * Invalid input styling
+ */
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+    border-color: #dc3545;
+    outline-color: #dc3545;
+}
+
+input[aria-invalid="true"]:focus,
+select[aria-invalid="true"]:focus,
+textarea[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+
+/* ========================================
+   BUTTON ACCESSIBILITY
+   ======================================== */
+
+/**
+ * Pressed state for toggle buttons
+ */
+[aria-pressed="true"] {
+    background: #6B9080;
+    color: #ffffff;
+}
+
+/**
+ * Disabled state
+ */
+button:disabled,
+[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+
+/* ========================================
+   NAVIGATION & MENUS
+   ======================================== */
+
+/**
+ * Current page indicator
+ */
+[aria-current="page"] {
+    font-weight: 600;
+    border-bottom: 2px solid #6B9080;
+}
+
+/**
+ * Expanded/collapsed state for dropdowns
+ */
+[aria-expanded="false"] + .dropdown-menu,
+[aria-expanded="false"] + .submenu {
+    display: none;
+}
+
+[aria-expanded="true"] + .dropdown-menu,
+[aria-expanded="true"] + .submenu {
+    display: block;
+}
+
+
+/* ========================================
+   TABLES
+   ======================================== */
+
+/**
+ * Table caption styling (visible but styled appropriately)
+ */
+caption {
+    padding: 0.5rem;
+    caption-side: top;
+    text-align: left;
+    font-weight: 600;
+    color: #3E4C4F;
+}
+
+caption.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+
+/* ========================================
+   LOADING STATES
+   ======================================== */
+
+/**
+ * Loading indicator with screen reader text
+ */
+.loading-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.loading-spinner {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #6B9080;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+/* ========================================
+   HIGH CONTRAST MODE SUPPORT
+   ======================================== */
+
+/**
+ * Ensure content is visible in Windows High Contrast Mode
+ */
+@media (prefers-contrast: high) {
+    .skip-link:focus {
+        outline: 3px solid;
+    }
+    
+    button,
+    a {
+        outline: 1px solid;
+    }
+}
+
+
+/* ========================================
+   REDUCED MOTION SUPPORT
+   ======================================== */
+
+/**
+ * Respect user's motion preferences
+ * Disable animations for users who prefer reduced motion
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .loading-spinner {
+        animation: none;
+        border-top-color: transparent;
+    }
+}
+
+
+/* ========================================
+   KEYBOARD-ONLY USERS
+   ======================================== */
+
+/**
+ * Show additional focus indicators for keyboard-only users
+ * Hide mouse focus, show keyboard focus
+ */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+:focus-visible {
+    outline: 3px solid #6B9080;
+    outline-offset: 2px;
+}
+
+
+/* ========================================
+   HIDDEN CONTENT
+   ======================================== */
+
+/**
+ * Hidden attribute - respect native HTML hiding
+ */
+[hidden] {
+    display: none !important;
+}
+
+
+/* ========================================
+   BREADCRUMB NAVIGATION
+   ======================================== */
+
+/**
+ * Accessible breadcrumb styling
+ */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0.75rem 0;
+    margin: 0;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "/";
+    padding: 0 0.5rem;
+    color: #6c757d;
+}
+
+.breadcrumb-item.active {
+    color: #6c757d;
+}
+
+
+/* ========================================
+   TOOLTIP ACCESSIBILITY
+   ======================================== */
+
+/**
+ * Ensure tooltips are accessible
+ */
+[role="tooltip"] {
+    position: absolute;
+    z-index: 10000;
+    padding: 0.5rem;
+    background: #3E4C4F;
+    color: #ffffff;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    max-width: 200px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+
+/* ========================================
+   MODAL/DIALOG ACCESSIBILITY
+   ======================================== */
+
+/**
+ * Modal backdrop
+ */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+}
+
+/**
+ * Modal content
+ */
+[role="dialog"] {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+
+/**
+ * Ensure accessibility features print correctly
+ */
+@media print {
+    .skip-link,
+    [aria-hidden="true"],
+    .sr-only {
+        display: none !important;
+    }
+    
+    a[href]::after {
+        content: " (" attr(href) ")";
+    }
+}
+
+
+/* ========================================
+   MOBILE ACCESSIBILITY
+   ======================================== */
+
+@media (max-width: 768px) {
+    .skip-link {
+        width: 100%;
+        text-align: center;
+        border-radius: 0;
+    }
+    
+    /* Larger touch targets for mobile */
+    button,
+    a,
+    input,
+    select {
+        min-height: 44px; /* iOS recommended minimum */
+        min-width: 44px;
+    }
+}
+
+
