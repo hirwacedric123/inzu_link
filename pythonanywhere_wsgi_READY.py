@@ -1,26 +1,25 @@
 """
 WSGI Configuration for PythonAnywhere Deployment
+READY TO USE - Configured for username: inzulink
 
 Instructions:
 1. Go to your PythonAnywhere Web tab
 2. Click on your WSGI configuration file
 3. Replace ALL contents with this file
-4. Replace YOUR_USERNAME with your actual PythonAnywhere username
-5. Update environment variables as needed
-6. Save and reload your web app
+4. Save and reload your web app
 """
 
 import os
 import sys
 
 # ========================================
-# CONFIGURATION - UPDATE THESE VALUES
+# CONFIGURATION - ALREADY CONFIGURED!
 # ========================================
 
-# Replace with your PythonAnywhere username
+# Your PythonAnywhere username
 PYTHONANYWHERE_USERNAME = 'inzulink'
 
-# Your project directory name (should be 'KoraQuest')
+# Your project directory name
 PROJECT_DIR_NAME = 'KoraQuest'
 
 # ========================================
@@ -44,7 +43,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'InzuLink.settings'
 # Security Settings
 os.environ['DEBUG'] = 'False'
 
-# Allowed hosts (add your custom domain if you have one)
+# Allowed hosts
 os.environ['ALLOWED_HOSTS'] = f'{PYTHONANYWHERE_USERNAME}.pythonanywhere.com'
 
 # CSRF Trusted Origins (important for forms to work)
