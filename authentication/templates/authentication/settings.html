@@ -1026,14 +1026,24 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('Settings page JavaScript loaded');
+        
         // Profile Picture Preview and Auto-Submit
         const profilePicInput = document.getElementById('profile_picture');
         const profileForm = document.getElementById('profile-form');
         
+        console.log('Profile pic input:', profilePicInput);
+        console.log('Profile form:', profileForm);
+        
         if (profilePicInput && profileForm) {
-            profilePicInput.addEventListener('change', function() {
+            console.log('Profile picture upload initialized');
+            
+            profilePicInput.addEventListener('change', function(e) {
+                console.log('File input changed');
+                
                 if (this.files && this.files[0]) {
                     const file = this.files[0];
+                    console.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
                     
                     // Validate file type
                     if (!file.type.startsWith('image/')) {
@@ -1049,54 +1059,92 @@
                         return;
                     }
                     
+                    // Show uploading message
+                    showMessage('Preparing to upload...', 'info');
+                    
                     const reader = new FileReader();
                     reader.onload = function(e) {
+                        console.log('File read complete');
+                        
                         // Update the profile picture preview
                         const mainAvatar = document.querySelector('.user-avatar');
                         const avatarPlaceholder = document.querySelector('.user-avatar-placeholder');
                         
                         if (mainAvatar) {
                             mainAvatar.src = e.target.result;
+                            console.log('Updated existing avatar');
                         } else if (avatarPlaceholder) {
                             // Replace placeholder with actual image
                             const container = avatarPlaceholder.parentNode;
                             container.innerHTML = `<img src="${e.target.result}" alt="Profile preview" class="user-avatar">`;
+                            console.log('Replaced placeholder with avatar');
                         }
                         
                         // Auto-submit the form when profile picture is selected
+                        console.log('Showing confirmation dialog');
                         if (confirm('Do you want to upload this profile picture?')) {
+                            console.log('User confirmed upload');
+                            showMessage('Uploading profile picture...', 'info');
+                            
                             // Create a new FormData object with just the profile picture
                             const formData = new FormData();
-                            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+                            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                            
+                            formData.append('csrfmiddlewaretoken', csrfToken);
                             formData.append('form_type', 'profile_picture');
                             formData.append('profile_picture', file);
+                            
+                            console.log('Sending upload request...');
                             
                             // Submit via AJAX to avoid losing other form data
                             fetch(window.location.href, {
                                 method: 'POST',
                                 body: formData,
                                 headers: {
-                                    'X-Requested-With': 'XMLHttpRequest'
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'X-CSRFToken': csrfToken
                                 }
                             })
-                            .then(response => response.json())
+                            .then(response => {
+                                console.log('Response received:', response.status);
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
                             .then(data => {
+                                console.log('Response data:', data);
                                 if (data.success) {
                                     // Show success message
                                     showMessage('Profile picture updated successfully!', 'success');
+                                    // Reload page after a short delay to show updated image
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 1500);
                                 } else {
                                     showMessage(data.error || 'Failed to update profile picture.', 'error');
                                 }
                             })
                             .catch(error => {
-                                console.error('Error:', error);
-                                showMessage('An error occurred while uploading the image.', 'error');
+                                console.error('Upload error:', error);
+                                showMessage('An error occurred while uploading the image: ' + error.message, 'error');
                             });
+                        } else {
+                            console.log('User cancelled upload');
+                            showMessage('Upload cancelled', 'info');
                         }
                     };
+                    
+                    reader.onerror = function(error) {
+                        console.error('FileReader error:', error);
+                        showMessage('Error reading file', 'error');
+                    };
+                    
                     reader.readAsDataURL(file);
                 }
             });
+        } else {
+            console.error('Profile picture elements not found!');
         }
         
         // Function to show messages
@@ -1104,6 +1152,19 @@
             // Create message element
             const messageDiv = document.createElement('div');
             messageDiv.className = `alert alert-${type}`;
+            
+            // Set background color based on type
+            let bgColor;
+            if (type === 'success') {
+                bgColor = '#6B9080';
+            } else if (type === 'error') {
+                bgColor = '#ef4444';
+            } else if (type === 'info') {
+                bgColor = '#3b82f6';
+            } else {
+                bgColor = '#6B9080';
+            }
+            
             messageDiv.style.cssText = `
                 position: fixed;
                 top: 20px;
@@ -1111,7 +1172,7 @@
                 z-index: 1000;
                 padding: 1rem 1.5rem;
                 border-radius: 8px;
-                background: ${type === 'success' ? '#6B9080' : '#ef4444'};
+                background: ${bgColor};
                 color: white;
                 font-weight: 500;
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);

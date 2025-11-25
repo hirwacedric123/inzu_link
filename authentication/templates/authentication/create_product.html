@@ -30,6 +30,106 @@
         width: 100%;
         background-color: #F6F4F0;
     }
+
+    /* Error Styles */
+    .field-error {
+        position: relative;
+    }
+
+    .field-error label {
+        color: #991b1b !important;
+    }
+
+    .input-error,
+    .input-error:focus {
+        border-color: #ef4444 !important;
+        background-color: #fef2f2 !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+    }
+
+    .field-error-message {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background-color: #fef2f2;
+        border-left: 3px solid #ef4444;
+        border-radius: 6px;
+        color: #991b1b;
+        font-size: 0.875rem;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .field-error-message i {
+        color: #ef4444;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .required-star {
+        color: #ef4444;
+        font-weight: bold;
+    }
+
+    /* Animations */
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    .shake {
+        animation: shake 0.5s ease-in-out;
+    }
+
+    /* Smooth scroll to error */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Success state (optional) */
+    .field-success input,
+    .field-success textarea,
+    .field-success select {
+        border-color: #6B9080 !important;
+    }
+
+    /* Focus states for better accessibility */
+    input:focus,
+    textarea:focus,
+    select:focus {
+        outline: none;
+        border-color: #6B9080;
+        box-shadow: 0 0 0 3px rgba(107, 144, 128, 0.1);
+    }
+
+    .input-error:focus {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+    }
 </style>
 <div class="marketplace-container">
     <div class="create-product-grid">
@@ -47,6 +147,115 @@
                     </a>
                 </div>
 
+                <!-- Display Messages -->
+                {% if messages %}
+                <div class="messages-container" style="margin: 1rem 0;">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" style="
+                        padding: 1rem 1.25rem;
+                        margin-bottom: 0.75rem;
+                        border-radius: 12px;
+                        display: flex;
+                        align-items: start;
+                        gap: 0.75rem;
+                        font-size: 0.95rem;
+                        line-height: 1.5;
+                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                        animation: slideDown 0.3s ease-out;
+                        {% if message.tags == 'error' %}
+                        background-color: #fee2e2;
+                        border-left: 4px solid #ef4444;
+                        color: #991b1b;
+                        {% elif message.tags == 'success' %}
+                        background-color: #d1fae5;
+                        border-left: 4px solid #6B9080;
+                        color: #065f46;
+                        {% elif message.tags == 'warning' %}
+                        background-color: #fef3c7;
+                        border-left: 4px solid #f59e0b;
+                        color: #92400e;
+                        {% else %}
+                        background-color: #dbeafe;
+                        border-left: 4px solid #3b82f6;
+                        color: #1e40af;
+                        {% endif %}
+                    ">
+                        <i class="bi bi-{% if message.tags == 'error' %}exclamation-circle-fill{% elif message.tags == 'success' %}check-circle-fill{% elif message.tags == 'warning' %}exclamation-triangle-fill{% else %}info-circle-fill{% endif %}" style="font-size: 1.25rem; flex-shrink: 0;"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Form Errors Summary -->
+                {% if form.errors %}
+                <div class="form-errors-summary" style="
+                    padding: 1.25rem;
+                    margin: 1rem 0;
+                    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+                    border: 2px solid #ef4444;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+                ">
+                    <div style="display: flex; align-items: start; gap: 1rem; margin-bottom: 1rem;">
+                        <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem; color: #dc2626; flex-shrink: 0;"></i>
+                        <div>
+                            <h3 style="margin: 0 0 0.5rem 0; color: #991b1b; font-size: 1.1rem; font-weight: 600;">
+                                ⚠️ Please Fix the Following Errors
+                            </h3>
+                            <p style="margin: 0; color: #7f1d1d; font-size: 0.9rem;">
+                                Some fields need your attention before you can submit the form.
+                            </p>
+                        </div>
+                    </div>
+                    <ul style="
+                        list-style: none;
+                        padding: 0;
+                        margin: 0;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.5rem;
+                    ">
+                        {% for field in form %}
+                            {% if field.errors %}
+                                {% for error in field.errors %}
+                                <li style="
+                                    display: flex;
+                                    align-items: start;
+                                    gap: 0.5rem;
+                                    padding: 0.5rem;
+                                    background: white;
+                                    border-radius: 6px;
+                                    color: #991b1b;
+                                    font-size: 0.9rem;
+                                ">
+                                    <i class="bi bi-x-circle-fill" style="color: #ef4444; margin-top: 0.15rem;"></i>
+                                    <strong>{{ field.label }}:</strong> {{ error }}
+                                </li>
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                            <li style="
+                                display: flex;
+                                align-items: start;
+                                gap: 0.5rem;
+                                padding: 0.5rem;
+                                background: white;
+                                border-radius: 6px;
+                                color: #991b1b;
+                                font-size: 0.9rem;
+                            ">
+                                <i class="bi bi-x-circle-fill" style="color: #ef4444; margin-top: 0.15rem;"></i>
+                                {{ error }}
+                            </li>
+                            {% endfor %}
+                        {% endif %}
+                    </ul>
+                </div>
+                {% endif %}
+
                 <form method="POST" enctype="multipart/form-data" class="product-form">
                         {% csrf_token %}
                         
@@ -54,16 +263,30 @@
                     <div class="form-section-group">
                         <h2>Basic Information</h2>
                         
-                        <div class="form-field">
-                            <label for="title">Property Title</label>
-                            <input type="text" id="title" name="title" required placeholder="e.g., Luxury 3BR Villa in Kigali">
-                            <span class="field-hint">A clear and descriptive title for your property</span>
+                        <div class="form-field {% if form.title.errors %}field-error{% endif %}">
+                            <label for="title">Property Title <span class="required-star">*</span></label>
+                            <input type="text" id="title" name="title" required placeholder="e.g., Luxury 3BR Villa in Kigali" value="{{ form.title.value|default:'' }}" class="{% if form.title.errors %}input-error{% endif %}">
+                            {% if form.title.errors %}
+                                <span class="field-error-message">
+                                    <i class="bi bi-exclamation-circle-fill"></i>
+                                    {{ form.title.errors.0 }}
+                                </span>
+                            {% else %}
+                                <span class="field-hint">A clear and descriptive title for your property</span>
+                            {% endif %}
                         </div>
                         
-                        <div class="form-field">
-                            <label for="description">Property Description</label>
-                            <textarea id="description" name="description" rows="5" required placeholder="Describe the property in detail..."></textarea>
-                            <span class="field-hint">Describe your property features, location benefits, and other relevant details</span>
+                        <div class="form-field {% if form.description.errors %}field-error{% endif %}">
+                            <label for="description">Property Description <span class="required-star">*</span></label>
+                            <textarea id="description" name="description" rows="5" required placeholder="Describe the property in detail..." class="{% if form.description.errors %}input-error{% endif %}">{{ form.description.value|default:'' }}</textarea>
+                            {% if form.description.errors %}
+                                <span class="field-error-message">
+                                    <i class="bi bi-exclamation-circle-fill"></i>
+                                    {{ form.description.errors.0 }}
+                                </span>
+                            {% else %}
+                                <span class="field-hint">Describe your property features, location benefits, and other relevant details</span>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -72,19 +295,26 @@
                         <h2>Pricing & Category</h2>
                         
                         <div class="form-row">
-                            <div class="form-field">
-                                <label for="price">Price</label>
+                            <div class="form-field {% if form.price.errors %}field-error{% endif %}">
+                                <label for="price">Price <span class="required-star">*</span></label>
                                 <div class="price-input">
                                     <span class="currency-symbol">RWF</span>
-                                    <input type="number" id="price" name="price" step="1" min="0" required>
+                                    <input type="number" id="price" name="price" step="1" min="0" required value="{{ form.price.value|default:'' }}" class="{% if form.price.errors %}input-error{% endif %}">
                                 </div>
-                                <span class="field-hint">Product price in RWF</span>
+                                {% if form.price.errors %}
+                                    <span class="field-error-message">
+                                        <i class="bi bi-exclamation-circle-fill"></i>
+                                        {{ form.price.errors.0 }}
+                                    </span>
+                                {% else %}
+                                    <span class="field-hint">Product price in RWF</span>
+                                {% endif %}
                             </div>
                             
-                            <div class="form-field">
-                                <label for="category">Category</label>
-                                <select id="category" name="category" required>
-                                    <option value="" selected disabled>Select category</option>
+                            <div class="form-field {% if form.category.errors %}field-error{% endif %}">
+                                <label for="category">Category <span class="required-star">*</span></label>
+                                <select id="category" name="category" required class="{% if form.category.errors %}input-error{% endif %}">
+                                    <option value="" {% if not form.category.value %}selected{% endif %} disabled>Select category</option>
                                     <!-- House Categories -->
                                     <optgroup label="Houses">
                                         <option value="apartment">Apartment</option>
@@ -112,6 +342,47 @@
                                         <option value="storage">Storage Furniture</option>
                                     </optgroup>
                                 </select>
+                                {% if form.category.errors %}
+                                    <span class="field-error-message">
+                                        <i class="bi bi-exclamation-circle-fill"></i>
+                                        {{ form.category.errors.0 }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-field {% if form.property_type.errors %}field-error{% endif %}">
+                                <label for="property_type">Property Type <span class="required-star">*</span></label>
+                                <select id="property_type" name="property_type" required class="{% if form.property_type.errors %}input-error{% endif %}">
+                                    <option value="" {% if not form.property_type.value %}selected{% endif %} disabled>Select property type</option>
+                                    <option value="house">House</option>
+                                    <option value="land">Land Plot</option>
+                                    <option value="furniture">Furniture</option>
+                                </select>
+                                {% if form.property_type.errors %}
+                                    <span class="field-error-message">
+                                        <i class="bi bi-exclamation-circle-fill"></i>
+                                        {{ form.property_type.errors.0 }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-field {% if form.condition.errors %}field-error{% endif %}">
+                                <label for="condition">Condition <span class="required-star">*</span></label>
+                                <select id="condition" name="condition" required class="{% if form.condition.errors %}input-error{% endif %}">
+                                    <option value="" {% if not form.condition.value %}selected{% endif %} disabled>Select condition</option>
+                                    <option value="new">New</option>
+                                    <option value="excellent">Excellent</option>
+                                    <option value="good">Good</option>
+                                    <option value="fair">Fair</option>
+                                </select>
+                                {% if form.condition.errors %}
+                                    <span class="field-error-message">
+                                        <i class="bi bi-exclamation-circle-fill"></i>
+                                        {{ form.condition.errors.0 }}
+                                    </span>
+                                {% endif %}
                             </div>
                         </div>
                         
@@ -129,7 +400,7 @@
                         <div class="form-field">
                             <label for="main_image">Main Product Image</label>
                             <div class="image-upload-container">
-                                <input type="file" id="main_image" name="main_image" accept="image/*" required>
+                                <input type="file" id="main_image" name="image" accept="image/*" required>
                                 <div class="upload-placeholder">
                                     <i class="bi bi-cloud-upload"></i>
                                     <span>Click to upload or drag and drop</span>
@@ -758,6 +1029,35 @@
         document.querySelector('.preview-stock').textContent = `${inventory} in stock`;
     }
     
+    // Filter categories based on property type
+    function updateCategoryOptions() {
+        const propertyType = document.getElementById('property_type').value;
+        const categorySelect = document.getElementById('category');
+        
+        // Show/hide option groups based on property type
+        const optGroups = categorySelect.querySelectorAll('optgroup');
+        optGroups.forEach(group => {
+            const label = group.label.toLowerCase();
+            if (propertyType === 'house' && label.includes('house')) {
+                group.style.display = '';
+            } else if (propertyType === 'land' && label.includes('land')) {
+                group.style.display = '';
+            } else if (propertyType === 'furniture' && label.includes('furniture')) {
+                group.style.display = '';
+            } else {
+                group.style.display = 'none';
+            }
+        });
+        
+        // Reset category selection if it doesn't match the property type
+        const currentCategory = categorySelect.value;
+        const validOptions = Array.from(categorySelect.querySelectorAll('optgroup[style=""] option, optgroup:not([style*="none"]) option'));
+        const isValid = validOptions.some(opt => opt.value === currentCategory);
+        if (!isValid) {
+            categorySelect.value = '';
+        }
+    }
+    
     // Initialize components when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
         // Set up event listeners
@@ -768,6 +1068,14 @@
         document.getElementById('auxiliary_images').addEventListener('change', function() {
             previewAuxiliaryImages(this);
         });
+        
+        // Property type change listener
+        document.getElementById('property_type').addEventListener('change', function() {
+            updateCategoryOptions();
+        });
+        
+        // Initial category filter on page load
+        updateCategoryOptions();
         
         // Live preview listeners
         ['title', 'category', 'price', 'description', 'inventory'].forEach(id => {
@@ -805,6 +1113,143 @@
                     previewMainImage(input);
                 }
             });
+        });
+    });
+
+    // Error handling and UX improvements
+    document.addEventListener('DOMContentLoaded', function() {
+        // Scroll to first error on page load
+        const firstError = document.querySelector('.field-error, .form-errors-summary');
+        if (firstError) {
+            setTimeout(() => {
+                firstError.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                
+                // Add shake animation to error fields
+                const errorFields = document.querySelectorAll('.input-error');
+                errorFields.forEach(field => {
+                    field.classList.add('shake');
+                    setTimeout(() => field.classList.remove('shake'), 500);
+                });
+            }, 300);
+        }
+
+        // Real-time validation feedback
+        const form = document.querySelector('.product-form');
+        if (form) {
+            const requiredFields = form.querySelectorAll('[required]');
+            
+            requiredFields.forEach(field => {
+                // Add visual feedback on blur
+                field.addEventListener('blur', function() {
+                    if (this.value.trim() === '') {
+                        this.classList.add('input-error');
+                        const parentField = this.closest('.form-field');
+                        if (parentField && !parentField.querySelector('.field-error-message')) {
+                            parentField.classList.add('field-error');
+                        }
+                    } else {
+                        this.classList.remove('input-error');
+                        const parentField = this.closest('.form-field');
+                        if (parentField) {
+                            parentField.classList.remove('field-error');
+                        }
+                    }
+                });
+
+                // Remove error styling when user starts typing
+                field.addEventListener('input', function() {
+                    if (this.value.trim() !== '') {
+                        this.classList.remove('input-error');
+                        const parentField = this.closest('.form-field');
+                        if (parentField) {
+                            parentField.classList.remove('field-error');
+                        }
+                    }
+                });
+            });
+
+            // Form submission validation
+            form.addEventListener('submit', function(e) {
+                let hasErrors = false;
+                let firstErrorField = null;
+
+                requiredFields.forEach(field => {
+                    if (field.value.trim() === '') {
+                        hasErrors = true;
+                        field.classList.add('input-error');
+                        const parentField = field.closest('.form-field');
+                        if (parentField) {
+                            parentField.classList.add('field-error');
+                        }
+                        if (!firstErrorField) {
+                            firstErrorField = field;
+                        }
+                    }
+                });
+
+                if (hasErrors) {
+                    e.preventDefault();
+                    
+                    // Show alert
+                    alert('⚠️ Please fill in all required fields marked with *');
+                    
+                    // Scroll to first error
+                    if (firstErrorField) {
+                        firstErrorField.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center' 
+                        });
+                        
+                        // Add shake animation
+                        setTimeout(() => {
+                            firstErrorField.classList.add('shake');
+                            firstErrorField.focus();
+                            setTimeout(() => firstErrorField.classList.remove('shake'), 500);
+                        }, 300);
+                    }
+                }
+            });
+        }
+
+        // Auto-hide success messages after 5 seconds
+        const successMessages = document.querySelectorAll('.alert-success');
+        successMessages.forEach(msg => {
+            setTimeout(() => {
+                msg.style.transition = 'opacity 0.5s ease-out';
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 500);
+            }, 5000);
+        });
+
+        // Add close button to messages
+        const allMessages = document.querySelectorAll('.alert');
+        allMessages.forEach(msg => {
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 0.75rem;
+                right: 0.75rem;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: inherit;
+                opacity: 0.5;
+                transition: opacity 0.2s;
+            `;
+            closeBtn.onmouseover = () => closeBtn.style.opacity = '1';
+            closeBtn.onmouseout = () => closeBtn.style.opacity = '0.5';
+            closeBtn.onclick = () => {
+                msg.style.transition = 'opacity 0.3s ease-out';
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 300);
+            };
+            msg.style.position = 'relative';
+            msg.appendChild(closeBtn);
         });
     });
 </script>

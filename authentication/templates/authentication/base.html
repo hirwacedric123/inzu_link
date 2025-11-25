@@ -324,6 +324,10 @@
                 <span class="sr-only">Browse products</span>
             </a>
             {% if user.is_vendor_role %}
+            <a href="{% url 'vendor_dashboard' %}" class="nav-tab {% if request.resolver_match.url_name == 'vendor_dashboard' %}active{% endif %}" aria-label="My listings dashboard" {% if request.resolver_match.url_name == 'vendor_dashboard' %}aria-current="page"{% endif %}>
+                <i class="bi bi-house-door" aria-hidden="true"></i>
+                <span class="sr-only">My listings</span>
+            </a>
             <a href="{% url 'create_product' %}" class="nav-tab {% if request.resolver_match.url_name == 'create_product' %}active{% endif %}" aria-label="Create new product" {% if request.resolver_match.url_name == 'create_product' %}aria-current="page"{% endif %}>
                 <i class="bi bi-plus-circle" aria-hidden="true"></i>
                 <span class="sr-only">Create new product</span>
@@ -375,6 +379,10 @@
                 <span>Shop</span>
             </a>
             {% if user.is_vendor_role %}
+            <a href="{% url 'vendor_dashboard' %}" class="mobile-nav-tab {% if request.resolver_match.url_name == 'vendor_dashboard' %}active{% endif %}" {% if request.resolver_match.url_name == 'vendor_dashboard' %}aria-current="page"{% endif %}>
+                <i class="bi bi-house-door" aria-hidden="true"></i>
+                <span>Listings</span>
+            </a>
             <a href="{% url 'create_product' %}" class="mobile-nav-tab {% if request.resolver_match.url_name == 'create_product' %}active{% endif %}" {% if request.resolver_match.url_name == 'create_product' %}aria-current="page"{% endif %}>
                 <i class="bi bi-plus-circle" aria-hidden="true"></i>
                 <span>Add</span>

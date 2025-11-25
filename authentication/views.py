@@ -1127,39 +1127,59 @@ def create_product(request):
     if request.method == 'POST':
         form = PropertyListingForm(request.POST, request.FILES)
         if form.is_valid():
-            # Create the property listing
-            property_listing = form.save(commit=False)
-            property_listing.user = request.user
-            property_listing.save()
-            
-            # Process auxiliary images (limit to 5)
-            auxiliary_images = request.FILES.getlist('auxiliary_images')
-            max_images = min(len(auxiliary_images), 5)
-            
-            for i in range(max_images):
-                ProductImage.objects.create(
-                    product=property_listing,
-                    image=auxiliary_images[i],
-                    display_order=i
+            try:
+                # Create the property listing
+                property_listing = form.save(commit=False)
+                property_listing.user = request.user
+                property_listing.save()
+                
+                # Process auxiliary images (limit to 5)
+                auxiliary_images = request.FILES.getlist('auxiliary_images')
+                max_images = min(len(auxiliary_images), 5)
+                
+                for i in range(max_images):
+                    ProductImage.objects.create(
+                        product=property_listing,
+                        image=auxiliary_images[i],
+                        display_order=i
+                    )
+                
+                # Create initial listing fee record
+                listing_fee = ListingFee.objects.create(
+                    listing=property_listing,
+                    vendor=request.user,
+                    payment_status='pending'
                 )
-            
-            # Create initial listing fee record
-            listing_fee = ListingFee.objects.create(
-                listing=property_listing,
-                vendor=request.user,
-                payment_status='pending'
-            )
-            
-            property_type = property_listing.get_property_type_display()
-            messages.success(
-                request, 
-                f'{property_type} listing created successfully! '
-                f'Daily listing fee: RWF {listing_fee.daily_fee}. '
-                f'Please pay the listing fee to activate your listing.'
-            )
-            return redirect('pay_listing_fee', listing_id=property_listing.id)
+                
+                property_type = property_listing.get_property_type_display()
+                messages.success(
+                    request, 
+                    f'{property_type} listing created successfully! '
+                    f'Daily listing fee: RWF {listing_fee.daily_fee}. '
+                    f'Please pay the listing fee to activate your listing.'
+                )
+                return redirect('pay_listing_fee', listing_id=property_listing.id)
+            except Exception as e:
+                messages.error(request, f'Error creating listing: {str(e)}')
+                return render(request, 'authentication/create_product.html', {'form': form})
         else:
-            messages.error(request, 'Please correct the errors below.')
+            # Show specific form errors
+            error_messages = []
+            for field, errors in form.errors.items():
+                for error in errors:
+                    if field == '__all__':
+                        error_messages.append(f'{error}')
+                    else:
+                        field_label = form.fields[field].label or field
+                        error_messages.append(f'{field_label}: {error}')
+            
+            if error_messages:
+                messages.error(request, 'Please correct the following errors:')
+                for msg in error_messages:
+                    messages.error(request, msg)
+            else:
+                messages.error(request, 'Please correct the errors in the form.')
+            
             return render(request, 'authentication/create_product.html', {'form': form})
     else:
         form = PropertyListingForm()
