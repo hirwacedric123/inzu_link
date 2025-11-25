@@ -90,22 +90,22 @@
                                 </td>
                                 <td>
                                     <div class="product-info">
-                                        {% if purchase.product.image %}
-                                        <img src="{{ purchase.product.image.url }}" alt="{{ purchase.product.title }}" class="product-image">
+                                        {% if purchase.property.image %}
+                                        <img src="{{ purchase.property.image.url }}" alt="{{ purchase.property.title }}" class="product-image">
                                         {% endif %}
-                                        <a href="{% url 'post_detail' purchase.product.id %}" class="product-title">{{ purchase.product.title|truncatechars:30 }}</a>
+                                        <a href="{% url 'post_detail' purchase.property.id %}" class="product-title">{{ purchase.property.title|truncatechars:30 }}</a>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="seller-info">
-                                        {% if purchase.product.user.profile_picture %}
-                                        <img src="{{ purchase.product.user.profile_picture.url }}" alt="{{ purchase.product.user.username }}" class="seller-avatar">
+                                        {% if purchase.property.user.profile_picture %}
+                                        <img src="{{ purchase.property.user.profile_picture.url }}" alt="{{ purchase.property.user.username }}" class="seller-avatar">
                                         {% else %}
                                         <div class="seller-avatar-placeholder">
-                                            <span>{{ purchase.product.user.first_name|first|upper }}{{ purchase.product.user.last_name|first|upper }}</span>
+                                            <span>{{ purchase.property.user.first_name|first|upper }}{{ purchase.property.user.last_name|first|upper }}</span>
                                         </div>
                                         {% endif %}
-                                        <span class="seller-name">{{ purchase.product.user.first_name }} {{ purchase.product.user.last_name }}</span>
+                                        <span class="seller-name">{{ purchase.property.user.first_name }} {{ purchase.property.user.last_name }}</span>
                                     </div>
                                 </td>
                                 <td>{{ purchase.created_at|date:"M d, Y" }}</td>

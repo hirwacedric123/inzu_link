@@ -212,7 +212,7 @@
         {% for purchase in awaiting_purchases %}
             <div class="purchase-item">
                 <div class="purchase-info">
-                    <strong>{{ purchase.product.title }}</strong><br>
+                    <strong>{{ purchase.property.title }}</strong><br>
                     <small>
                         Customer: {{ purchase.buyer.username }} | 
                         Order: {{ purchase.order_id }} | 
@@ -238,7 +238,7 @@
         {% for purchase in awaiting_deliveries %}
             <div class="purchase-item">
                 <div class="purchase-info">
-                    <strong>{{ purchase.product.title }}</strong><br>
+                    <strong>{{ purchase.property.title }}</strong><br>
                     <small>
                         Customer: {{ purchase.buyer.username }} | 
                         Order: {{ purchase.order_id }} | 
@@ -268,7 +268,7 @@
         {% for purchase in out_for_delivery %}
             <div class="purchase-item">
                 <div class="purchase-info">
-                    <strong>{{ purchase.product.title }}</strong><br>
+                    <strong>{{ purchase.property.title }}</strong><br>
                     <small>
                         Customer: {{ purchase.buyer.username }} | 
                         Order: {{ purchase.order_id }} | 
@@ -296,7 +296,7 @@
         {% for purchase in completed_purchases|slice:":10" %}
             <div class="purchase-item">
                 <div class="purchase-info">
-                    <strong>{{ purchase.product.title }}</strong><br>
+                    <strong>{{ purchase.property.title }}</strong><br>
                     <small>
                         Customer: {{ purchase.buyer.username }} | 
                         Order: {{ purchase.order_id }} | 

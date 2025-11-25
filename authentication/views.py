@@ -954,10 +954,10 @@ def purchase_history(request):
         for purchase in purchases:
             data.append([
                 purchase.order_id,
-                purchase.product.title,
-                f"{purchase.product.user.first_name} {purchase.product.user.last_name}",
+                purchase.property.title,
+                f"{purchase.property.user.first_name} {purchase.property.user.last_name}",
                 purchase.created_at.strftime('%Y-%m-%d %H:%M'),
-                f"RWF {purchase.purchase_price:,.1f}",
+                f"RWF {purchase.final_price:,.1f}",
                 purchase.status.title(),
                 purchase.quantity,
                 purchase.delivery_method.title()
@@ -966,7 +966,7 @@ def purchase_history(request):
         # Summary data for PDF
         summary_data = {
             'Total Purchases': purchases.count(),
-            'Total Spent': f"RWF {(purchases.aggregate(total=Sum('purchase_price'))['total'] or 0):,.1f}",
+            'Total Spent': f"RWF {(purchases.aggregate(total=Sum('final_price'))['total'] or 0):,.1f}",
             'Completed Orders': purchases.filter(status='completed').count(),
             'Pending Orders': purchases.filter(status__in=['pending', 'processing']).count(),
             'Report Generated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -1007,7 +1007,7 @@ def vendor_dashboard(request):
     products = Post.objects.filter(user=request.user)
     
     # Get purchases for vendor's products
-    purchases = Purchase.objects.filter(product__user=request.user)
+    purchases = Purchase.objects.filter(property__user=request.user)
     
     # Calculate statistics
     total_sales = purchases.filter(status='completed').count()
@@ -1329,17 +1329,17 @@ def inzulink_dashboard(request):
     # Get all purchases awaiting pickup
     awaiting_purchases = Purchase.objects.filter(
         status='awaiting_pickup'
-    ).select_related('buyer', 'product', 'product__user').order_by('-created_at')
+    ).select_related('buyer', 'property', 'property__user').order_by('-created_at')
     
     # Get all purchases awaiting delivery
     awaiting_deliveries = Purchase.objects.filter(
         status='awaiting_delivery'
-    ).select_related('buyer', 'product', 'product__user').order_by('-created_at')
+    ).select_related('buyer', 'property', 'property__user').order_by('-created_at')
     
     # Get orders out for delivery
     out_for_delivery = Purchase.objects.filter(
         status='out_for_delivery'
-    ).select_related('buyer', 'product', 'product__user').order_by('-created_at')
+    ).select_related('buyer', 'property', 'property__user').order_by('-created_at')
     
     # Get completed purchases for revenue tracking
     completed_purchases = Purchase.objects.filter(
@@ -1348,14 +1348,13 @@ def inzulink_dashboard(request):
     ).select_related('buyer', 'product')
     
     # Calculate revenue statistics
-    total_commission = completed_purchases.aggregate(
-        total=Sum('koraquest_commission_amount')
-    )['total'] or 0
+    # Note: Commission system removed - using listing fees instead
+    total_commission = 0  # Placeholder for backward compatibility
     
     monthly_commission = completed_purchases.filter(
         pickup_confirmed_at__month=timezone.now().month,
         pickup_confirmed_at__year=timezone.now().year
-    ).aggregate(total=Sum('koraquest_commission_amount'))['total'] or 0
+    ).count()  # Changed to count instead of commission sum
     
     context = {
         'awaiting_purchases': awaiting_purchases,
@@ -1430,16 +1429,16 @@ def scan_qr_code(request):
                         purchase.save()
                         
                         # Update vendor and buyer stats
-                        vendor = purchase.product.user
-                        vendor.total_sales += purchase.vendor_payment_amount
+                        vendor = purchase.property.user
+                        vendor.total_sales += purchase.final_price
                         vendor.save()
                         
                         buyer = purchase.buyer
-                        buyer.total_purchases += (purchase.purchase_price * purchase.quantity)
+                        buyer.total_purchases += purchase.final_price
                         buyer.save()
                         
                         # Success message
-                        context['success_message'] = f'Purchase {purchase.order_id} confirmed successfully! Vendor payment: RWF{purchase.vendor_payment_amount}, InzuLink commission: RWF{purchase.koraquest_commission_amount}'
+                        context['success_message'] = f'Purchase {purchase.order_id} confirmed successfully! Amount: RWF{purchase.final_price:,.2f}'
                         messages.success(request, context['success_message'])
                         
                         # Redirect to dashboard after successful completion
@@ -1533,18 +1532,18 @@ def confirm_purchase_pickup(request, purchase_id):
             purchase.save()
             
             # Update vendor and buyer stats
-            vendor = purchase.product.user
-            vendor.total_sales += purchase.vendor_payment_amount
+            vendor = purchase.property.user
+            vendor.total_sales += purchase.final_price
             vendor.save()
             
             buyer = purchase.buyer
-            buyer.total_purchases += (purchase.purchase_price * purchase.quantity)
+            buyer.total_purchases += purchase.final_price
             buyer.save()
             
-            # Update product sales count only (inventory was already decremented during purchase)
-            product = purchase.product
-            product.total_purchases += purchase.quantity
-            product.save()
+            # Update property sales count only
+            property_obj = purchase.property
+            property_obj.total_purchases += purchase.quantity
+            property_obj.save()
             
             return JsonResponse({
                 'success': True,
@@ -1619,18 +1618,18 @@ def confirm_delivery(request, purchase_id):
             purchase.save()
             
             # Update vendor and buyer stats
-            vendor = purchase.product.user
-            vendor.total_sales += purchase.vendor_payment_amount
+            vendor = purchase.property.user
+            vendor.total_sales += purchase.final_price
             vendor.save()
             
             buyer = purchase.buyer
-            buyer.total_purchases += purchase.purchase_price
+            buyer.total_purchases += purchase.final_price
             buyer.save()
             
-            # Update product sales count only (inventory was already decremented during purchase)
-            product = purchase.product
-            product.total_purchases += purchase.quantity
-            product.save()
+            # Update property sales count only
+            property_obj = purchase.property
+            property_obj.total_purchases += purchase.quantity
+            property_obj.save()
             
             return JsonResponse({
                 'success': True,
@@ -1679,7 +1678,7 @@ def inzulink_purchase_history(request):
     purchases = Purchase.objects.filter(
         koraquest_user=request.user,
         status='completed'
-    ).select_related('buyer', 'product', 'product__user').order_by('-pickup_confirmed_at')
+    ).select_related('buyer', 'property', 'property__user').order_by('-pickup_confirmed_at')
     
     # Pagination could be added here
     context = {
@@ -1706,7 +1705,7 @@ def sales_statistics(request):
     if request.user.is_vendor_role:
         # Vendor statistics - show their earnings (80% of product price)
         purchases = Purchase.objects.filter(
-            product__user=request.user,
+            property__user=request.user,
             status='completed'
         ).select_related('product', 'buyer')
         
@@ -1728,7 +1727,7 @@ def sales_statistics(request):
         )['total'] or 0
         
         # Product-wise breakdown
-        product_stats = purchases.values('product__title').annotate(
+        product_stats = purchases.values('property__title').annotate(
             total_sales=Count('id'),
             total_revenue=Sum('vendor_payment_amount'),
             avg_price=Avg('vendor_payment_amount')
@@ -1744,7 +1743,7 @@ def sales_statistics(request):
                 data = []
                 for product in product_stats:
                     data.append([
-                        product['product__title'],
+                        product['property__title'],
                         product['total_sales'],
                         f"RWF {product['total_revenue']:,.1f}",
                         f"RWF {product['avg_price']:,.1f}"
@@ -1756,7 +1755,7 @@ def sales_statistics(request):
                 data = []
                 for product in product_stats:
                     data.append([
-                        product['product__title'],
+                        product['property__title'],
                         product['total_sales'],
                         f"RWF {product['total_revenue']:,.1f}",
                         f"RWF {product['avg_price']:,.1f}"
@@ -1789,7 +1788,7 @@ def sales_statistics(request):
         purchases = Purchase.objects.filter(
             koraquest_user=request.user,
             status='completed'
-        ).select_related('product', 'buyer', 'product__user')
+        ).select_related('property', 'buyer', 'property__user')
         
         # Calculate InzuLink statistics
         total_transactions = purchases.count()
@@ -1823,7 +1822,7 @@ def sales_statistics(request):
         vendor_stats = []
         
         # Use values() to get unique vendors with their aggregated stats
-        vendor_aggregates = purchases.values('product__user__id', 'product__user__username').annotate(
+        vendor_aggregates = purchases.values('property__user__id', 'property__user__username').annotate(
             total_transactions=Count('id'),
             total_commission=Sum('koraquest_commission_amount'),
             avg_commission=Avg('koraquest_commission_amount')
@@ -1831,8 +1830,8 @@ def sales_statistics(request):
         
         for vendor_data in vendor_aggregates:
             vendor_stats.append({
-                'vendor_id': vendor_data['product__user__id'],
-                'vendor_username': vendor_data['product__user__username'],
+                'vendor_id': vendor_data['property__user__id'],
+                'vendor_username': vendor_data['property__user__username'],
                 'total_transactions': vendor_data['total_transactions'],
                 'total_commission': vendor_data['total_commission'] or 0,
                 'avg_commission': vendor_data['avg_commission'] or 0
@@ -1896,7 +1895,7 @@ def sales_statistics(request):
         purchases = Purchase.objects.filter(
             buyer=request.user,
             status='completed'
-        ).select_related('product', 'product__user')
+        ).select_related('property', 'property__user')
         
         total_spent = purchases.aggregate(
             total=Sum('purchase_price')
@@ -1919,7 +1918,7 @@ def sales_statistics(request):
                     purchase.product.title,
                     f"{purchase.product.user.first_name} {purchase.product.user.last_name}",
                     purchase.created_at.strftime('%Y-%m-%d %H:%M'),
-                    f"RWF {purchase.purchase_price:,.1f}",
+                    f"RWF {purchase.final_price:,.1f}",
                     purchase.status.title()
                 ])
             
@@ -1960,7 +1959,7 @@ def vendor_statistics_for_inzulink(request, vendor_id):
     
     # Get all purchases for this vendor
     purchases = Purchase.objects.filter(
-        product__user=vendor,
+        property__user=vendor,
         status='completed'
     ).select_related('product', 'buyer', 'koraquest_user')
     

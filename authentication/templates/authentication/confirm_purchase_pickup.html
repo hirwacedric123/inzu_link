@@ -254,7 +254,7 @@ Confirm Purchase Pickup
             <div class="detail-grid">
                 <div class="detail-item">
                     <div class="detail-label">Product</div>
-                    <div class="detail-value">{{ purchase.product.title }}</div>
+                    <div class="detail-value">{{ purchase.property.title }}</div>
                 </div>
                 <div class="detail-item">
                     <div class="detail-label">Customer</div>
@@ -304,7 +304,7 @@ Confirm Purchase Pickup
                 <h4>💰 Payment Breakdown</h4>
                 <div class="payment-item">
                     <span>Product Subtotal</span>
-                    <span>RWF{{ purchase.product.price|floatformat:2 }}</span>
+                    <span>RWF{{ purchase.property.price|floatformat:2 }}</span>
                 </div>
                 {% if purchase.delivery_method == 'delivery' and purchase.delivery_fee %}
                 <div class="payment-item">

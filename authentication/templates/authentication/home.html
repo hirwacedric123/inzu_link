@@ -186,54 +186,73 @@
             pointer-events: none;
         }
 
-        /* Hero Section with animated gradient */
+        /* Hero Section with background image */
         .hero-section {
-            background: linear-gradient(135deg, #4A7C59 0%, #6B9080 50%, #A4C3B2 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
+            position: relative;
             color: white;
             padding: 120px 0 80px;
-            position: relative;
             overflow: hidden;
             min-height: 90vh;
             display: flex;
             align-items: center;
         }
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Floating geometric shapes */
+        /* Animated background image layer */
         .hero-section::before {
             content: '';
             position: absolute;
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
-            top: -150px;
-            right: -150px;
-            animation: float 20s ease-in-out infinite;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('{% static "images/hero.png" %}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            z-index: -2;
+            animation: subtleZoom 20s ease-in-out infinite alternate;
         }
 
+        @keyframes subtleZoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        /* Dark overlay for better text readability */
         .hero-section::after {
             content: '';
             position: absolute;
-            width: 200px;
-            height: 200px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-            bottom: -100px;
-            left: -100px;
-            animation: float 15s ease-in-out infinite reverse;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                135deg,
+                rgba(74, 124, 89, 0.85) 0%,
+                rgba(107, 144, 128, 0.75) 50%,
+                rgba(164, 195, 178, 0.65) 100%
+            );
+            z-index: -1;
+            animation: overlayShift 15s ease-in-out infinite;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-30px) rotate(180deg); }
+        @keyframes overlayShift {
+            0%, 100% {
+                background: linear-gradient(
+                    135deg,
+                    rgba(74, 124, 89, 0.85) 0%,
+                    rgba(107, 144, 128, 0.75) 50%,
+                    rgba(164, 195, 178, 0.65) 100%
+                );
+            }
+            50% {
+                background: linear-gradient(
+                    135deg,
+                    rgba(74, 124, 89, 0.75) 0%,
+                    rgba(107, 144, 128, 0.65) 50%,
+                    rgba(164, 195, 178, 0.55) 100%
+                );
+            }
         }
 
         .hero-content {
@@ -257,15 +276,23 @@
             font-size: 3.5rem;
             font-weight: 800;
             margin-bottom: 1.5rem;
-            text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            text-shadow: 
+                0 2px 4px rgba(0,0,0,0.3),
+                0 4px 8px rgba(0,0,0,0.2),
+                0 8px 16px rgba(0,0,0,0.1);
             animation: fadeInUp 1s ease-out 0.2s both;
+            letter-spacing: -1px;
         }
 
         .hero-section p {
             font-size: 1.3rem;
             margin-bottom: 2rem;
-            opacity: 0.95;
+            opacity: 0.98;
+            text-shadow: 
+                0 2px 4px rgba(0,0,0,0.3),
+                0 4px 8px rgba(0,0,0,0.15);
             animation: fadeInUp 1s ease-out 0.4s both;
+            line-height: 1.6;
         }
 
         .hero-buttons {
@@ -708,6 +735,23 @@
             .hero-section {
                 padding: 80px 0 60px;
                 min-height: 70vh;
+            }
+
+            /* Remove fixed attachment on mobile for better performance */
+            .hero-section::before {
+                background-attachment: scroll;
+                animation: none;
+                transform: scale(1);
+            }
+
+            .hero-section::after {
+                animation: none;
+                background: linear-gradient(
+                    135deg,
+                    rgba(74, 124, 89, 0.88) 0%,
+                    rgba(107, 144, 128, 0.82) 50%,
+                    rgba(164, 195, 178, 0.75) 100%
+                );
             }
 
             .hero-section h1 {

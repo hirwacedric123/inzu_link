@@ -371,7 +371,7 @@
             <div class="purchase-card {% if purchase.status == 'completed' %}completed{% else %}pending{% endif %}">
                 <div class="purchase-header">
                     <div>
-                        <div class="purchase-title">{{ purchase.product.title }}</div>
+                        <div class="purchase-title">{{ purchase.property.title }}</div>
                         <div class="purchase-id">Order ID: {{ purchase.order_id }}</div>
                     </div>
                     <div>
@@ -386,7 +386,7 @@
                     </div>
                     <div class="detail-group">
                         <div class="detail-label">Vendor</div>
-                        <div class="detail-value">{{ purchase.product.user.username }}</div>
+                        <div class="detail-value">{{ purchase.property.user.username }}</div>
                     </div>
                     <div class="detail-group">
                         <div class="detail-label">Quantity</div>
