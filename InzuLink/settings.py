@@ -32,7 +32,15 @@ ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS', '')
 if ALLOWED_HOSTS_ENV:
     ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',')]
 else:
-    ALLOWED_HOSTS = ['inzulink.bonasolutions.tech', '9aef-105-178-46-181.ngrok-free.app','127.0.0.1', '83fb988dd15a.ngrok-free.app', 'localhost', '.onrender.com']
+    ALLOWED_HOSTS = [
+        'inzulink.bonasolutions.tech', 
+        '9aef-105-178-46-181.ngrok-free.app',
+        '127.0.0.1', 
+        '83fb988dd15a.ngrok-free.app', 
+        'localhost', 
+        '.onrender.com',
+        '.pythonanywhere.com'  # Support for PythonAnywhere deployment
+    ]
 
 # Get CSRF_TRUSTED_ORIGINS from environment or use defaults
 CSRF_TRUSTED_ORIGINS_ENV = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
