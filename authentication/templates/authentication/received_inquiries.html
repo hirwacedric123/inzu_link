@@ -1,0 +1,64 @@
+{% extends "authentication/base.html" %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Received Inquiries - InzuLink{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold mb-1">Received Inquiries</h2>
+            <p class="text-muted">Manage inquiries from potential buyers</p>
+            <p><strong>Total Inquiries:</strong> {{ total_inquiries }}</p>
+        </div>
+    </div>
+    
+    {% if properties_with_inquiries %}
+        {% for property_data in properties_with_inquiries %}
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-house-door"></i> {{ property_data.property.title }}
+                    <span class="badge bg-light text-dark float-end">
+                        {{ property_data.inquiries|length }} inquiries
+                    </span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for inquiry in property_data.inquiries %}
+                    <a href="{% url 'inquiry_detail' inquiry.inquiry_id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ inquiry.buyer.username }}</h6>
+                            <small>{{ inquiry.created_at|timesince }} ago</small>
+                        </div>
+                        <p class="mb-1">{{ inquiry.message|truncatewords:20 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge 
+                                {% if inquiry.status == 'new' %}bg-primary
+                                {% elif inquiry.status == 'contacted' %}bg-info
+                                {% elif inquiry.status == 'viewing_scheduled' %}bg-warning
+                                {% elif inquiry.status == 'completed' %}bg-success
+                                {% else %}bg-secondary{% endif %}">
+                                {{ inquiry.get_status_display }}
+                            </span>
+                            {% if inquiry.offered_price %}
+                            <small class="text-muted">Offered: {{ inquiry.offered_price|currency }}</small>
+                            {% endif %}
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            No inquiries received yet. Make sure your properties are active and well-described!
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

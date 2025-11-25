@@ -1,0 +1,144 @@
+{% extends "authentication/base.html" %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Inquiry Details - InzuLink{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-envelope-open"></i> Inquiry Details
+                    </h4>
+                    <small>ID: {{ inquiry.inquiry_id }}</small>
+                </div>
+                <div class="card-body">
+                    <!-- Property Info -->
+                    <div class="mb-4">
+                        <h5>Property:</h5>
+                        <a href="{% url 'post_detail' inquiry.property.id %}" class="text-decoration-none">
+                            <strong>{{ inquiry.property.title }}</strong>
+                        </a>
+                        <p class="text-muted mb-1">
+                            {{ inquiry.property.get_property_type_display }} | {{ inquiry.property.get_category_display }}
+                        </p>
+                        <p class="text-muted mb-1">
+                            Price: {{ inquiry.property.price|currency }}
+                        </p>
+                    </div>
+
+                    <!-- Buyer/Seller Info -->
+                    <div class="mb-4">
+                        {% if is_vendor %}
+                        <h5>From Buyer:</h5>
+                        <p><strong>{{ inquiry.buyer.get_full_name|default:inquiry.buyer.username }}</strong></p>
+                        <p><i class="bi bi-phone"></i> {{ inquiry.phone_contact }}</p>
+                        {% if inquiry.email_contact %}
+                        <p><i class="bi bi-envelope"></i> {{ inquiry.email_contact }}</p>
+                        {% endif %}
+                        {% else %}
+                        <h5>Property Owner:</h5>
+                        <p><strong>{{ inquiry.property.user.username }}</strong></p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Message -->
+                    <div class="mb-4">
+                        <h5>Message:</h5>
+                        <p class="bg-light p-3 rounded">{{ inquiry.message }}</p>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="mb-4">
+                        <h5>Status:</h5>
+                        <span class="badge bg-{{ inquiry.status|slice:':3' }} fs-6">
+                            {{ inquiry.get_status_display }}
+                        </span>
+                    </div>
+
+                    <!-- Additional Details -->
+                    {% if inquiry.offered_price %}
+                    <div class="mb-4">
+                        <h5>Offered Price:</h5>
+                        <p class="text-success fs-5">{{ inquiry.offered_price|currency }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if inquiry.preferred_viewing_date %}
+                    <div class="mb-4">
+                        <h5>Preferred Viewing Date:</h5>
+                        <p>{{ inquiry.preferred_viewing_date|date:"l, F j, Y \a\t g:i A" }}</p>
+                        {% if is_vendor %}
+                        <form method="POST" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="viewing_confirmed" value="on">
+                            <button type="submit" class="btn btn-sm btn-success">
+                                <i class="bi bi-check"></i> Confirm Viewing
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Vendor Actions -->
+                    {% if is_vendor %}
+                    <hr>
+                    <div class="mb-4">
+                        <h5>Update Status:</h5>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <select name="status" class="form-select">
+                                    {% for value, label in status_choices %}
+                                    <option value="{{ value }}" {% if value == inquiry.status %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Notes:</label>
+                                <textarea name="vendor_notes" class="form-control" rows="3">{{ inquiry.vendor_notes }}</textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Update Inquiry
+                            </button>
+                        </form>
+                    </div>
+
+                    {% if inquiry.status == 'accepted' %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Ready to finalize the sale?
+                        <a href="{% url 'create_purchase_from_inquiry' inquiry.inquiry_id %}" class="btn btn-success btn-sm ms-2">
+                            <i class="bi bi-cart-check"></i> Create Purchase
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+
+                    <!-- Timestamps -->
+                    <div class="text-muted mt-4">
+                        <small>
+                            <i class="bi bi-clock"></i> Created: {{ inquiry.created_at|date:"F j, Y g:i A" }}
+                            {% if inquiry.responded_at %}
+                            | Responded: {{ inquiry.responded_at|date:"F j, Y g:i A" }}
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% if is_vendor %}{% url 'received_inquiries' %}{% else %}{% url 'my_inquiries' %}{% endif %}" 
+                       class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

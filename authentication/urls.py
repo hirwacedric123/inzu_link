@@ -18,8 +18,19 @@ urlpatterns = [
     
     # Post detail and actions
     path('post/<int:post_id>/', views.post_detail, name='post_detail'),
-    path('post/<int:post_id>/purchase/', views.purchase_product, name='purchase_product'),
+    path('post/<int:post_id>/inquiry/', views.send_property_inquiry, name='send_property_inquiry'),
+    path('post/<int:post_id>/purchase/', views.send_property_inquiry, name='purchase_product'),  # Keep old URL for compatibility
     path('bookmark/<int:post_id>/', views.bookmark_toggle, name='bookmark_toggle'),
+    
+    # Property Inquiry Management
+    path('my-inquiries/', views.my_inquiries, name='my_inquiries'),
+    path('received-inquiries/', views.received_inquiries, name='received_inquiries'),
+    path('inquiry/<str:inquiry_id>/', views.inquiry_detail, name='inquiry_detail'),
+    path('inquiry/<str:inquiry_id>/create-purchase/', views.create_purchase_from_inquiry, name='create_purchase_from_inquiry'),
+    
+    # Listing Fee Management
+    path('listing/<int:listing_id>/pay-fee/', views.pay_listing_fee, name='pay_listing_fee'),
+    path('my-listing-fees/', views.my_listing_fees, name='my_listing_fees'),
     
     # User dashboards
     path('vendor-dashboard/', views.vendor_dashboard, name='vendor_dashboard'),

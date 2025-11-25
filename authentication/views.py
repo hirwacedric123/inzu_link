@@ -26,8 +26,11 @@ from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
-from .forms import SignUpForm, ProductReviewForm
-from .models import User, Post, Purchase, Bookmark, ProductImage, UserQRCode, OTPVerification, ProductReview
+from .forms import SignUpForm, ProductReviewForm, PropertyListingForm, PropertyInquiryForm, ListingFeePaymentForm
+from .models import (
+    User, Post, Purchase, Bookmark, ProductImage, UserQRCode, 
+    OTPVerification, ProductReview, PropertyInquiry, ListingFee
+)
 from .qr_utils import update_user_qr_code, decode_qr_data, get_user_purchases_from_qr
 from .otp_utils import create_otp, verify_otp
 from django.views.decorators.csrf import csrf_exempt
@@ -828,103 +831,76 @@ def post_detail(request, post_id):
     return render(request, 'authentication/post_detail.html', context)
 
 @login_required
-def purchase_product(request, post_id):
+def send_property_inquiry(request, post_id):
+    """Send an inquiry about a property listing"""
     if request.method == 'POST':
-        product = get_object_or_404(Post, id=post_id)
+        property_listing = get_object_or_404(Post, id=post_id)
         
-        # Check if user is trying to buy their own product
-        if product.user == request.user:
-            messages.error(request, "You cannot purchase your own product.")
+        # Check if user is trying to inquire about their own property
+        if property_listing.user == request.user:
+            messages.error(request, "You cannot inquire about your own property.")
             return redirect('post_detail', post_id=post_id)
         
-        # Check if price is None or not set
-        if product.price is None:
-            messages.error(request, f'Unable to purchase {product.title}. The product does not have a valid price.')
+        # Check if property is already sold
+        if property_listing.is_sold:
+            messages.error(request, f'{property_listing.title} has already been sold.')
             return redirect('post_detail', post_id=post_id)
         
-
-        # Check if product is out of stock
-        if product.inventory <= 0:
-            messages.error(request, f'Sorry, {product.title} is currently out of stock.')
+        # Check if property is active
+        if not property_listing.is_active:
+            messages.error(request, f'{property_listing.title} is no longer available.')
             return redirect('post_detail', post_id=post_id)
         
-        # Get quantity from form
-        try:
-            quantity = int(request.POST.get('quantity', 1))
-            if quantity <= 0:
-                raise ValueError("Quantity must be positive")
-        except (ValueError, TypeError):
-            messages.error(request, "Please enter a valid quantity.")
+        # Get inquiry details from form
+        message = request.POST.get('message', '')
+        phone_contact = request.POST.get('phone_contact', request.user.phone_number or '')
+        email_contact = request.POST.get('email_contact', request.user.email)
+        preferred_viewing_date = request.POST.get('preferred_viewing_date')
+        offered_price = request.POST.get('offered_price')
+        
+        # Validate message
+        if not message or len(message.strip()) < 10:
+            messages.error(request, "Please provide a detailed message (at least 10 characters).")
             return redirect('post_detail', post_id=post_id)
         
-        # Check if enough inventory (with fresh data to prevent race conditions)
-        product.refresh_from_db()  # Get latest inventory data
-        if product.inventory < quantity:
-            if product.inventory == 0:
-                messages.error(request, f'Sorry, {product.title} is now out of stock.')
-            else:
-                messages.error(request, f'Sorry, there are only {product.inventory} items available.')
-            return redirect('post_detail', post_id=post_id)
-        
-        # Get delivery method and details
-        delivery_method = request.POST.get('delivery_method', 'pickup')
-        delivery_address = request.POST.get('delivery_address', '')
-        delivery_latitude = request.POST.get('delivery_latitude')
-        delivery_longitude = request.POST.get('delivery_longitude')
-        payment_method = request.POST.get('payment_method', 'momo')  # New payment method field
-        
-        # Calculate total price
-        total_price = product.price * quantity
-        delivery_fee = Decimal('5.00') if delivery_method == 'delivery' else Decimal('0.00')
-        
-        # Validate delivery details if delivery is selected
-        if delivery_method == 'delivery':
-            if not delivery_address:
-                messages.error(request, "Please provide a delivery address for home delivery.")
-                return redirect('post_detail', post_id=post_id)
-        
-        # Determine initial status based on delivery method
-        initial_status = 'awaiting_delivery' if delivery_method == 'delivery' else 'awaiting_pickup'
-        
-        # Create a new purchase with InzuLink workflow
-        purchase = Purchase(
+        # Create the inquiry
+        inquiry = PropertyInquiry(
             buyer=request.user,
-            product=product,
-            quantity=quantity,
-            purchase_price=total_price,
-            delivery_method=delivery_method,
-            payment_method=payment_method,
-            delivery_fee=delivery_fee,
-            delivery_address=delivery_address,
-            status=initial_status
+            property=property_listing,
+            message=message,
+            phone_contact=phone_contact,
+            email_contact=email_contact,
         )
         
-        # Add location coordinates if provided
-        if delivery_latitude and delivery_longitude:
+        # Add viewing date if provided
+        if preferred_viewing_date:
             try:
-                purchase.delivery_latitude = float(delivery_latitude)
-                purchase.delivery_longitude = float(delivery_longitude)
+                from datetime import datetime
+                inquiry.preferred_viewing_date = datetime.strptime(preferred_viewing_date, '%Y-%m-%dT%H:%M')
             except (ValueError, TypeError):
-                pass  # Ignore invalid coordinates
+                pass  # Ignore invalid date format
         
-        purchase.save()
+        # Add offered price if provided
+        if offered_price:
+            try:
+                inquiry.offered_price = Decimal(offered_price)
+            except (ValueError, TypeError):
+                pass  # Ignore invalid price
         
-        # Update inventory immediately after successful purchase
-        product.inventory -= quantity
+        inquiry.save()
         
-        # Update statistics
-        product.total_purchases += 1
-        product.save()
+        # Update property inquiry count
+        property_listing.inquiry_count += 1
+        property_listing.save()
         
-        # Update QR code to include this purchase
-        from .qr_utils import update_user_qr_code
-        update_user_qr_code(request.user)
-        
-        # Success message based on delivery method
-        if delivery_method == 'delivery':
-            messages.success(request, f'You have successfully purchased {quantity} {product.title}! Total: RWF {total_price + delivery_fee:,.2f} (including RWF {delivery_fee:,.2f} delivery fee). InzuLink will deliver to your address.')
-        else:
-            messages.success(request, f'You have successfully purchased {quantity} {product.title}! Please go to InzuLink to collect your items.')
+        # Success message
+        property_type = property_listing.get_property_type_display()
+        messages.success(
+            request, 
+            f'Your inquiry about {property_listing.title} has been sent successfully! '
+            f'The seller will contact you at {phone_contact or email_contact}. '
+            f'Inquiry ID: {inquiry.inquiry_id}'
+        )
         
         return redirect('purchase_history')
     
@@ -1144,58 +1120,53 @@ def create_post(request):
 
 @login_required
 def create_product(request):
+    """Create a new property listing (houses, land, furniture)"""
     # Check if user has vendor role
     if not request.user.is_vendor_role:
-        messages.error(request, 'You need to upgrade your account to Vendor status to create product listings.')
+        messages.error(request, 'You need to upgrade your account to Vendor/Seller status to create property listings.')
         return redirect('user_settings')
     
     if request.method == 'POST':
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        main_image = request.FILES.get('main_image')
-        price = request.POST.get('price')
-        category = request.POST.get('category')
-        inventory = request.POST.get('inventory', 1)
-        
-        try:
-            inventory = int(inventory)
-            if inventory < 0:
-                inventory = 1
-        except (ValueError, TypeError):
-            inventory = 1
-        
-        if title and description and main_image and price:
-            # Create the main product (no post_type needed since all posts are products now)
-            post = Post(
-                title=title,
-                description=description,
-                image=main_image,
-                user=request.user,
-                price=price,
-                category=category,
-                inventory=inventory
-            )
-            post.save()
+        form = PropertyListingForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Create the property listing
+            property_listing = form.save(commit=False)
+            property_listing.user = request.user
+            property_listing.save()
             
             # Process auxiliary images (limit to 5)
             auxiliary_images = request.FILES.getlist('auxiliary_images')
-            print(f"DEBUG: Found {len(auxiliary_images)} auxiliary images in create_product")
-            max_images = min(len(auxiliary_images), 5)  # Limit to 5 images
+            max_images = min(len(auxiliary_images), 5)
             
             for i in range(max_images):
-                print(f"DEBUG: Creating auxiliary image {i+1} of {max_images}")
                 ProductImage.objects.create(
-                    product=post,
+                    product=property_listing,
                     image=auxiliary_images[i],
                     display_order=i
                 )
-                
-            messages.success(request, 'Product listing created successfully!')
-            return redirect('dashboard')
+            
+            # Create initial listing fee record
+            listing_fee = ListingFee.objects.create(
+                listing=property_listing,
+                vendor=request.user,
+                payment_status='pending'
+            )
+            
+            property_type = property_listing.get_property_type_display()
+            messages.success(
+                request, 
+                f'{property_type} listing created successfully! '
+                f'Daily listing fee: RWF {listing_fee.daily_fee}. '
+                f'Please pay the listing fee to activate your listing.'
+            )
+            return redirect('pay_listing_fee', listing_id=property_listing.id)
         else:
-            messages.error(request, 'Please fill all required fields')
+            messages.error(request, 'Please correct the errors below.')
+            return render(request, 'authentication/create_product.html', {'form': form})
+    else:
+        form = PropertyListingForm()
     
-    return render(request, 'authentication/create_product.html')
+    return render(request, 'authentication/create_product.html', {'form': form})
 
 @login_required
 def like_post(request, post_id):
@@ -1722,6 +1693,11 @@ def inzulink_purchase_history(request):
 
 @login_required
 def sales_statistics(request):
+    """
+    TODO: This view needs updating for the new real estate model.
+    Current commission logic should be replaced with listing fee tracking.
+    For now, it continues to work with existing Purchase model.
+    """
     """Sales statistics view showing detailed financial breakdown for vendors and InzuLink agents"""
     
     # Check if export is requested
@@ -2053,3 +2029,232 @@ def vendor_statistics_for_inzulink(request, vendor_id):
     }
     
     return render(request, 'authentication/vendor_statistics_for_inzulink.html', context)
+
+# =============================================
+# NEW REAL ESTATE SPECIFIC VIEWS
+# =============================================
+
+@login_required
+def pay_listing_fee(request, listing_id):
+    """Pay listing fee for a property"""
+    property_listing = get_object_or_404(Post, id=listing_id)
+    
+    # Check if user owns this listing
+    if property_listing.user != request.user:
+        messages.error(request, 'You do not have permission to manage this listing.')
+        return redirect('dashboard')
+    
+    # Get or create listing fee record
+    listing_fee = ListingFee.objects.filter(
+        listing=property_listing,
+        vendor=request.user
+    ).order_by('-created_at').first()
+    
+    if not listing_fee:
+        listing_fee = ListingFee.objects.create(
+            listing=property_listing,
+            vendor=request.user
+        )
+    
+    if request.method == 'POST':
+        form = ListingFeePaymentForm(request.POST, listing=property_listing)
+        if form.is_valid():
+            days_paid = form.cleaned_data['days_paid']
+            payment_reference = form.cleaned_data.get('payment_reference', '')
+            auto_renew = form.cleaned_data.get('auto_renew', False)
+            
+            # Update or create new fee record
+            new_fee = ListingFee.objects.create(
+                listing=property_listing,
+                vendor=request.user,
+                days_paid=days_paid,
+                payment_reference=payment_reference,
+                auto_renew=auto_renew,
+                payment_status='paid',
+                paid_at=timezone.now()
+            )
+            
+            # Activate the listing
+            property_listing.is_active = True
+            property_listing.save()
+            
+            messages.success(
+                request,
+                f'Payment successful! Your listing is now active for {days_paid} days. '
+                f'Total: RWF {new_fee.total_amount:,.2f}'
+            )
+            return redirect('vendor_dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = ListingFeePaymentForm(listing=property_listing)
+    
+    context = {
+        'property_listing': property_listing,
+        'listing_fee': listing_fee,
+        'form': form
+    }
+    return render(request, 'authentication/pay_listing_fee.html', context)
+
+@login_required
+def my_inquiries(request):
+    """View inquiries sent by the current user"""
+    inquiries = PropertyInquiry.objects.filter(buyer=request.user).order_by('-created_at')
+    
+    context = {
+        'inquiries': inquiries,
+    }
+    return render(request, 'authentication/my_inquiries.html', context)
+
+@login_required
+def received_inquiries(request):
+    """View inquiries received for vendor's properties"""
+    if not request.user.is_vendor_role:
+        messages.error(request, 'You need to be a vendor to access this page.')
+        return redirect('dashboard')
+    
+    # Get all inquiries for properties owned by this user
+    inquiries = PropertyInquiry.objects.filter(
+        property__user=request.user
+    ).order_by('-created_at')
+    
+    # Group by property
+    properties_with_inquiries = {}
+    for inquiry in inquiries:
+        prop_id = inquiry.property.id
+        if prop_id not in properties_with_inquiries:
+            properties_with_inquiries[prop_id] = {
+                'property': inquiry.property,
+                'inquiries': []
+            }
+        properties_with_inquiries[prop_id]['inquiries'].append(inquiry)
+    
+    context = {
+        'properties_with_inquiries': properties_with_inquiries.values(),
+        'total_inquiries': inquiries.count(),
+    }
+    return render(request, 'authentication/received_inquiries.html', context)
+
+@login_required
+def inquiry_detail(request, inquiry_id):
+    """View and manage a specific inquiry"""
+    inquiry = get_object_or_404(PropertyInquiry, inquiry_id=inquiry_id)
+    
+    # Check permissions (buyer or vendor can view)
+    if inquiry.buyer != request.user and inquiry.property.user != request.user:
+        messages.error(request, 'You do not have permission to view this inquiry.')
+        return redirect('dashboard')
+    
+    is_vendor = inquiry.property.user == request.user
+    
+    if request.method == 'POST' and is_vendor:
+        # Vendor updating inquiry status
+        new_status = request.POST.get('status')
+        vendor_notes = request.POST.get('vendor_notes')
+        viewing_confirmed = request.POST.get('viewing_confirmed') == 'on'
+        
+        if new_status in dict(PropertyInquiry.STATUS_CHOICES).keys():
+            inquiry.status = new_status
+            if not inquiry.responded_at:
+                inquiry.responded_at = timezone.now()
+        
+        if vendor_notes:
+            inquiry.vendor_notes = vendor_notes
+        
+        if viewing_confirmed:
+            inquiry.viewing_confirmed = True
+        
+        inquiry.save()
+        messages.success(request, 'Inquiry updated successfully.')
+        return redirect('inquiry_detail', inquiry_id=inquiry_id)
+    
+    context = {
+        'inquiry': inquiry,
+        'is_vendor': is_vendor,
+        'status_choices': PropertyInquiry.STATUS_CHOICES,
+    }
+    return render(request, 'authentication/inquiry_detail.html', context)
+
+@login_required
+def create_purchase_from_inquiry(request, inquiry_id):
+    """Create a purchase after inquiry is accepted"""
+    inquiry = get_object_or_404(PropertyInquiry, inquiry_id=inquiry_id)
+    
+    # Only vendor can create purchase
+    if inquiry.property.user != request.user:
+        messages.error(request, 'You do not have permission to complete this transaction.')
+        return redirect('dashboard')
+    
+    # Check if inquiry is accepted
+    if inquiry.status != 'accepted':
+        messages.error(request, 'Inquiry must be accepted before creating a purchase.')
+        return redirect('inquiry_detail', inquiry_id=inquiry_id)
+    
+    if request.method == 'POST':
+        final_price = request.POST.get('final_price')
+        payment_method = request.POST.get('payment_method', 'momo')
+        payment_reference = request.POST.get('payment_reference', '')
+        transaction_notes = request.POST.get('transaction_notes', '')
+        
+        try:
+            final_price = Decimal(final_price)
+            
+            # Create the purchase
+            purchase = Purchase.objects.create(
+                buyer=inquiry.buyer,
+                property=inquiry.property,
+                inquiry=inquiry,
+                final_price=final_price,
+                payment_method=payment_method,
+                payment_reference=payment_reference,
+                transaction_notes=transaction_notes,
+                status='pending_payment'
+            )
+            
+            # Update inquiry status
+            inquiry.status = 'completed'
+            inquiry.save()
+            
+            messages.success(
+                request,
+                f'Purchase created successfully! Order ID: {purchase.order_id}. '
+                f'Waiting for payment confirmation from buyer.'
+            )
+            return redirect('vendor_dashboard')
+            
+        except (ValueError, TypeError):
+            messages.error(request, 'Invalid price amount.')
+    
+    # Pre-fill with offered price if available
+    suggested_price = inquiry.offered_price or inquiry.property.price
+    
+    context = {
+        'inquiry': inquiry,
+        'suggested_price': suggested_price,
+    }
+    return render(request, 'authentication/create_purchase_from_inquiry.html', context)
+
+@login_required
+def my_listing_fees(request):
+    """View all listing fees for vendor's properties"""
+    if not request.user.is_vendor_role:
+        messages.error(request, 'You need to be a vendor to access this page.')
+        return redirect('dashboard')
+    
+    listing_fees = ListingFee.objects.filter(
+        vendor=request.user
+    ).select_related('listing').order_by('-created_at')
+    
+    # Calculate totals
+    total_paid = listing_fees.filter(payment_status='paid').aggregate(
+        total=Sum('total_amount')
+    )['total'] or 0
+    
+    active_listings = listing_fees.filter(payment_status='paid').count()
+    
+    context = {
+        'listing_fees': listing_fees,
+        'total_paid': total_paid,
+        'active_listings': active_listings,
+    }
+    return render(request, 'authentication/my_listing_fees.html', context)

@@ -819,16 +819,16 @@
             <div class="hero-content">
                 <div class="row align-items-center">
                     <div class="col-lg-8 mx-auto text-center">
-                        <h1>Welcome to InzuLink Marketplace</h1>
-                        <p>Buy and sell products effortlessly. Join our community of vendors and buyers today!</p>
+                        <h1>Find Your Dream Home & Furniture</h1>
+                        <p>Discover houses, land plots, and furniture. Connect with sellers and find your perfect property today!</p>
                         <div class="hero-buttons d-flex justify-content-center gap-3 mt-4">
                             {% if not user.is_authenticated %}
-                                <a href="{% url 'register' %}" class="btn-primary-custom btn-lg">Start Selling</a>
-                                <a href="{% url 'dashboard' %}" class="btn-outline-custom btn-lg" style="background: rgba(255,255,255,0.2); border-color: white; color: white;">Browse Products</a>
+                                <a href="{% url 'register' %}" class="btn-primary-custom btn-lg">List Your Property</a>
+                                <a href="{% url 'dashboard' %}" class="btn-outline-custom btn-lg" style="background: rgba(255,255,255,0.2); border-color: white; color: white;">Browse Properties</a>
                             {% else %}
-                                <a href="{% url 'dashboard' %}" class="btn-primary-custom btn-lg">Browse Products</a>
+                                <a href="{% url 'dashboard' %}" class="btn-primary-custom btn-lg">Browse Properties</a>
                                 {% if user.is_vendor_role %}
-                                    <a href="{% url 'create_product' %}" class="btn-outline-custom btn-lg" style="background: rgba(255,255,255,0.2); border-color: white; color: white;">Add Product</a>
+                                    <a href="{% url 'create_product' %}" class="btn-outline-custom btn-lg" style="background: rgba(255,255,255,0.2); border-color: white; color: white;">Add Property</a>
                                 {% endif %}
                             {% endif %}
                         </div>
@@ -838,19 +838,19 @@
                             <div class="col-md-4">
                                 <div class="stat-box">
                                     <h3 class="counter" data-target="{{ total_products }}" aria-live="polite">0</h3>
-                                    <p>Products Available</p>
+                                    <p>Properties Listed</p>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="stat-box">
                                     <h3 class="counter" data-target="{{ total_vendors }}" aria-live="polite">0</h3>
-                                    <p>Active Vendors</p>
+                                    <p>Property Owners</p>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="stat-box">
                                     <h3 class="counter" data-target="100" aria-live="polite">0</h3>
-                                    <p>Secure Transactions</p>
+                                    <p>Successful Sales</p>
                                 </div>
                             </div>
                         </div>
@@ -860,12 +860,12 @@
         </div>
     </section>
 
-    <!-- Featured Products Section -->
+    <!-- Featured Properties Section -->
     <section class="products-section scroll-reveal" id="products" role="region" aria-labelledby="products-heading">
         <div class="container">
             <div class="section-title">
-                <h2 id="products-heading">Featured Products</h2>
-                <p>Discover amazing products from our trusted vendors</p>
+                <h2 id="products-heading">Featured Properties</h2>
+                <p>Discover amazing houses, land plots, and furniture from trusted sellers</p>
             </div>
 
             {% if featured_products %}

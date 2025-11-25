@@ -13,15 +13,15 @@
 <div class="marketplace-container">
     <div class="dashboard-header">
         <div>
-            <h2 class="fw-bold mb-1">Vendor Dashboard</h2>
-            <p class="text-muted">Manage your products and track your sales</p>
+            <h2 class="fw-bold mb-1">Seller Dashboard</h2>
+            <p class="text-muted">Manage your property listings and track your sales</p>
         </div>
         <div class="header-actions">
             <a href="{% url 'sales_statistics' %}" class="btn-create" style="margin-right: 1rem;">
                 <i class="bi bi-graph-up me-2"></i>Sales Statistics
             </a>
             <a href="{% url 'create_product' %}" class="btn-create">
-                <i class="bi bi-plus-circle me-2"></i>Add New Product
+                <i class="bi bi-plus-circle me-2"></i>Add New Property
             </a>
         </div>
     </div>
@@ -34,7 +34,7 @@
                     <i class="bi bi-box-seam"></i>
                 </div>
                 <div>
-                    <h6 class="stats-label">Products</h6>
+                    <h6 class="stats-label">Listings</h6>
                     <h3 class="stats-value">{{ products.count }}</h3>
                 </div>
             </div>

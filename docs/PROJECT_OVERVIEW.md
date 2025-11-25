@@ -1,16 +1,43 @@
-# InzuLink/KoraQuest - Complete Project Overview 🚀
+# InzuLink - Real Estate & Furniture Marketplace 🏠
 
-## 📊 Project Status: **Production-Ready** (90% Complete)
+## 📊 Project Status: **Undergoing Transformation** 
 
-**Last Updated**: November 2024
+**Last Updated**: November 2025
 
 ---
 
 ## 🎯 Project Purpose
 
-**InzuLink** is a comprehensive Django-based marketplace platform that facilitates buying and selling products between users, with an innovative **intermediary pickup system** managed by InzuLink agents.
+**InzuLink** is a specialized Django-based real estate and furniture marketplace platform that connects buyers and sellers of **houses, land plots, and furniture**. The platform features a unique **daily listing fee model** instead of commission-based sales, and facilitates property viewings and direct buyer-seller communication.
 
 **Live Demo**: [https://inzulink.bonasolutions.tech](https://inzulink.bonasolutions.tech)
+
+## 🏡 What We Offer
+
+### Property Categories:
+
+**🏠 Houses:**
+- Apartments
+- Villas
+- Townhouses
+- Duplexes
+- Studios
+- Bungalows
+
+**🌳 Land Plots:**
+- Residential Land
+- Commercial Land
+- Agricultural Land
+- Industrial Land
+- Mixed-Use Land
+
+**🪑 Furniture:**
+- Living Room Furniture
+- Bedroom Furniture
+- Kitchen Furniture
+- Office Furniture
+- Outdoor Furniture
+- Storage Furniture
 
 ---
 

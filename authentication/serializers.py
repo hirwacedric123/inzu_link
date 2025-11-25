@@ -4,7 +4,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from .models import (
     User, Post, Purchase, Bookmark, ProductImage, 
-    UserQRCode, OTPVerification, ProductReview
+    UserQRCode, OTPVerification, ProductReview,
+    PropertyInquiry, ListingFee
 )
 
 
@@ -119,7 +120,7 @@ class ProductReviewSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    """Serializer for Post model"""
+    """Serializer for Post model (Property Listings)"""
     user = UserSerializer(read_only=True)
     likes_count = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
@@ -127,16 +128,27 @@ class PostSerializer(serializers.ModelSerializer):
     is_sold_out = serializers.SerializerMethodField()
     auxiliary_images = ProductImageSerializer(many=True, read_only=True)
     reviews = ProductReviewSerializer(many=True, read_only=True)
+    property_details = serializers.SerializerMethodField()
+    display_size = serializers.SerializerMethodField()
     
     class Meta:
         model = Post
         fields = [
-            'id', 'title', 'description', 'image', 'price', 'category',
-            'inventory', 'total_purchases', 'created_at', 'updated_at',
+            'id', 'title', 'description', 'image', 'property_type', 'category',
+            'price', 'condition', 'inventory', 'size_sqm', 'bedrooms', 'bathrooms',
+            'parking_spaces', 'year_built', 'is_furnished', 
+            'location_address', 'location_district', 'location_city',
+            'location_latitude', 'location_longitude',
+            'total_purchases', 'view_count', 'inquiry_count',
+            'is_active', 'is_sold', 'created_at', 'updated_at',
             'user', 'likes_count', 'average_rating', 'review_count',
-            'is_sold_out', 'auxiliary_images', 'reviews'
+            'is_sold_out', 'auxiliary_images', 'reviews',
+            'property_details', 'display_size'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'total_purchases']
+        read_only_fields = [
+            'id', 'created_at', 'updated_at', 'total_purchases', 
+            'view_count', 'inquiry_count', 'is_sold'
+        ]
     
     def get_likes_count(self, obj):
         return obj.total_likes()
@@ -149,10 +161,16 @@ class PostSerializer(serializers.ModelSerializer):
     
     def get_is_sold_out(self, obj):
         return obj.is_sold_out()
+    
+    def get_property_details(self, obj):
+        return obj.get_property_details()
+    
+    def get_display_size(self, obj):
+        return obj.get_display_size()
 
 
 class PostCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating posts"""
+    """Serializer for creating property listings"""
     auxiliary_images = serializers.ListField(
         child=serializers.ImageField(),
         required=False,
@@ -162,8 +180,11 @@ class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = [
-            'title', 'description', 'image', 'price', 'category',
-            'inventory', 'auxiliary_images'
+            'title', 'description', 'image', 'property_type', 'category',
+            'price', 'condition', 'inventory', 'size_sqm', 'bedrooms', 
+            'bathrooms', 'parking_spaces', 'year_built', 'is_furnished',
+            'location_address', 'location_district', 'location_city',
+            'location_latitude', 'location_longitude', 'auxiliary_images'
         ]
     
     def create(self, validated_data):
@@ -180,26 +201,85 @@ class PostCreateSerializer(serializers.ModelSerializer):
         return post
 
 
-class PurchaseSerializer(serializers.ModelSerializer):
-    """Serializer for Purchase model"""
+class PropertyInquirySerializer(serializers.ModelSerializer):
+    """Serializer for PropertyInquiry model"""
     buyer = UserSerializer(read_only=True)
-    product = PostSerializer(read_only=True)
-    koraquest_user = UserSerializer(read_only=True)
+    property = PostSerializer(read_only=True)
+    
+    class Meta:
+        model = PropertyInquiry
+        fields = [
+            'id', 'inquiry_id', 'buyer', 'property', 'message',
+            'phone_contact', 'email_contact', 'status', 'offered_price',
+            'preferred_viewing_date', 'viewing_confirmed', 'viewing_completed',
+            'created_at', 'updated_at', 'responded_at', 'vendor_notes'
+        ]
+        read_only_fields = [
+            'id', 'inquiry_id', 'created_at', 'updated_at'
+        ]
+
+
+class PropertyInquiryCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating property inquiries"""
+    class Meta:
+        model = PropertyInquiry
+        fields = [
+            'property', 'message', 'phone_contact', 'email_contact',
+            'preferred_viewing_date', 'offered_price'
+        ]
+    
+    def create(self, validated_data):
+        validated_data['buyer'] = self.context['request'].user
+        # Increment inquiry count on property
+        property_obj = validated_data['property']
+        property_obj.inquiry_count += 1
+        property_obj.save()
+        return super().create(validated_data)
+
+
+class ListingFeeSerializer(serializers.ModelSerializer):
+    """Serializer for ListingFee model"""
+    listing = PostSerializer(read_only=True)
+    vendor = UserSerializer(read_only=True)
+    is_active = serializers.SerializerMethodField()
+    days_remaining = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ListingFee
+        fields = [
+            'id', 'listing', 'vendor', 'daily_fee', 'start_date', 'end_date',
+            'days_paid', 'total_amount', 'payment_status', 'paid_at',
+            'payment_reference', 'auto_renew', 'created_at', 'updated_at',
+            'is_active', 'days_remaining'
+        ]
+        read_only_fields = [
+            'id', 'daily_fee', 'total_amount', 'created_at', 'updated_at'
+        ]
+    
+    def get_is_active(self, obj):
+        return obj.is_active()
+    
+    def get_days_remaining(self, obj):
+        return obj.days_remaining()
+
+
+class PurchaseSerializer(serializers.ModelSerializer):
+    """Serializer for Purchase model (Completed Sales)"""
+    buyer = UserSerializer(read_only=True)
+    property = PostSerializer(read_only=True)
+    inquiry = PropertyInquirySerializer(read_only=True)
     
     class Meta:
         model = Purchase
         fields = [
-            'id', 'order_id', 'buyer', 'product', 'quantity', 'purchase_price',
-            'status', 'delivery_method', 'payment_method', 'delivery_fee',
-            'delivery_address', 'delivery_latitude', 'delivery_longitude',
-            'created_at', 'updated_at', 'koraquest_user', 'pickup_confirmed_at',
-            'vendor_payment_sent', 'koraquest_commission_sent',
-            'vendor_payment_amount', 'koraquest_commission_amount'
+            'id', 'order_id', 'buyer', 'property', 'inquiry', 'quantity',
+            'final_price', 'payment_method', 'payment_reference', 'status',
+            'created_at', 'updated_at', 'payment_confirmed_at', 'completed_at',
+            'transaction_notes', 'documents_uploaded'
         ]
         read_only_fields = [
-            'id', 'order_id', 'created_at', 'updated_at', 'koraquest_user',
-            'pickup_confirmed_at', 'vendor_payment_sent', 'koraquest_commission_sent',
-            'vendor_payment_amount', 'koraquest_commission_amount'
+            'id', 'order_id', 'created_at', 'updated_at', 
+            'payment_confirmed_at', 'completed_at'
         ]
 
 
@@ -208,13 +288,12 @@ class PurchaseCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Purchase
         fields = [
-            'product', 'quantity', 'delivery_method', 'payment_method',
-            'delivery_address', 'delivery_latitude', 'delivery_longitude'
+            'property', 'inquiry', 'quantity', 'final_price',
+            'payment_method', 'payment_reference', 'transaction_notes'
         ]
     
     def create(self, validated_data):
         validated_data['buyer'] = self.context['request'].user
-        validated_data['purchase_price'] = validated_data['product'].price * validated_data['quantity']
         return super().create(validated_data)
 
 
@@ -269,10 +348,9 @@ class VendorStatisticsSerializer(serializers.Serializer):
     total_revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
     monthly_revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
     monthly_sales = serializers.IntegerField()
-    koraquest_commission = serializers.DecimalField(max_digits=12, decimal_places=2)
-    monthly_koraquest_commission = serializers.DecimalField(max_digits=12, decimal_places=2)
-    commission_rate = serializers.IntegerField()
-    inzulink_rate = serializers.IntegerField()
+    active_listings = serializers.IntegerField()
+    total_inquiries = serializers.IntegerField()
+    total_listing_fees_paid = serializers.DecimalField(max_digits=12, decimal_places=2)
 
 
 class DashboardStatsSerializer(serializers.Serializer):

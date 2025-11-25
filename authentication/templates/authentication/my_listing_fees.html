@@ -1,0 +1,109 @@
+{% extends "authentication/base.html" %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}My Listing Fees - InzuLink{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold mb-1">My Listing Fees</h2>
+            <p class="text-muted">Track your property listing fees and payments</p>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h6 class="card-title">Total Paid</h6>
+                    <h3>{{ total_paid|currency }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h6 class="card-title">Active Listings</h6>
+                    <h3>{{ active_listings }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h6 class="card-title">Total Fees</h6>
+                    <h3>{{ listing_fees.count }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fee List -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Payment History</h5>
+        </div>
+        <div class="card-body">
+            {% if listing_fees %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Daily Fee</th>
+                            <th>Days Paid</th>
+                            <th>Total</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                            <th>Days Left</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fee in listing_fees %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'post_detail' fee.listing.id %}">
+                                    {{ fee.listing.title|truncatewords:5 }}
+                                </a>
+                            </td>
+                            <td>{{ fee.daily_fee|currency }}</td>
+                            <td>{{ fee.days_paid }} days</td>
+                            <td><strong>{{ fee.total_amount|currency }}</strong></td>
+                            <td>{{ fee.start_date|date:"M d, Y" }}</td>
+                            <td>{{ fee.end_date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if fee.payment_status == 'paid' %}bg-success
+                                    {% elif fee.payment_status == 'pending' %}bg-warning
+                                    {% elif fee.payment_status == 'overdue' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ fee.get_payment_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if fee.is_active %}
+                                    <span class="text-success">{{ fee.days_remaining }} days</span>
+                                {% else %}
+                                    <span class="text-danger">Expired</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                No listing fees yet. Create a property listing to get started!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

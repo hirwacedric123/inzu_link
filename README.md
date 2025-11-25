@@ -1,6 +1,6 @@
-# InzuLink
+# InzuLink - Real Estate & Furniture Marketplace
 
-InzuLink is a Django-based web application that has the purpose of helping people to buy and sell products amongst each other.
+InzuLink is a Django-based real estate and furniture marketplace platform that connects buyers and sellers of **houses, land plots, and furniture**.
 
 ![Alt InzuLink](./static/images/hero.png)
 
@@ -11,12 +11,23 @@ InzuLink is a Django-based web application that has the purpose of helping peopl
 
 ## 🚀 Features
 
-- User Authentication System
+### Property Types
+- 🏠 **Houses**: Apartments, Villas, Townhouses, Duplexes, Studios, Bungalows
+- 🌳 **Land Plots**: Residential, Commercial, Agricultural, Industrial, Mixed-Use
+- 🪑 **Furniture**: Living Room, Bedroom, Kitchen, Office, Outdoor, Storage
+
+### Core Features
+- User Authentication System (Buyers, Vendors, Staff, InzuLink Admin)
+- Property Listing Management with Real Estate Specific Fields
+- Property Inquiry System (Contact sellers before buying)
+- Daily Listing Fee System (Pay-per-day based on property value)
+- Property Viewing Scheduling
+- Location-based Search (GPS coordinates)
+- Property Reviews and Ratings
 - QR Code Generation and Processing
-- Account Upgrading (From Buyer to Vendor)
-- Media File Management
-- Static File Handling
 - Email Integration (with OTP support)
+- Media File Management (Multiple property images)
+- Account Upgrading (From Buyer to Vendor/Seller)
 
 ## 📋 Prerequisites
 

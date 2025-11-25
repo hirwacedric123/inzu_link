@@ -1,7 +1,7 @@
 {% extends "authentication/base.html" %}
 {% load static %}
 
-{% block title %}Create Product Listing - InzuLink{% endblock %}
+{% block title %}List Your Property - InzuLink{% endblock %}
 
 {% block content %}
 <style>
@@ -38,8 +38,8 @@
             <div class="form-card">
                 <div class="form-header">
                     <div class="header-content">
-                        <h1>Create Product Listing</h1>
-                        <p>Add your product details below</p>
+                        <h1>List Your Property</h1>
+                        <p>Add your house, land, or furniture details below</p>
                     </div>
                     <a href="{% url 'dashboard' %}" class="btn-cancel">
                         <i class="bi bi-x-lg"></i>
@@ -55,15 +55,15 @@
                         <h2>Basic Information</h2>
                         
                         <div class="form-field">
-                            <label for="title">Product Name</label>
-                            <input type="text" id="title" name="title" required>
-                            <span class="field-hint">A clear and concise name for your product</span>
+                            <label for="title">Property Title</label>
+                            <input type="text" id="title" name="title" required placeholder="e.g., Luxury 3BR Villa in Kigali">
+                            <span class="field-hint">A clear and descriptive title for your property</span>
                         </div>
                         
                         <div class="form-field">
-                            <label for="description">Product Description</label>
-                            <textarea id="description" name="description" rows="5" required></textarea>
-                            <span class="field-hint">Describe your product features, specifications, and other relevant details</span>
+                            <label for="description">Property Description</label>
+                            <textarea id="description" name="description" rows="5" required placeholder="Describe the property in detail..."></textarea>
+                            <span class="field-hint">Describe your property features, location benefits, and other relevant details</span>
                         </div>
                     </div>
 

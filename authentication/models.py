@@ -42,16 +42,46 @@ class User(AbstractUser):
         return self.role == 'inzulink'
 
 class Post(models.Model):
-    CATEGORY_CHOICES = (
-        ('electronics', 'Electronics'),
-        ('books_media', 'Books & Media'),
-        ('home_kitchen', 'Home & Kitchen'),
-        ('beauty_care', 'Beauty & Personal Care'),
-        ('software_services', 'Software & Services'),
-        ('health_fitness', 'Health & Fitness'),
-        ('other', 'Other'),
+    # Property Type Choices
+    PROPERTY_TYPE_CHOICES = (
+        ('house', 'House'),
+        ('land', 'Land Plot'),
+        ('furniture', 'Furniture'),
     )
     
+    # Category choices based on property type
+    CATEGORY_CHOICES = (
+        # Houses
+        ('apartment', 'Apartment'),
+        ('villa', 'Villa'),
+        ('townhouse', 'Townhouse'),
+        ('duplex', 'Duplex'),
+        ('studio', 'Studio'),
+        ('bungalow', 'Bungalow'),
+        # Land
+        ('residential_land', 'Residential Land'),
+        ('commercial_land', 'Commercial Land'),
+        ('agricultural_land', 'Agricultural Land'),
+        ('industrial_land', 'Industrial Land'),
+        ('mixed_use_land', 'Mixed-Use Land'),
+        # Furniture
+        ('living_room', 'Living Room Furniture'),
+        ('bedroom', 'Bedroom Furniture'),
+        ('kitchen', 'Kitchen Furniture'),
+        ('office', 'Office Furniture'),
+        ('outdoor', 'Outdoor Furniture'),
+        ('storage', 'Storage Furniture'),
+    )
+    
+    CONDITION_CHOICES = (
+        ('new', 'New'),
+        ('excellent', 'Excellent'),
+        ('good', 'Good'),
+        ('fair', 'Fair'),
+        ('needs_renovation', 'Needs Renovation'),
+    )
+    
+    # Basic fields
     title = models.CharField(max_length=255)
     description = models.TextField()
     image = models.ImageField(upload_to='posts/')
@@ -60,13 +90,38 @@ class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     likes = models.ManyToManyField(User, related_name='liked_posts', blank=True)
     
-    # Product fields
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='other')
-    inventory = models.IntegerField(default=1, help_text="Number of items in stock")
+    # Property/Product fields
+    property_type = models.CharField(max_length=20, choices=PROPERTY_TYPE_CHOICES, default='furniture')
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='living_room')
+    inventory = models.IntegerField(default=1, help_text="Number of items available")
+    condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, default='good', 
+                                 help_text="Condition of the property/item")
+    
+    # Real Estate Specific Fields
+    size_sqm = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
+                                   help_text="Size in square meters")
+    bedrooms = models.IntegerField(null=True, blank=True, help_text="Number of bedrooms (for houses)")
+    bathrooms = models.IntegerField(null=True, blank=True, help_text="Number of bathrooms (for houses)")
+    parking_spaces = models.IntegerField(null=True, blank=True, default=0, help_text="Number of parking spaces")
+    year_built = models.IntegerField(null=True, blank=True, help_text="Year property was built")
+    is_furnished = models.BooleanField(default=False, help_text="Is the property furnished? (for houses)")
+    
+    # Location fields
+    location_address = models.CharField(max_length=500, blank=True, null=True, help_text="Full address")
+    location_district = models.CharField(max_length=100, blank=True, null=True, help_text="District/Region")
+    location_city = models.CharField(max_length=100, blank=True, null=True, help_text="City")
+    location_latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    location_longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     
     # Stats
     total_purchases = models.IntegerField(default=0)
+    view_count = models.IntegerField(default=0, help_text="Number of times listing was viewed")
+    inquiry_count = models.IntegerField(default=0, help_text="Number of inquiries received")
+    
+    # Listing status
+    is_active = models.BooleanField(default=True, help_text="Is listing currently active?")
+    is_sold = models.BooleanField(default=False, help_text="Has the property been sold?")
     
     def __str__(self):
         return self.title
@@ -84,7 +139,127 @@ class Post(models.Model):
         return self.reviews.count()
     
     def is_sold_out(self):
-        return self.inventory <= 0
+        return self.inventory <= 0 or self.is_sold
+    
+    def is_house(self):
+        return self.property_type == 'house'
+    
+    def is_land(self):
+        return self.property_type == 'land'
+    
+    def is_furniture(self):
+        return self.property_type == 'furniture'
+    
+    def get_display_size(self):
+        """Return formatted size with unit"""
+        if self.size_sqm:
+            return f"{self.size_sqm} sqm"
+        return "N/A"
+    
+    def get_property_details(self):
+        """Return key property details based on type"""
+        details = []
+        if self.is_house():
+            if self.bedrooms:
+                details.append(f"{self.bedrooms} Bed")
+            if self.bathrooms:
+                details.append(f"{self.bathrooms} Bath")
+            if self.size_sqm:
+                details.append(f"{self.size_sqm} sqm")
+        elif self.is_land():
+            if self.size_sqm:
+                details.append(f"{self.size_sqm} sqm")
+        return " | ".join(details) if details else "Details not specified"
+    
+    class Meta:
+        ordering = ['-created_at']
+
+class ListingFee(models.Model):
+    """
+    Daily listing fee model based on property value.
+    Vendors pay a daily fee to keep their listings active.
+    """
+    PAYMENT_STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('overdue', 'Overdue'),
+        ('cancelled', 'Cancelled'),
+    )
+    
+    listing = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='listing_fees')
+    vendor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listing_fees')
+    
+    # Fee calculation
+    daily_fee = models.DecimalField(max_digits=10, decimal_places=2, 
+                                    help_text="Daily fee to keep listing active")
+    start_date = models.DateField(default=timezone.now)
+    end_date = models.DateField(null=True, blank=True, help_text="When listing fee period ends")
+    days_paid = models.IntegerField(default=0, help_text="Number of days paid for")
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    
+    # Payment tracking
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    paid_at = models.DateTimeField(null=True, blank=True)
+    payment_reference = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Auto-renewal
+    auto_renew = models.BooleanField(default=False, help_text="Automatically renew listing")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def calculate_daily_fee(self):
+        """
+        Calculate daily fee based on property value.
+        Fee structure example:
+        - Under 1M: 100 RWF/day
+        - 1M-5M: 200 RWF/day
+        - 5M-10M: 500 RWF/day
+        - Over 10M: 1000 RWF/day
+        """
+        from decimal import Decimal
+        price = self.listing.price
+        
+        if price < Decimal('1000000'):
+            return Decimal('100.00')
+        elif price < Decimal('5000000'):
+            return Decimal('200.00')
+        elif price < Decimal('10000000'):
+            return Decimal('500.00')
+        else:
+            return Decimal('1000.00')
+    
+    def is_active(self):
+        """Check if listing fee period is still active"""
+        if not self.end_date:
+            return False
+        return timezone.now().date() <= self.end_date and self.payment_status == 'paid'
+    
+    def days_remaining(self):
+        """Calculate days remaining in paid period"""
+        if not self.end_date:
+            return 0
+        delta = self.end_date - timezone.now().date()
+        return max(0, delta.days)
+    
+    def save(self, *args, **kwargs):
+        # Auto-calculate daily fee if not set
+        if not self.daily_fee:
+            self.daily_fee = self.calculate_daily_fee()
+        
+        # Calculate total amount
+        if self.days_paid > 0:
+            self.total_amount = self.daily_fee * self.days_paid
+        
+        # Calculate end date based on days paid
+        if self.days_paid > 0 and not self.end_date:
+            from datetime import timedelta
+            self.end_date = self.start_date + timedelta(days=self.days_paid)
+        
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"Listing Fee for {self.listing.title} - {self.vendor.username}"
     
     class Meta:
         ordering = ['-created_at']
@@ -107,87 +282,128 @@ class ProductReview(models.Model):
     def __str__(self):
         return f"{self.reviewer.username} - {self.product.title} - {self.rating} stars"
 
-class Purchase(models.Model):
+class PropertyInquiry(models.Model):
+    """
+    Model for property inquiries and contact requests.
+    Buyers can inquire about properties before making purchases.
+    """
     STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('processing', 'Processing'),
-        ('awaiting_pickup', 'Awaiting Pickup'),  # Added for InzuLink workflow
-        ('awaiting_delivery', 'Awaiting Delivery'),  # Added for delivery option
-        ('out_for_delivery', 'Out for Delivery'),  # Added for delivery tracking
+        ('new', 'New Inquiry'),
+        ('contacted', 'Vendor Contacted'),
+        ('viewing_scheduled', 'Viewing Scheduled'),
+        ('offer_made', 'Offer Made'),
+        ('negotiating', 'Negotiating'),
+        ('accepted', 'Accepted'),
+        ('completed', 'Sale Completed'),
+        ('declined', 'Declined'),
+        ('cancelled', 'Cancelled'),
+    )
+    
+    inquiry_id = models.CharField(max_length=50, unique=True, blank=True)
+    buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inquiries')
+    property = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='inquiries')
+    
+    # Inquiry details
+    message = models.TextField(help_text="Buyer's message or questions")
+    phone_contact = models.CharField(max_length=15, blank=True, null=True, help_text="Buyer's contact phone")
+    email_contact = models.EmailField(blank=True, null=True, help_text="Buyer's contact email")
+    
+    # Status and negotiation
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='new')
+    offered_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True,
+                                       help_text="Price offered by buyer")
+    
+    # Viewing details
+    preferred_viewing_date = models.DateTimeField(null=True, blank=True, 
+                                                  help_text="Preferred date to view property")
+    viewing_confirmed = models.BooleanField(default=False)
+    viewing_completed = models.BooleanField(default=False)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    responded_at = models.DateTimeField(null=True, blank=True, help_text="When vendor responded")
+    
+    # Notes
+    vendor_notes = models.TextField(blank=True, null=True, help_text="Vendor's notes about this inquiry")
+    
+    def save(self, *args, **kwargs):
+        if not self.inquiry_id:
+            # Generate a unique inquiry ID
+            self.inquiry_id = f"INQ-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.buyer.username} - {self.property.title} - {self.inquiry_id}"
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = "Property Inquiries"
+
+class Purchase(models.Model):
+    """
+    Model for completed purchases/sales.
+    Created after inquiry is accepted and payment is confirmed.
+    """
+    STATUS_CHOICES = (
+        ('pending_payment', 'Pending Payment'),
+        ('payment_confirmed', 'Payment Confirmed'),
+        ('documents_processing', 'Documents Processing'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     )
     
-    DELIVERY_CHOICES = (
-        ('pickup', 'Pickup from InzuLink'),
-        ('delivery', 'Home Delivery'),
-    )
-    
     PAYMENT_METHOD_CHOICES = (
         ('momo', 'Mobile Money'),
-        ('credit', 'Credit Card'),
+        ('bank_transfer', 'Bank Transfer'),
+        ('cash', 'Cash'),
+        ('other', 'Other'),
     )
     
     order_id = models.CharField(max_length=50, unique=True, blank=True)
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='purchases')
-    product = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='purchases')
-    quantity = models.IntegerField(default=1)
-    purchase_price = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    delivery_method = models.CharField(max_length=20, choices=DELIVERY_CHOICES, default='pickup')
+    property = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='purchases', 
+                                 null=True, blank=True, help_text="Property being purchased")
+    inquiry = models.ForeignKey(PropertyInquiry, on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name='purchases', help_text="Related inquiry if any")
+    
+    # Purchase details
+    quantity = models.IntegerField(default=1, help_text="Quantity (usually 1 for property)")
+    final_price = models.DecimalField(max_digits=12, decimal_places=2, default=0,
+                                      help_text="Final agreed price")
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='momo')
-    delivery_fee = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
-    delivery_address = models.TextField(blank=True, null=True, help_text="Delivery address for home delivery")
-    delivery_latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
-    delivery_longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    payment_reference = models.CharField(max_length=100, blank=True, null=True, 
+                                        help_text="Payment transaction reference")
+    
+    # Status tracking
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending_payment')
+    
+    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    payment_confirmed_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     
-    # InzuLink workflow fields
-    koraquest_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
-                                     related_name='koraquest_purchases', 
-                                     help_text="InzuLink user handling this purchase")
-    pickup_confirmed_at = models.DateTimeField(null=True, blank=True)
-    vendor_payment_sent = models.BooleanField(default=False)
-    koraquest_commission_sent = models.BooleanField(default=False)
-    vendor_payment_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    koraquest_commission_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    # Documents and notes
+    transaction_notes = models.TextField(blank=True, null=True, help_text="Transaction notes")
+    documents_uploaded = models.BooleanField(default=False, help_text="Required documents uploaded")
     
     def save(self, *args, **kwargs):
         if not self.order_id:
             # Generate a unique order ID
             self.order_id = f"ORD-{uuid.uuid4().hex[:8].upper()}"
         
-        # Set delivery fee if delivery method is delivery
-        if self.delivery_method == 'delivery' and self.delivery_fee == 0:
-            from decimal import Decimal
-            self.delivery_fee = Decimal('5.00')  # RWF5 delivery fee
-        
-        # Calculate payment splits when status changes to completed
-        if self.status == 'completed' and not self.vendor_payment_amount:
-            from decimal import Decimal
-            total_amount = self.purchase_price + self.delivery_fee
-            product_amount = self.purchase_price
-            self.vendor_payment_amount = product_amount * Decimal('0.8')  # 80% of product price to vendor
-            self.koraquest_commission_amount = (product_amount * Decimal('0.2')) + self.delivery_fee  # 20% of product + full delivery fee to InzuLink
+        # Mark property as sold when purchase is completed
+        if self.status == 'completed' and not self.completed_at:
+            self.completed_at = timezone.now()
+            self.property.is_sold = True
+            self.property.is_active = False
+            self.property.save()
         
         super().save(*args, **kwargs)
     
-    def calculate_payment_split(self):
-        """Calculate the 80/20 payment split including delivery fees"""
-        from decimal import Decimal
-        product_amount = self.purchase_price
-        total_amount = product_amount + self.delivery_fee
-        return {
-            'total': total_amount,
-            'product_amount': product_amount,
-            'delivery_fee': self.delivery_fee,
-            'vendor_amount': product_amount * Decimal('0.8'),
-            'inzulink_amount': (product_amount * Decimal('0.2')) + self.delivery_fee
-        }
-    
     def __str__(self):
-        return f"{self.buyer.username} - {self.product.title} - {self.order_id}"
+        return f"{self.buyer.username} - {self.property.title} - {self.order_id}"
     
     class Meta:
         ordering = ['-created_at']

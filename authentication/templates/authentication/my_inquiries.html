@@ -1,0 +1,69 @@
+{% extends "authentication/base.html" %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}My Inquiries - InzuLink{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold mb-1">My Property Inquiries</h2>
+            <p class="text-muted">Track inquiries you've sent to property sellers</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        {% if inquiries %}
+            {% for inquiry in inquiries %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ inquiry.property.title }}</h5>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-building"></i> {{ inquiry.property.get_property_type_display }}
+                        </p>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-person"></i> Seller: {{ inquiry.property.user.username }}
+                        </p>
+                        <p class="mb-2">
+                            <strong>Status:</strong> 
+                            <span class="badge 
+                                {% if inquiry.status == 'new' %}bg-primary
+                                {% elif inquiry.status == 'contacted' %}bg-info
+                                {% elif inquiry.status == 'viewing_scheduled' %}bg-warning
+                                {% elif inquiry.status == 'completed' %}bg-success
+                                {% else %}bg-secondary{% endif %}">
+                                {{ inquiry.get_status_display }}
+                            </span>
+                        </p>
+                        <p class="mb-2">
+                            <small class="text-muted">Inquiry ID: {{ inquiry.inquiry_id }}</small>
+                        </p>
+                        <p class="mb-2">
+                            <small class="text-muted">Sent: {{ inquiry.created_at|date:"M d, Y" }}</small>
+                        </p>
+                        {% if inquiry.offered_price %}
+                        <p class="mb-2">
+                            <strong>Your Offer:</strong> {{ inquiry.offered_price|currency }}
+                        </p>
+                        {% endif %}
+                        <a href="{% url 'inquiry_detail' inquiry.inquiry_id %}" class="btn btn-sm btn-primary mt-2">
+                            <i class="bi bi-eye"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    You haven't sent any inquiries yet. <a href="{% url 'dashboard' %}">Browse properties</a> to get started!
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

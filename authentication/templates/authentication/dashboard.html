@@ -3,7 +3,7 @@
 {% load humanize %}
 {% load currency_filters %}
 
-{% block title %}InzuLink Marketplace{% endblock %}
+{% block title %}InzuLink - Browse Properties{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -1264,18 +1264,18 @@
         }
     </style>
     <div class="search-section" role="search">
-        <form method="get" id="search-form" aria-label="Product search form">
+        <form method="get" id="search-form" aria-label="Property search form">
             <!-- Search Bar -->
             <div class="search-bar">
-                <label for="search-input" class="sr-only">Search products</label>
+                <label for="search-input" class="sr-only">Search properties</label>
                 <i class="bi bi-search search-icon" aria-hidden="true"></i>
                 <input type="search" 
                        id="search-input"
                        name="q" 
                        class="search-input" 
-                       placeholder="Search for products, categories, or vendors..." 
+                       placeholder="Search for houses, land, furniture, or sellers..." 
                        value="{{ search_query }}" 
-                       aria-label="Search for products, categories, or vendors"
+                       aria-label="Search for properties, locations, or sellers"
                        onchange="submitForm()">
             </div>
             <div class="heading-search-section">
@@ -1286,7 +1286,7 @@
                         <button type="button" 
                                 class="category-btn {% if not selected_category %}active{% endif %}"
                                 data-category=""
-                                aria-label="Show all products"
+                                aria-label="Show all properties"
                                 {% if not selected_category %}aria-pressed="true"{% else %}aria-pressed="false"{% endif %}>All</button>
                         {% for category_value, category_name in categories %}
                             <button type="button" 
@@ -1445,9 +1445,9 @@
         <div class="empty-state-icon"><i class="bi bi-search"></i></div>
         <h3>No products found</h3>
         {% if search_query or selected_category or min_price or max_price %}
-            <p>Try adjusting your search criteria or <a href="{% url 'dashboard' %}">browse all products</a></p>
+            <p>Try adjusting your search criteria or <a href="{% url 'dashboard' %}">browse all properties</a></p>
         {% else %}
-            <p>Be the first to add products to the marketplace!</p>
+            <p>Be the first to list a property on InzuLink!</p>
             {% if user.is_vendor_role %}
                 <a href="{% url 'create_post' %}" class="btn btn-primary mt-3">Add A Product</a>
             {% endif %}
