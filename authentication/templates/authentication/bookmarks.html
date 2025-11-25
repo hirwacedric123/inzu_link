@@ -6,135 +6,61 @@
 
 {% block content %}
 <style>
-    ::-webkit-scrollbar{
-        display: none;
-    }
-    .marketplace-container{
-        width: 100%;
-    }
-</style>
-<div class="marketplace-container">
-    <div class="row mb-4 fade-in">
-        <div class="col-12">
-            <h2 class="fw-bold mb-1">My Bookmarks</h2>
-            <p class="text-muted">Your saved posts and job listings</p>
-        </div>
-    </div>
-    
-    {% if bookmarks %}
-    <div class="pinterest-grid" id="masonry-container">
-        {% for bookmark in bookmarks %}
-        <div class="pinterest-card">
-            <a href="{% url 'post_detail' bookmark.post.id %}" class="text-decoration-none text-dark card-link">
-                {% if bookmark.post.image %}
-                <div class="card-image-container">
-                    {% if bookmark.post.post_type == 'job' %}
-                    <span class="category-badge badge-job">Job</span>
-                    {% else %}
-                    <span class="category-badge badge-product">Product</span>
-                    {% endif %}
-                    <img src="{{ bookmark.post.image.url }}" class="card-image" alt="{{ bookmark.post.title }}" loading="lazy">
-                    <div class="card-overlay">
-                        <div class="overlay-actions" onclick="event.stopPropagation();">
-                            <button class="action-btn like-btn" data-post-id="{{ bookmark.post.id }}">
-                                <i class="bi {% if user in bookmark.post.likes.all %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
-                            </button>
-                            <button class="action-btn bookmark-btn active" data-post-id="{{ bookmark.post.id }}">
-                                <i class="bi bi-bookmark-fill"></i>
-                            </button>
-                            <button class="action-btn">
-                                <i class="bi bi-share"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                {% else %}
-                <div class="card-image-container">
-                    <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
-                </div>
-                {% endif %}
-                
-                <div class="card-content">
-                    <h3 class="card-title">{{ bookmark.post.title }}</h3>
-                    {% if bookmark.post.post_type == 'job' %}
-                    <p class="card-meta">
-                        <i class="bi bi-geo-alt me-1"></i>{{ bookmark.post.job_location|default:"Remote" }}
-                        <span class="mx-2">•</span>
-                        <i class="bi bi-briefcase me-1"></i>{{ bookmark.post.job_type|default:"Full-time" }}
-                    </p>
-                    {% elif bookmark.post.post_type == 'product' %}
-                    <div class="card-price">{{ bookmark.post.price|currency }}</div>
-                    {% endif %}
-                    <p class="card-description">{{ bookmark.post.description|truncatechars:100 }}</p>
-                    
-                    <div class="card-footer">
-                        <div class="card-vendor">
-                            {% if bookmark.post.user.profile_picture %}
-                            <img src="{{ bookmark.post.user.profile_picture.url }}" alt="{{ bookmark.post.user.username }}" class="vendor-avatar">
-                            {% else %}
-                            <div class="vendor-avatar">{{ bookmark.post.user.first_name|first|upper }}{{ bookmark.post.user.last_name|first|upper }}</div>
-                            {% endif %}
-                            <span>{{ bookmark.post.user.first_name }} {{ bookmark.post.user.last_name }}</span>
-                        </div>
-                        <small class="text-muted">{{ bookmark.created_at|date:"M d, Y" }}</small>
-                    </div>
-                </div>
-            </a>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty-state">
-        <div class="empty-state-icon">
-            <i class="bi bi-bookmark text-muted"></i>
-        </div>
-        <h3>No bookmarks yet</h3>
-        <p class="text-muted mb-4">Start saving posts you like by clicking the bookmark icon</p>
-        <a href="{% url 'dashboard' %}" class="btn btn-primary">
-            <i class="bi bi-grid me-2"></i>Browse Posts
-        </a>
-    </div>
-    {% endif %}
-</div>
-
-<style>
-    .marketplace-container {
+    .bookmarks-container {
         max-width: 1600px;
         margin: 0 auto;
-        padding: 40px;
+        padding: 3rem 2rem;
+        background: #F6F4F0;
+        min-height: 100vh;conti
     }
 
-    /* Pinterest Grid */
-    .pinterest-grid {
+    .page-header {
+        margin-bottom: 3rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+    }
+
+    .page-header p {
+        font-size: 1rem;
+        color: #6B7280;
+        margin: 0;
+    }
+
+    /* Grid Layout */
+    .bookmarks-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 30px;
-        margin: 30px 0 50px;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2rem;
     }
 
     /* Card Styles */
-    .pinterest-card {
+    .bookmark-card {
         background: white;
-        border-radius: 20px;
+        border-radius: 16px;
         overflow: hidden;
+        border: 1px solid #E5E7EB;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        border: 1px solid rgba(0,0,0,0.05);
-        margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
     }
 
-    .pinterest-card:hover {
-        transform: translateY(-8px) scale(1.02);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    .bookmark-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        border-color: #6B9080;
     }
 
     .card-image-container {
         position: relative;
-        height: 250px;
-        background: #f8f9fa;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        height: 240px;
+        background: #F3F4F6;
         overflow: hidden;
     }
 
@@ -145,208 +71,412 @@
         transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .pinterest-card:hover .card-image {
-        transform: scale(1.1);
+    .bookmark-card:hover .card-image {
+        transform: scale(1.08);
     }
 
     .category-badge {
         position: absolute;
-        top: 15px;
-        left: 15px;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 12px;
+        top: 1rem;
+        left: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.813rem;
         font-weight: 600;
+        backdrop-filter: blur(10px);
         z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
     }
 
-    .badge-job {
-        background: rgba(30, 136, 229, 0.9);
+    .category-badge.product {
+        background: rgba(107, 144, 128, 0.9);
         color: white;
     }
 
-    .badge-product {
-        background: rgba(76, 175, 80, 0.9);
+    .category-badge.job {
+        background: rgba(59, 130, 246, 0.9);
         color: white;
     }
 
     .card-overlay {
         position: absolute;
-        top: 15px;
-        right: 15px;
+        top: 1rem;
+        right: 1rem;
         opacity: 0;
         transition: opacity 0.3s ease;
+        z-index: 3;
     }
 
-    .pinterest-card:hover .card-overlay {
+    .bookmark-card:hover .card-overlay {
         opacity: 1;
     }
 
     .overlay-actions {
         display: flex;
-        gap: 8px;
+        gap: 0.5rem;
     }
 
     .action-btn {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
         border: none;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.9);
-        color: #6b7280;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        color: #6B7280;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 1.125rem;
     }
 
     .action-btn:hover {
         background: white;
         transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .action-btn.active {
-        background: #eff6ff;
-        color: #6B9080;
+        background: #6B9080;
+        color: white;
+    }
+
+    .action-btn.like-active {
+        background: #FEE2E2;
+        color: #EF4444;
     }
 
     .card-content {
-        padding: 25px;
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
     }
 
     .card-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 12px;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.75rem;
         line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .card-price {
-        font-size: 20px;
-        font-weight: 800;
+        font-size: 1.5rem;
+        font-weight: 700;
         color: #6B9080;
-        margin-bottom: 12px;
+        margin-bottom: 0.75rem;
     }
 
     .card-meta {
-        color: #6b7280;
-        font-size: 14px;
-        margin-bottom: 15px;
-        padding: 0 5px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        color: #6B7280;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .meta-item i {
+        color: #6B9080;
+        width: 16px;
     }
 
     .card-description {
-        color: #6b7280;
-        font-size: 14px;
-        margin-bottom: 20px;
+        color: #6B7280;
+        font-size: 0.875rem;
         line-height: 1.6;
-        padding: 0 5px;
+        margin-bottom: 1rem;
+        flex: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .card-footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-top: 20px;
-        padding: 15px 25px;
-        border-top: 1px solid rgba(0,0,0,0.05);
-        background: rgba(249, 250, 251, 0.5);
+        padding: 1rem 1.5rem;
+        background: #F9FAFB;
+        border-top: 1px solid #F3F4F6;
+        margin-top: auto;
     }
 
     .card-vendor {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 0.625rem;
     }
 
     .vendor-avatar {
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: linear-gradient(45deg, #6B9080, #1d4ed8);
+        background: linear-gradient(135deg, #6B9080 0%, #A4C3B2 100%);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
         font-weight: 600;
-        font-size: 12px;
+        font-size: 0.813rem;
+        object-fit: cover;
+    }
+
+    .vendor-name {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .bookmark-date {
+        font-size: 0.813rem;
+        color: #9CA3AF;
     }
 
     /* Empty State */
     .empty-state {
         text-align: center;
-        padding: 100px 30px;
+        padding: 4rem 2rem;
         background: white;
-        border-radius: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        margin: 40px auto;
-        max-width: 600px;
+        border-radius: 16px;
+        border: 1px solid #E5E7EB;
     }
 
-    .empty-state-icon {
-        font-size: 5rem;
-        margin-bottom: 30px;
-        color: #6b7280;
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: #D97706;
     }
 
     .empty-state h3 {
-        font-size: 1.75rem;
-        color: #1f2937;
-        margin-bottom: 15px;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.75rem;
     }
 
     .empty-state p {
-        margin-bottom: 30px;
-        font-size: 1.1rem;
-        color: #6b7280;
+        font-size: 1rem;
+        color: #6B7280;
+        margin-bottom: 2rem;
         line-height: 1.6;
+    }
+
+    .btn-browse {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 2rem;
+        background: #6B9080;
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-browse:hover {
+        background: #4A7C59;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(107, 144, 128, 0.3);
+        color: white;
+    }
+
+    /* No image placeholder */
+    .no-image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #D1D5DB;
+        font-size: 3rem;
     }
 
     /* Responsive */
     @media (max-width: 1200px) {
-        .marketplace-container {
-            padding: 30px;
+        .bookmarks-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         }
     }
 
     @media (max-width: 768px) {
-        .marketplace-container {
-            padding: 20px;
-        }
-        
-        .pinterest-grid {
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 20px 0 40px;
+        .bookmarks-container {
+            padding: 2rem 1rem;
         }
 
-        .card-content {
-            padding: 20px;
+        .page-header h1 {
+            font-size: 1.5rem;
         }
 
-        .card-footer {
-            padding: 12px 20px;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .marketplace-container {
-            padding: 15px;
-        }
-
-        .pinterest-grid {
+        .bookmarks-grid {
             grid-template-columns: 1fr;
-            gap: 15px;
-            margin: 15px 0 30px;
+            gap: 1.5rem;
         }
 
-        .empty-state {
-            padding: 60px 20px;
+        .card-image-container {
+            height: 200px;
         }
     }
+
+    /* Animation */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .bookmark-card {
+        animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    .bookmark-card:nth-child(1) { animation-delay: 0.05s; }
+    .bookmark-card:nth-child(2) { animation-delay: 0.1s; }
+    .bookmark-card:nth-child(3) { animation-delay: 0.15s; }
+    .bookmark-card:nth-child(4) { animation-delay: 0.2s; }
+    .bookmark-card:nth-child(5) { animation-delay: 0.25s; }
+    .bookmark-card:nth-child(6) { animation-delay: 0.3s; }
 </style>
+
+<div class="bookmarks-container">
+    <div class="page-header">
+        <h1>My Bookmarks</h1>
+        <p>Your saved properties and listings</p>
+    </div>
+    
+    {% if bookmarks %}
+        <div class="bookmarks-grid">
+            {% for bookmark in bookmarks %}
+            <div class="bookmark-card">
+                <div class="card-image-container">
+                    {% if bookmark.post.image %}
+                        <img src="{{ bookmark.post.image.url }}" class="card-image" alt="{{ bookmark.post.title }}">
+                    {% else %}
+                        <div class="no-image">
+                            <i class="bi bi-image"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <span class="category-badge {% if bookmark.post.post_type == 'job' %}job{% else %}product{% endif %}">
+                        {% if bookmark.post.post_type == 'job' %}
+                            <i class="bi bi-briefcase-fill"></i>
+                            Job
+                        {% else %}
+                            <i class="bi bi-house-fill"></i>
+                            Property
+                        {% endif %}
+                    </span>
+                    
+                    <div class="card-overlay">
+                        <div class="overlay-actions" onclick="event.stopPropagation();">
+                            <button class="action-btn like-btn {% if user in bookmark.post.likes.all %}like-active{% endif %}" data-post-id="{{ bookmark.post.id }}" title="Like">
+                                <i class="bi {% if user in bookmark.post.likes.all %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                            </button>
+                            <button class="action-btn bookmark-btn active" data-post-id="{{ bookmark.post.id %}" title="Remove bookmark">
+                                <i class="bi bi-bookmark-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="{% url 'post_detail' bookmark.post.id %}" style="text-decoration: none; color: inherit; flex: 1; display: flex; flex-direction: column;">
+                    <div class="card-content">
+                        <h3 class="card-title">{{ bookmark.post.title }}</h3>
+                        
+                        {% if bookmark.post.post_type == 'product' and bookmark.post.price %}
+                            <div class="card-price">{{ bookmark.post.price|currency }}</div>
+                        {% endif %}
+                        
+                        <div class="card-meta">
+                            {% if bookmark.post.post_type == 'job' %}
+                                {% if bookmark.post.job_location %}
+                                <div class="meta-item">
+                                    <i class="bi bi-geo-alt"></i>
+                                    <span>{{ bookmark.post.job_location|default:"Remote" }}</span>
+                                </div>
+                                {% endif %}
+                                {% if bookmark.post.job_type %}
+                                <div class="meta-item">
+                                    <i class="bi bi-clock"></i>
+                                    <span>{{ bookmark.post.job_type|default:"Full-time" }}</span>
+                                </div>
+                                {% endif %}
+                            {% else %}
+                                {% if bookmark.post.location_city %}
+                                <div class="meta-item">
+                                    <i class="bi bi-geo-alt"></i>
+                                    <span>{{ bookmark.post.location_city }}</span>
+                                </div>
+                                {% endif %}
+                                {% if bookmark.post.property_type %}
+                                <div class="meta-item">
+                                    <i class="bi bi-building"></i>
+                                    <span>{{ bookmark.post.get_property_type_display }}</span>
+                                </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        
+                        <p class="card-description">{{ bookmark.post.description }}</p>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="card-vendor">
+                            {% if bookmark.post.user.profile_picture %}
+                            <img src="{{ bookmark.post.user.profile_picture.url }}" alt="{{ bookmark.post.user.username }}" class="vendor-avatar">
+                            {% else %}
+                            <div class="vendor-avatar">
+                                {{ bookmark.post.user.first_name|first|upper }}{{ bookmark.post.user.last_name|first|upper }}
+                            </div>
+                            {% endif %}
+                            <span class="vendor-name">{{ bookmark.post.user.username }}</span>
+                        </div>
+                        <span class="bookmark-date">{{ bookmark.created_at|date:"M d" }}</span>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="bi bi-bookmark"></i>
+            </div>
+            <h3>No Bookmarks Yet</h3>
+            <p>Start saving properties you like by clicking the bookmark icon.<br>They'll appear here for easy access later.</p>
+            <a href="{% url 'dashboard' %}" class="btn-browse">
+                <i class="bi bi-grid"></i>
+                Browse Properties
+            </a>
+        </div>
+    {% endif %}
+</div>
 
 <script>
     // Handle bookmark button clicks
@@ -367,12 +497,13 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'removed') {
-                    const card = this.closest('.pinterest-card');
+                    const card = this.closest('.bookmark-card');
                     card.style.opacity = '0';
+                    card.style.transform = 'scale(0.9)';
                     setTimeout(() => {
                         card.remove();
                         
-                        const remainingCards = document.querySelectorAll('.pinterest-card');
+                        const remainingCards = document.querySelectorAll('.bookmark-card');
                         if (remainingCards.length === 0) {
                             location.reload();
                         }
@@ -403,9 +534,11 @@
                 if (data.status === 'liked') {
                     icon.classList.remove('bi-heart');
                     icon.classList.add('bi-heart-fill');
+                    this.classList.add('like-active');
                 } else {
                     icon.classList.remove('bi-heart-fill');
                     icon.classList.add('bi-heart');
+                    this.classList.remove('like-active');
                 }
             });
         });
@@ -427,4 +560,4 @@
         return cookieValue;
     }
 </script>
-{% endblock %} 
+{% endblock %}

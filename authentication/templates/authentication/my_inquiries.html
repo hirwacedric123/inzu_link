@@ -5,65 +5,362 @@
 {% block title %}My Inquiries - InzuLink{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="fw-bold mb-1">My Property Inquiries</h2>
-            <p class="text-muted">Track inquiries you've sent to property sellers</p>
-        </div>
+<style>
+    .inquiries-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
+        background: #F6F4F0;
+        min-height: 100vh;
+    }
+
+    .page-header {
+        margin-bottom: 3rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+    }
+
+    .page-header p {
+        font-size: 1rem;
+        color: #6B7280;
+        margin: 0;
+    }
+
+    .inquiries-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+
+    .inquiry-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #E5E7EB;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .inquiry-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        border-color: #6B9080;
+    }
+
+    .inquiry-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #F3F4F6;
+    }
+
+    .property-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+    }
+
+    .property-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6B7280;
+    }
+
+    .meta-item i {
+        color: #6B9080;
+        width: 16px;
+    }
+
+    .inquiry-body {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+    }
+
+    .info-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6B7280;
+    }
+
+    .info-value {
+        font-size: 0.875rem;
+        color: #374151;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.875rem;
+        border-radius: 9999px;
+        font-size: 0.813rem;
+        font-weight: 500;
+    }
+
+    .status-badge.new {
+        background: #DBEAFE;
+        color: #1E40AF;
+    }
+
+    .status-badge.contacted {
+        background: #E0E7FF;
+        color: #4338CA;
+    }
+
+    .status-badge.viewing_scheduled {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .status-badge.completed {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .status-badge i {
+        font-size: 0.75rem;
+    }
+
+    .inquiry-id {
+        font-family: 'Courier New', monospace;
+        font-size: 0.75rem;
+        color: #9CA3AF;
+        background: #F9FAFB;
+        padding: 0.25rem 0.625rem;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    .offer-highlight {
+        background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+        border: 1px solid #BBF7D0;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .offer-label {
+        font-size: 0.813rem;
+        font-weight: 500;
+        color: #166534;
+        margin-bottom: 0.25rem;
+    }
+
+    .offer-amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #15803D;
+    }
+
+    .inquiry-footer {
+        padding: 1rem 1.5rem;
+        background: #F9FAFB;
+        border-top: 1px solid #F3F4F6;
+    }
+
+    .btn-view-details {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        background: #6B9080;
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 500;
+        font-size: 0.938rem;
+        transition: all 0.2s ease;
+        border: none;
+    }
+
+    .btn-view-details:hover {
+        background: #4A7C59;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(107, 144, 128, 0.3);
+        color: white;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #E5E7EB;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: #6B9080;
+    }
+
+    .empty-state h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.75rem;
+    }
+
+    .empty-state p {
+        font-size: 1rem;
+        color: #6B7280;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .btn-browse {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 2rem;
+        background: #6B9080;
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-browse:hover {
+        background: #4A7C59;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(107, 144, 128, 0.3);
+        color: white;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .inquiries-container {
+            padding: 2rem 1rem;
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .inquiries-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+    }
+</style>
+
+<div class="inquiries-container">
+    <div class="page-header">
+        <h1>My Property Inquiries</h1>
+        <p>Track inquiries you've sent to property sellers</p>
     </div>
     
-    <div class="row">
-        {% if inquiries %}
+    {% if inquiries %}
+        <div class="inquiries-grid">
             {% for inquiry in inquiries %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ inquiry.property.title }}</h5>
-                        <p class="text-muted mb-2">
-                            <i class="bi bi-building"></i> {{ inquiry.property.get_property_type_display }}
-                        </p>
-                        <p class="text-muted mb-2">
-                            <i class="bi bi-person"></i> Seller: {{ inquiry.property.user.username }}
-                        </p>
-                        <p class="mb-2">
-                            <strong>Status:</strong> 
-                            <span class="badge 
-                                {% if inquiry.status == 'new' %}bg-primary
-                                {% elif inquiry.status == 'contacted' %}bg-info
-                                {% elif inquiry.status == 'viewing_scheduled' %}bg-warning
-                                {% elif inquiry.status == 'completed' %}bg-success
-                                {% else %}bg-secondary{% endif %}">
-                                {{ inquiry.get_status_display }}
-                            </span>
-                        </p>
-                        <p class="mb-2">
-                            <small class="text-muted">Inquiry ID: {{ inquiry.inquiry_id }}</small>
-                        </p>
-                        <p class="mb-2">
-                            <small class="text-muted">Sent: {{ inquiry.created_at|date:"M d, Y" }}</small>
-                        </p>
-                        {% if inquiry.offered_price %}
-                        <p class="mb-2">
-                            <strong>Your Offer:</strong> {{ inquiry.offered_price|currency }}
-                        </p>
-                        {% endif %}
-                        <a href="{% url 'inquiry_detail' inquiry.inquiry_id %}" class="btn btn-sm btn-primary mt-2">
-                            <i class="bi bi-eye"></i> View Details
-                        </a>
+            <div class="inquiry-card">
+                <div class="inquiry-header">
+                    <h3 class="property-title">{{ inquiry.property.title }}</h3>
+                    <div class="property-meta">
+                        <div class="meta-item">
+                            <i class="bi bi-building"></i>
+                            <span>{{ inquiry.property.get_property_type_display }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-person-circle"></i>
+                            <span>Seller: {{ inquiry.property.user.username }}</span>
+                        </div>
                     </div>
+                </div>
+
+                <div class="inquiry-body">
+                    <div class="info-row" style="border-top: 1px solid #F3F4F6; padding-top: 0.75rem;">
+                        <span class="info-label">Status</span>
+                        <span class="status-badge {% if inquiry.status == 'new' %}new{% elif inquiry.status == 'contacted' %}contacted{% elif inquiry.status == 'viewing_scheduled' %}viewing_scheduled{% elif inquiry.status == 'completed' %}completed{% endif %}">
+                            {% if inquiry.status == 'new' %}
+                                <i class="bi bi-circle-fill"></i>
+                            {% elif inquiry.status == 'contacted' %}
+                                <i class="bi bi-chat-dots-fill"></i>
+                            {% elif inquiry.status == 'viewing_scheduled' %}
+                                <i class="bi bi-calendar-check-fill"></i>
+                            {% elif inquiry.status == 'completed' %}
+                                <i class="bi bi-check-circle-fill"></i>
+                            {% endif %}
+                            {{ inquiry.get_status_display }}
+                        </span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Inquiry ID</span>
+                        <span class="inquiry-id">{{ inquiry.inquiry_id }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Sent</span>
+                        <span class="info-value">{{ inquiry.created_at|date:"M d, Y" }}</span>
+                    </div>
+
+                    {% if inquiry.offered_price %}
+                    <div class="offer-highlight">
+                        <div class="offer-label">Your Offer</div>
+                        <div class="offer-amount">{{ inquiry.offered_price|currency }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="inquiry-footer">
+                    <a href="{% url 'inquiry_detail' inquiry.inquiry_id %}" class="btn-view-details">
+                        <i class="bi bi-eye"></i>
+                        View Details
+                    </a>
                 </div>
             </div>
             {% endfor %}
-        {% else %}
-            <div class="col-12">
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    You haven't sent any inquiries yet. <a href="{% url 'dashboard' %}">Browse properties</a> to get started!
-                </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="bi bi-envelope-open"></i>
             </div>
-        {% endif %}
-    </div>
+            <h3>No Inquiries Yet</h3>
+            <p>You haven't sent any inquiries yet.<br>Browse our property listings and reach out to sellers you're interested in!</p>
+            <a href="{% url 'dashboard' %}" class="btn-browse">
+                <i class="bi bi-grid"></i>
+                Browse Properties
+            </a>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
-
