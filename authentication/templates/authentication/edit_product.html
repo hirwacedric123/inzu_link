@@ -50,14 +50,32 @@
                                 <label for="category" class="form-label">Category</label>
                                 <select class="form-select" id="category" name="category" required>
                                     <option value="" disabled>Select category</option>
-                                    <option value="Electronics" {% if product.category == 'Electronics' %}selected{% endif %}>Electronics</option>
-                                    <option value="Clothing" {% if product.category == 'Clothing' %}selected{% endif %}>Clothing</option>
-                                    <option value="Home & Kitchen" {% if product.category == 'Home & Kitchen' %}selected{% endif %}>Home & Kitchen</option>
-                                    <option value="Beauty & Personal Care" {% if product.category == 'Beauty & Personal Care' %}selected{% endif %}>Beauty & Personal Care</option>
-                                    <option value="Health & Fitness" {% if product.category == 'Health & Fitness' %}selected{% endif %}>Health & Fitness</option>
-                                    <option value="Books & Media" {% if product.category == 'Books & Media' %}selected{% endif %}>Books & Media</option>
-                                    <option value="Software & Services" {% if product.category == 'Software & Services' %}selected{% endif %}>Software & Services</option>
-                                    <option value="Other" {% if product.category == 'Other' %}selected{% endif %}>Other</option>
+                                    <!-- House Categories -->
+                                    <optgroup label="Houses">
+                                        <option value="apartment" {% if product.category == 'apartment' %}selected{% endif %}>Apartment</option>
+                                        <option value="villa" {% if product.category == 'villa' %}selected{% endif %}>Villa</option>
+                                        <option value="townhouse" {% if product.category == 'townhouse' %}selected{% endif %}>Townhouse</option>
+                                        <option value="duplex" {% if product.category == 'duplex' %}selected{% endif %}>Duplex</option>
+                                        <option value="studio" {% if product.category == 'studio' %}selected{% endif %}>Studio</option>
+                                        <option value="bungalow" {% if product.category == 'bungalow' %}selected{% endif %}>Bungalow</option>
+                                    </optgroup>
+                                    <!-- Land Categories -->
+                                    <optgroup label="Land Plots">
+                                        <option value="residential_land" {% if product.category == 'residential_land' %}selected{% endif %}>Residential Land</option>
+                                        <option value="commercial_land" {% if product.category == 'commercial_land' %}selected{% endif %}>Commercial Land</option>
+                                        <option value="agricultural_land" {% if product.category == 'agricultural_land' %}selected{% endif %}>Agricultural Land</option>
+                                        <option value="industrial_land" {% if product.category == 'industrial_land' %}selected{% endif %}>Industrial Land</option>
+                                        <option value="mixed_use_land" {% if product.category == 'mixed_use_land' %}selected{% endif %}>Mixed-Use Land</option>
+                                    </optgroup>
+                                    <!-- Furniture Categories -->
+                                    <optgroup label="Furniture">
+                                        <option value="living_room" {% if product.category == 'living_room' %}selected{% endif %}>Living Room Furniture</option>
+                                        <option value="bedroom" {% if product.category == 'bedroom' %}selected{% endif %}>Bedroom Furniture</option>
+                                        <option value="kitchen" {% if product.category == 'kitchen' %}selected{% endif %}>Kitchen Furniture</option>
+                                        <option value="office" {% if product.category == 'office' %}selected{% endif %}>Office Furniture</option>
+                                        <option value="outdoor" {% if product.category == 'outdoor' %}selected{% endif %}>Outdoor Furniture</option>
+                                        <option value="storage" {% if product.category == 'storage' %}selected{% endif %}>Storage Furniture</option>
+                                    </optgroup>
                                 </select>
                             </div>
                         </div>

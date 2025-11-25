@@ -948,7 +948,7 @@ def purchase_history(request):
     export_format = request.GET.get('export')
     if export_format in ['csv', 'pdf']:
         # Prepare data for export
-        headers = ['Order ID', 'Product', 'Seller', 'Date', 'Price', 'Status', 'Quantity', 'Delivery Method']
+        headers = ['Order ID', 'Property', 'Seller', 'Date', 'Price', 'Status']
         data = []
         
         for purchase in purchases:
@@ -958,9 +958,7 @@ def purchase_history(request):
                 f"{purchase.property.user.first_name} {purchase.property.user.last_name}",
                 purchase.created_at.strftime('%Y-%m-%d %H:%M'),
                 f"RWF {purchase.final_price:,.1f}",
-                purchase.status.title(),
-                purchase.quantity,
-                purchase.delivery_method.title()
+                purchase.status.title()
             ])
         
         # Summary data for PDF
@@ -1309,7 +1307,7 @@ def user_qr_code(request):
     pending_purchases = Purchase.objects.filter(
         buyer=request.user,
         status__in=['awaiting_pickup', 'awaiting_delivery']
-    ).select_related('product')
+    ).select_related('property')
     
     context = {
         'user_qr': user_qr,
@@ -1352,8 +1350,8 @@ def inzulink_dashboard(request):
     total_commission = 0  # Placeholder for backward compatibility
     
     monthly_commission = completed_purchases.filter(
-        pickup_confirmed_at__month=timezone.now().month,
-        pickup_confirmed_at__year=timezone.now().year
+        completed_at__month=timezone.now().month,
+        completed_at__year=timezone.now().year
     ).count()  # Changed to count instead of commission sum
     
     context = {
@@ -1425,7 +1423,7 @@ def scan_qr_code(request):
                         # Complete the purchase directly (fallback from JS flow)
                         purchase.status = 'completed'
                         purchase.koraquest_user = request.user
-                        purchase.pickup_confirmed_at = timezone.now()
+                        purchase.completed_at = timezone.now()
                         purchase.save()
                         
                         # Update vendor and buyer stats
@@ -1528,7 +1526,7 @@ def confirm_purchase_pickup(request, purchase_id):
             # Complete the purchase
             purchase.status = 'completed'
             purchase.koraquest_user = request.user
-            purchase.pickup_confirmed_at = timezone.now()
+            purchase.completed_at = timezone.now()
             purchase.save()
             
             # Update vendor and buyer stats
@@ -1548,8 +1546,7 @@ def confirm_purchase_pickup(request, purchase_id):
             return JsonResponse({
                 'success': True,
                 'message': 'Purchase confirmed successfully!',
-                'vendor_payment': str(purchase.vendor_payment_amount),
-                'koraquest_commission': str(purchase.koraquest_commission_amount)
+                'total_amount': str(purchase.final_price)
             })
     
     context = {
@@ -1614,7 +1611,7 @@ def confirm_delivery(request, purchase_id):
             # Complete the delivery
             purchase.status = 'completed'
             purchase.koraquest_user = request.user
-            purchase.pickup_confirmed_at = timezone.now()  # Using same field for delivery confirmation time
+            purchase.completed_at = timezone.now()  # Using same field for delivery confirmation time
             purchase.save()
             
             # Update vendor and buyer stats
@@ -1634,8 +1631,7 @@ def confirm_delivery(request, purchase_id):
             return JsonResponse({
                 'success': True,
                 'message': 'Delivery confirmed successfully!',
-                'vendor_payment': str(purchase.vendor_payment_amount),
-                'koraquest_commission': str(purchase.koraquest_commission_amount)
+                'total_amount': str(purchase.final_price)
             })
     
     context = {
@@ -1678,13 +1674,14 @@ def inzulink_purchase_history(request):
     purchases = Purchase.objects.filter(
         koraquest_user=request.user,
         status='completed'
-    ).select_related('buyer', 'property', 'property__user').order_by('-pickup_confirmed_at')
+    ).select_related('buyer', 'property', 'property__user').order_by('-completed_at')
     
     # Pagination could be added here
     context = {
         'purchases': purchases,
-        'total_commission': purchases.aggregate(
-            total=Sum('koraquest_commission_amount')
+        # Note: Commission system replaced with listing fees
+        'total_revenue': purchases.aggregate(
+            total=Sum('final_price')
         )['total'] or 0
     }
     
@@ -1707,34 +1704,34 @@ def sales_statistics(request):
         purchases = Purchase.objects.filter(
             property__user=request.user,
             status='completed'
-        ).select_related('product', 'buyer')
+        ).select_related('property', 'buyer')
         
         # Calculate vendor statistics
         total_sales = purchases.count()
         total_revenue = purchases.aggregate(
-            total=Sum('vendor_payment_amount')
+            total=Sum('final_price')
         )['total'] or 0
         
         # Monthly statistics
         current_month = timezone.now().month
         current_year = timezone.now().year
         monthly_purchases = purchases.filter(
-            pickup_confirmed_at__month=current_month,
-            pickup_confirmed_at__year=current_year
+            completed_at__month=current_month,
+            completed_at__year=current_year
         )
         monthly_revenue = monthly_purchases.aggregate(
-            total=Sum('vendor_payment_amount')
+            total=Sum('final_price')
         )['total'] or 0
         
-        # Product-wise breakdown
+        # Property-wise breakdown (sales by property)
         product_stats = purchases.values('property__title').annotate(
             total_sales=Count('id'),
-            total_revenue=Sum('vendor_payment_amount'),
-            avg_price=Avg('vendor_payment_amount')
+            total_revenue=Sum('final_price'),
+            avg_price=Avg('final_price')
         ).order_by('-total_revenue')
         
         # Recent transactions
-        recent_transactions = purchases.order_by('-pickup_confirmed_at')[:10]
+        recent_transactions = purchases.order_by('-completed_at')[:10]
         
         # Handle export for vendor
         if export_format in ['csv', 'pdf']:
@@ -1784,38 +1781,45 @@ def sales_statistics(request):
         }
         
     elif request.user.is_koraquest():
-        # InzuLink agent statistics - show their commission (20% of product price + delivery fees)
+        # InzuLink admin statistics - show platform transactions and listing fees
         purchases = Purchase.objects.filter(
-            koraquest_user=request.user,
             status='completed'
         ).select_related('property', 'buyer', 'property__user')
         
-        # Calculate InzuLink statistics
+        # Calculate InzuLink statistics (total transactions)
         total_transactions = purchases.count()
-        total_commission = purchases.aggregate(
-            total=Sum('koraquest_commission_amount')
+        total_transaction_value = purchases.aggregate(
+            total=Sum('final_price')
         )['total'] or 0
+        
+        # Get listing fee revenue
+        from authentication.models import ListingFee
+        total_listing_fees = ListingFee.objects.filter(
+            payment_status='paid'
+        ).aggregate(total=Sum('amount'))['total'] or 0
         
         # Monthly statistics
         current_month = timezone.now().month
         current_year = timezone.now().year
         monthly_purchases = purchases.filter(
-            pickup_confirmed_at__month=current_month,
-            pickup_confirmed_at__year=current_year
+            completed_at__month=current_month,
+            completed_at__year=current_year
         )
-        monthly_commission = monthly_purchases.aggregate(
-            total=Sum('koraquest_commission_amount')
+        monthly_transaction_value = monthly_purchases.aggregate(
+            total=Sum('final_price')
         )['total'] or 0
         
-        # Breakdown by commission type
-        total_product_price = purchases.aggregate(total=Sum('purchase_price'))['total'] or 0
-        total_delivery_fees = purchases.aggregate(total=Sum('delivery_fee'))['total'] or 0
-        total_commission_amount = purchases.aggregate(total=Sum('koraquest_commission_amount'))['total'] or 0
+        monthly_listing_fees = ListingFee.objects.filter(
+            payment_status='paid',
+            start_date__month=current_month,
+            start_date__year=current_year
+        ).aggregate(total=Sum('amount'))['total'] or 0
         
+        # Revenue breakdown (listing fees instead of commission)
         commission_breakdown = {
-            'product_commission': total_product_price * Decimal('0.2'),
-            'delivery_fees': total_delivery_fees,
-            'total_commission': total_commission_amount
+            'listing_fees': total_listing_fees,
+            'transaction_volume': total_transaction_value,
+            'total_revenue': total_listing_fees  # Platform revenue is now from listing fees
         }
         
         # Vendor-wise breakdown - get unique vendors with their stats
@@ -1824,70 +1828,67 @@ def sales_statistics(request):
         # Use values() to get unique vendors with their aggregated stats
         vendor_aggregates = purchases.values('property__user__id', 'property__user__username').annotate(
             total_transactions=Count('id'),
-            total_commission=Sum('koraquest_commission_amount'),
-            avg_commission=Avg('koraquest_commission_amount')
-        ).order_by('-total_commission')
+            total_sales_value=Sum('final_price'),
+            avg_sale_price=Avg('final_price')
+        ).order_by('-total_sales_value')
         
         for vendor_data in vendor_aggregates:
             vendor_stats.append({
                 'vendor_id': vendor_data['property__user__id'],
                 'vendor_username': vendor_data['property__user__username'],
                 'total_transactions': vendor_data['total_transactions'],
-                'total_commission': vendor_data['total_commission'] or 0,
-                'avg_commission': vendor_data['avg_commission'] or 0
+                'total_sales_value': vendor_data['total_sales_value'] or 0,
+                'avg_sale_price': vendor_data['avg_sale_price'] or 0
             })
         
-
-        
         # Recent transactions
-        recent_transactions = purchases.order_by('-pickup_confirmed_at')[:10]
+        recent_transactions = purchases.order_by('-completed_at')[:10]
         
         # Handle export for InzuLink
         if export_format in ['csv', 'pdf']:
             if export_format == 'csv':
-                headers = ['Vendor', 'Transactions', 'Total Commission', 'Average Commission']
+                headers = ['Vendor', 'Transactions', 'Total Sales Value', 'Average Sale Price']
                 data = []
                 for vendor in vendor_stats:
                     data.append([
                         vendor['vendor_username'],
                         vendor['total_transactions'],
-                        f"RWF {vendor['total_commission']:,.1f}",
-                        f"RWF {vendor['avg_commission']:,.1f}"
+                        f"RWF {vendor['total_sales_value']:,.1f}",
+                        f"RWF {vendor['avg_sale_price']:,.1f}"
                     ])
-                filename = f"koraquest_commission_{request.user.username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                filename = f"platform_sales_{request.user.username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                 return generate_csv_report(data, filename, headers)
             elif export_format == 'pdf':
-                headers = ['Vendor', 'Transactions', 'Total Commission', 'Average Commission']
+                headers = ['Vendor', 'Transactions', 'Total Sales Value', 'Average Sale Price']
                 data = []
                 for vendor in vendor_stats:
                     data.append([
                         vendor['vendor_username'],
                         vendor['total_transactions'],
-                        f"RWF {vendor['total_commission']:,.1f}",
-                        f"RWF {vendor['avg_commission']:,.1f}"
+                        f"RWF {vendor['total_sales_value']:,.1f}",
+                        f"RWF {vendor['avg_sale_price']:,.1f}"
                     ])
                 summary_data = {
                     'Total Transactions': total_transactions,
-                    'Total Commission': f"RWF {total_commission:,.1f}",
-                    'Monthly Commission': f"RWF {monthly_commission:,.1f}",
-                    'Commission Rate': '20% + Delivery Fees',
+                    'Total Transaction Value': f"RWF {total_transaction_value:,.1f}",
+                    'Total Listing Fees': f"RWF {total_listing_fees:,.1f}",
+                    'Monthly Transaction Value': f"RWF {monthly_transaction_value:,.1f}",
+                    'Monthly Listing Fees': f"RWF {monthly_listing_fees:,.1f}",
                     'Report Generated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
-                filename = f"koraquest_commission_{request.user.username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-                title = f"InzuLink Commission Report - {request.user.get_full_name() or request.user.username}"
+                filename = f"platform_sales_{request.user.username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                title = f"InzuLink Platform Report - {request.user.get_full_name() or request.user.username}"
                 return generate_pdf_report(data, filename, title, headers, summary_data)
         
         context = {
             'user_type': 'inzulink',
             'total_transactions': total_transactions,
-            'total_commission': total_commission,
-            'monthly_commission': monthly_commission,
+            'total_revenue': total_listing_fees,  # Platform revenue from listing fees
+            'monthly_revenue': monthly_listing_fees,
             'monthly_transactions': monthly_purchases.count(),
             'commission_breakdown': commission_breakdown,
             'vendor_stats': vendor_stats,
             'recent_transactions': recent_transactions,
-            'commission_rate': 20,  # InzuLink gets 20%
-            'vendor_rate': 80,      # Vendor gets 80%
         }
         
     else:
@@ -1898,7 +1899,7 @@ def sales_statistics(request):
         ).select_related('property', 'property__user')
         
         total_spent = purchases.aggregate(
-            total=Sum('purchase_price')
+            total=Sum('final_price')
         )['total'] or 0
         
         monthly_purchases = purchases.filter(
@@ -1906,7 +1907,7 @@ def sales_statistics(request):
             created_at__year=timezone.now().year
         )
         monthly_spent = monthly_purchases.aggregate(
-            total=Sum('purchase_price')
+            total=Sum('final_price')
         )['total'] or 0
         
         # Handle export for customer
@@ -1915,8 +1916,8 @@ def sales_statistics(request):
             data = []
             for purchase in purchases:
                 data.append([
-                    purchase.product.title,
-                    f"{purchase.product.user.first_name} {purchase.product.user.last_name}",
+                    purchase.property.title,
+                    f"{purchase.property.user.first_name} {purchase.property.user.last_name}",
                     purchase.created_at.strftime('%Y-%m-%d %H:%M'),
                     f"RWF {purchase.final_price:,.1f}",
                     purchase.status.title()
@@ -1961,55 +1962,56 @@ def vendor_statistics_for_inzulink(request, vendor_id):
     purchases = Purchase.objects.filter(
         property__user=vendor,
         status='completed'
-    ).select_related('product', 'buyer', 'koraquest_user')
+    ).select_related('property', 'buyer')
     
     # Calculate vendor statistics (as if InzuLink is viewing the vendor's dashboard)
     total_sales = purchases.count()
     total_revenue = purchases.aggregate(
-        total=Sum('vendor_payment_amount')
+        total=Sum('final_price')
     )['total'] or 0
     
     # Monthly statistics
     current_month = timezone.now().month
     current_year = timezone.now().year
     monthly_purchases = purchases.filter(
-        pickup_confirmed_at__month=current_month,
-        pickup_confirmed_at__year=current_year
+        completed_at__month=current_month,
+        completed_at__year=current_year
     )
     monthly_revenue = monthly_purchases.aggregate(
-        total=Sum('vendor_payment_amount')
+        total=Sum('final_price')
     )['total'] or 0
     
-    # Product-wise breakdown
-    product_stats = purchases.values('product__title').annotate(
+    # Property-wise breakdown
+    product_stats = purchases.values('property__title').annotate(
         total_sales=Count('id'),
-        total_revenue=Sum('vendor_payment_amount'),
-        avg_price=Avg('vendor_payment_amount')
+        total_revenue=Sum('final_price'),
+        avg_price=Avg('final_price')
     ).order_by('-total_revenue')
     
-    # InzuLink commission from this vendor
-    koraquest_commission = purchases.aggregate(
-        total=Sum('koraquest_commission_amount')
-    )['total'] or 0
+    # Get listing fees paid by this vendor
+    from authentication.models import ListingFee
+    vendor_listing_fees = ListingFee.objects.filter(
+        vendor=vendor,
+        payment_status='paid'
+    ).aggregate(total=Sum('amount'))['total'] or 0
     
-    # Monthly InzuLink commission
-    monthly_koraquest_commission = monthly_purchases.aggregate(
-        total=Sum('koraquest_commission_amount')
-    )['total'] or 0
+    # Monthly listing fees
+    monthly_listing_fees = ListingFee.objects.filter(
+        vendor=vendor,
+        payment_status='paid',
+        start_date__month=current_month,
+        start_date__year=current_year
+    ).aggregate(total=Sum('amount'))['total'] or 0
     
     # Recent transactions
-    recent_transactions = purchases.order_by('-pickup_confirmed_at')[:10]
+    recent_transactions = purchases.order_by('-completed_at')[:10]
     
-    # Commission breakdown
-    total_product_price = purchases.aggregate(total=Sum('purchase_price'))['total'] or 0
-    total_delivery_fees = purchases.aggregate(total=Sum('delivery_fee'))['total'] or 0
-    
-    commission_breakdown = {
+    # Revenue and fee breakdown
+    revenue_breakdown = {
         'vendor_earnings': total_revenue,
-        'koraquest_commission': koraquest_commission,
-        'product_commission': total_product_price * Decimal('0.2'),
-        'delivery_fees': total_delivery_fees,
-        'total_transaction_value': total_product_price + total_delivery_fees
+        'listing_fees_paid': vendor_listing_fees,
+        'total_transaction_value': total_revenue,
+        'net_earnings': total_revenue - vendor_listing_fees  # Gross sales minus listing fees
     }
     
     context = {
@@ -2020,10 +2022,9 @@ def vendor_statistics_for_inzulink(request, vendor_id):
         'monthly_sales': monthly_purchases.count(),
         'product_stats': product_stats,
         'recent_transactions': recent_transactions,
-        'koraquest_commission': koraquest_commission,
-        'monthly_koraquest_commission': monthly_koraquest_commission,
-        'commission_breakdown': commission_breakdown,
-        'commission_rate': 80,  # Vendor gets 80%
+        'listing_fees': vendor_listing_fees,
+        'monthly_listing_fees': monthly_listing_fees,
+        'commission_breakdown': revenue_breakdown,  # Renamed from commission to revenue
         'inzulink_rate': 20,   # InzuLink gets 20%
     }
     

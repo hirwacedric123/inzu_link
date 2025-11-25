@@ -15,7 +15,7 @@ def generate_user_qr_data(user):
     pending_purchases = Purchase.objects.filter(
         buyer=user, 
         status__in=['awaiting_pickup', 'awaiting_delivery']
-    ).select_related('product')
+    ).select_related('property')
     
     # Prepare data for QR code
     qr_data = {
@@ -29,10 +29,10 @@ def generate_user_qr_data(user):
         qr_data['purchases'].append({
             'id': purchase.id,
             'order_id': purchase.order_id,
-            'product_name': purchase.product.title,
+            'product_name': purchase.property.title,
             'quantity': purchase.quantity,
-            'price': str(purchase.purchase_price),
-            'vendor_name': purchase.product.user.username
+            'price': str(purchase.final_price),
+            'vendor_name': purchase.property.user.username
         })
     
     # Create JWT token that expires in 10 minutes

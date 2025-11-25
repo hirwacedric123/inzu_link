@@ -207,7 +207,7 @@ def complete_purchase_pickup(request):
             purchase = Purchase.objects.get(id=purchase_id)
             print(f"DEBUG: Found purchase with ID {purchase_id}")
             print(f"DEBUG: Purchase status: {purchase.status}")
-            print(f"DEBUG: Purchase details: Order ID: {purchase.order_id}, Product: {purchase.product.title}")
+            print(f"DEBUG: Purchase details: Order ID: {purchase.order_id}, Property: {purchase.property.title}")
         except Purchase.DoesNotExist:
             print(f"DEBUG: Purchase with ID {purchase_id} not found")
             return JsonResponse({'error': 'Purchase not found'}, status=404)
@@ -219,17 +219,16 @@ def complete_purchase_pickup(request):
         
         # Complete the purchase
         purchase.status = 'completed'
-        purchase.koraquest_user = request.user
-        purchase.pickup_confirmed_at = timezone.now()
+        purchase.completed_at = timezone.now()
         purchase.save()
         
         # Update vendor and buyer stats
-        vendor = purchase.product.user
-        vendor.total_sales += purchase.vendor_payment_amount
+        vendor = purchase.property.user
+        vendor.total_sales += purchase.final_price
         vendor.save()
         
         buyer = purchase.buyer
-        buyer.total_purchases += (purchase.purchase_price * purchase.quantity)
+        buyer.total_purchases += purchase.final_price
         buyer.save()
         
         # Regenerate buyer's QR code to remove completed purchase
@@ -243,8 +242,7 @@ def complete_purchase_pickup(request):
         return JsonResponse({
             'success': True,
             'message': 'Purchase confirmed successfully!',
-            'vendor_payment': str(purchase.vendor_payment_amount),
-            'koraquest_commission': str(purchase.koraquest_commission_amount)
+            'total_amount': str(purchase.final_price)
         })
     except Exception as e:
         return JsonResponse({'error': f'Error processing request: {str(e)}'}, status=500)
@@ -271,61 +269,62 @@ def get_vendor_statistics_modal(request, vendor_id):
         # Calculate vendor statistics
         total_sales = purchases.count()
         total_revenue = purchases.aggregate(
-            total=Sum('vendor_payment_amount')
+            total=Sum('final_price')
         )['total'] or 0
         
         # Monthly statistics
         current_month = timezone.now().month
         current_year = timezone.now().year
         monthly_purchases = purchases.filter(
-            pickup_confirmed_at__month=current_month,
-            pickup_confirmed_at__year=current_year
+            completed_at__month=current_month,
+            completed_at__year=current_year
         )
         monthly_revenue = monthly_purchases.aggregate(
-            total=Sum('vendor_payment_amount')
+            total=Sum('final_price')
         )['total'] or 0
         
-        # Product-wise breakdown
-        product_stats = list(purchases.values('product__title').annotate(
+        # Property-wise breakdown
+        product_stats = list(purchases.values('property__title').annotate(
             total_sales=Count('id'),
-            total_revenue=Sum('vendor_payment_amount'),
-            avg_price=Avg('vendor_payment_amount')
-        ).order_by('-total_revenue')[:5])  # Limit to top 5 products
+            total_revenue=Sum('final_price'),
+            avg_price=Avg('final_price')
+        ).order_by('-total_revenue')[:5])  # Limit to top 5 properties
         
-        # InzuLink commission from this vendor
-        koraquest_commission = purchases.aggregate(
-            total=Sum('koraquest_commission_amount')
-        )['total'] or 0
+        # Get listing fees paid by this vendor
+        from .models import ListingFee
+        vendor_listing_fees = ListingFee.objects.filter(
+            vendor=vendor,
+            payment_status='paid'
+        ).aggregate(total=Sum('amount'))['total'] or 0
         
-        # Monthly InzuLink commission
-        monthly_koraquest_commission = monthly_purchases.aggregate(
-            total=Sum('koraquest_commission_amount')
-        )['total'] or 0
+        # Monthly listing fees
+        monthly_listing_fees = ListingFee.objects.filter(
+            vendor=vendor,
+            payment_status='paid',
+            start_date__month=current_month,
+            start_date__year=current_year
+        ).aggregate(total=Sum('amount'))['total'] or 0
         
         # Recent transactions
-        recent_transactions = list(purchases.order_by('-pickup_confirmed_at')[:5].values(
-            'product__title', 'buyer__username', 'order_id', 'quantity', 
-            'vendor_payment_amount', 'pickup_confirmed_at', 'created_at'
+        recent_transactions = list(purchases.order_by('-completed_at')[:5].values(
+            'property__title', 'buyer__username', 'order_id', 'quantity', 
+            'final_price', 'completed_at', 'created_at'
         ))
         
-        # Commission breakdown
-        total_product_price = purchases.aggregate(total=Sum('purchase_price'))['total'] or 0
-        total_delivery_fees = purchases.aggregate(total=Sum('delivery_fee'))['total'] or 0
-        
-        commission_breakdown = {
+        # Revenue breakdown (replaces commission breakdown)
+        revenue_breakdown = {
             'vendor_earnings': float(total_revenue),
-            'koraquest_commission': float(koraquest_commission),
-            'product_commission': float(total_product_price * Decimal('0.2')),
-            'delivery_fees': float(total_delivery_fees),
-            'total_transaction_value': float(total_product_price + total_delivery_fees)
+            'listing_fees_paid': float(vendor_listing_fees),
+            'total_transaction_value': float(total_revenue),
+            'net_earnings': float(total_revenue - vendor_listing_fees)
         }
         
         # Format dates for JSON serialization
         for transaction in recent_transactions:
-            if transaction['pickup_confirmed_at']:
-                transaction['pickup_confirmed_at'] = transaction['pickup_confirmed_at'].strftime('%b %d, %H:%M')
+            if transaction['completed_at']:
+                transaction['completed_at'] = transaction['completed_at'].strftime('%b %d, %H:%M')
             else:
-                transaction['pickup_confirmed_at'] = transaction['created_at'].strftime('%b %d, %H:%M')
+                transaction['completed_at'] = transaction['created_at'].strftime('%b %d, %H:%M')
             transaction['created_at'] = transaction['created_at'].strftime('%b %d, %H:%M')
         
         data = {
@@ -339,14 +338,13 @@ def get_vendor_statistics_modal(request, vendor_id):
                 'total_revenue': float(total_revenue),
                 'monthly_revenue': float(monthly_revenue),
                 'monthly_sales': monthly_purchases.count(),
-                'koraquest_commission': float(koraquest_commission),
-                'monthly_koraquest_commission': float(monthly_koraquest_commission),
-                'commission_rate': 80,
-                'inzulink_rate': 20
+                'listing_fees': float(vendor_listing_fees),
+                'monthly_listing_fees': float(monthly_listing_fees),
+                'net_earnings': float(total_revenue - vendor_listing_fees)
             },
             'product_stats': product_stats,
             'recent_transactions': recent_transactions,
-            'commission_breakdown': commission_breakdown
+            'revenue_breakdown': revenue_breakdown
         }
         
         return JsonResponse(data)

@@ -288,8 +288,7 @@ class PurchaseViewSet(ModelViewSet):
         
         purchase.status = new_status
         if new_status == 'completed':
-            purchase.koraquest_user = request.user
-            purchase.pickup_confirmed_at = timezone.now()
+            purchase.completed_at = timezone.now()
         purchase.save()
         
         return Response({
@@ -475,8 +474,8 @@ def dashboard_stats(request):
     
     # Get user's sales (if vendor)
     if user.is_vendor():
-        vendor_sales = Purchase.objects.filter(product__user=user, status='completed')
-        total_sales = vendor_sales.aggregate(total=Sum('vendor_payment_amount'))['total'] or 0
+        vendor_sales = Purchase.objects.filter(property__user=user, status='completed')
+        total_sales = vendor_sales.aggregate(total=Sum('final_price'))['total'] or 0
     else:
         total_sales = 0
     
@@ -520,22 +519,30 @@ def vendor_statistics(request, vendor_id):
     )
     
     total_sales = purchases.count()
-    total_revenue = purchases.aggregate(total=Sum('vendor_payment_amount'))['total'] or 0
+    total_revenue = purchases.aggregate(total=Sum('final_price'))['total'] or 0
     
     # Monthly statistics
     current_month = timezone.now().month
     current_year = timezone.now().year
     monthly_purchases = purchases.filter(
-        pickup_confirmed_at__month=current_month,
-        pickup_confirmed_at__year=current_year
+        completed_at__month=current_month,
+        completed_at__year=current_year
     )
-    monthly_revenue = monthly_purchases.aggregate(total=Sum('vendor_payment_amount'))['total'] or 0
+    monthly_revenue = monthly_purchases.aggregate(total=Sum('final_price'))['total'] or 0
     
-    # InzuLink commission
-    koraquest_commission = purchases.aggregate(total=Sum('koraquest_commission_amount'))['total'] or 0
-    monthly_koraquest_commission = monthly_purchases.aggregate(
-        total=Sum('koraquest_commission_amount')
-    )['total'] or 0
+    # Get listing fees paid by this vendor
+    from .models import ListingFee
+    vendor_listing_fees = ListingFee.objects.filter(
+        vendor=vendor,
+        payment_status='paid'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    monthly_listing_fees = ListingFee.objects.filter(
+        vendor=vendor,
+        payment_status='paid',
+        start_date__month=current_month,
+        start_date__year=current_year
+    ).aggregate(total=Sum('amount'))['total'] or 0
     
     data = {
         'vendor': UserSerializer(vendor).data,
@@ -544,10 +551,9 @@ def vendor_statistics(request, vendor_id):
             'total_revenue': total_revenue,
             'monthly_revenue': monthly_revenue,
             'monthly_sales': monthly_purchases.count(),
-            'koraquest_commission': koraquest_commission,
-            'monthly_koraquest_commission': monthly_koraquest_commission,
-            'commission_rate': 80,
-            'inzulink_rate': 20
+            'listing_fees': vendor_listing_fees,
+            'monthly_listing_fees': monthly_listing_fees,
+            'net_earnings': total_revenue - vendor_listing_fees
         }
     }
     
@@ -616,17 +622,16 @@ def complete_purchase_pickup(request):
     
     # Complete the purchase
     purchase.status = 'completed'
-    purchase.koraquest_user = request.user
-    purchase.pickup_confirmed_at = timezone.now()
+    purchase.completed_at = timezone.now()
     purchase.save()
     
     # Update vendor and buyer stats
-    vendor = purchase.product.user
-    vendor.total_sales += purchase.vendor_payment_amount
+    vendor = purchase.property.user
+    vendor.total_sales += purchase.final_price
     vendor.save()
     
     buyer = purchase.buyer
-    buyer.total_purchases += (purchase.purchase_price * purchase.quantity)
+    buyer.total_purchases += purchase.final_price
     buyer.save()
     
     # Regenerate buyer's QR code
@@ -637,6 +642,5 @@ def complete_purchase_pickup(request):
     
     return Response({
         'message': 'Purchase confirmed successfully',
-        'vendor_payment': str(purchase.vendor_payment_amount),
-        'koraquest_commission': str(purchase.koraquest_commission_amount)
+        'total_amount': str(purchase.final_price)
     })
