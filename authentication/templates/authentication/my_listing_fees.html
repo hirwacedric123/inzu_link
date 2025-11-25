@@ -5,51 +5,407 @@
 {% block title %}My Listing Fees - InzuLink{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="fw-bold mb-1">My Listing Fees</h2>
-            <p class="text-muted">Track your property listing fees and payments</p>
+<style>
+    .fees-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
+        background: #F6F4F0;
+        min-height: 100vh;
+    }
+
+    /* Header Section */
+    .page-header {
+        margin-bottom: 3rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+    }
+
+    .page-header p {
+        font-size: 1rem;
+        color: #6B7280;
+        margin: 0;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        border: 1px solid #E5E7EB;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-color), var(--accent-color-light));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        border-color: var(--accent-color);
+    }
+
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+
+    .stat-card.paid {
+        --accent-color: #6B9080;
+        --accent-color-light: #A4C3B2;
+    }
+
+    .stat-card.active {
+        --accent-color: #10b981;
+        --accent-color-light: #6ee7b7;
+    }
+
+    .stat-card.total {
+        --accent-color: #06b6d4;
+        --accent-color-light: #67e8f9;
+    }
+
+    .stat-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        background: var(--accent-color);
+        color: white;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6B7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0;
+        line-height: 1;
+    }
+
+    /* Payment History Section */
+    .history-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #E5E7EB;
+        overflow: hidden;
+    }
+
+    .history-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #E5E7EB;
+        background: #FAFAFA;
+    }
+
+    .history-header h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .history-body {
+        padding: 0;
+    }
+
+    /* Table Styles */
+    .fees-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .fees-table thead tr {
+        background: #FAFAFA;
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    .fees-table th {
+        padding: 1rem 1.5rem;
+        text-align: left;
+        font-size: 0.813rem;
+        font-weight: 600;
+        color: #6B7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .fees-table tbody tr {
+        border-bottom: 1px solid #F3F4F6;
+        transition: background-color 0.2s ease;
+    }
+
+    .fees-table tbody tr:hover {
+        background: #F9FAFB;
+    }
+
+    .fees-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .fees-table td {
+        padding: 1.25rem 1.5rem;
+        font-size: 0.938rem;
+        color: #374151;
+        vertical-align: middle;
+    }
+
+    .property-link {
+        color: #6B9080;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .property-link:hover {
+        color: #4A7C59;
+        text-decoration: underline;
+    }
+
+    .amount-value {
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+    /* Status Badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.813rem;
+        font-weight: 500;
+        line-height: 1;
+    }
+
+    .status-badge.paid {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .status-badge.pending {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .status-badge.expired {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .status-badge i {
+        font-size: 0.75rem;
+    }
+
+    /* Days Left */
+    .days-remaining {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        font-weight: 500;
+    }
+
+    .days-remaining.active {
+        color: #059669;
+    }
+
+    .days-remaining.expired {
+        color: #DC2626;
+    }
+
+    /* Empty State */
+    .empty-state {
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .empty-state-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        background: #F3F4F6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #9CA3AF;
+    }
+
+    .empty-state h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        font-size: 1rem;
+        color: #6B7280;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn-primary-custom {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: #6B9080;
+        color: white;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: none;
+    }
+
+    .btn-primary-custom:hover {
+        background: #4A7C59;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(107, 144, 128, 0.3);
+        color: white;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .fees-container {
+            padding: 2rem 1rem;
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+        }
+
+        .fees-table {
+            font-size: 0.875rem;
+        }
+
+        .fees-table th,
+        .fees-table td {
+            padding: 0.75rem 1rem;
+        }
+
+        .history-header {
+            padding: 1rem 1.5rem;
+        }
+    }
+
+    /* Scrollbar */
+    .history-body::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .history-body::-webkit-scrollbar-track {
+        background: #F3F4F6;
+    }
+
+    .history-body::-webkit-scrollbar-thumb {
+        background: #D1D5DB;
+        border-radius: 4px;
+    }
+
+    .history-body::-webkit-scrollbar-thumb:hover {
+        background: #9CA3AF;
+    }
+</style>
+
+<div class="fees-container">
+    <!-- Header -->
+    <div class="page-header">
+        <h1>My Listing Fees</h1>
+        <p>Track your property listing fees and payments</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card paid">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <span class="stat-label">Total Paid</span>
+            </div>
+            <p class="stat-value">{{ total_paid|currency }}</p>
+        </div>
+
+        <div class="stat-card active">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="bi bi-house-check"></i>
+                </div>
+                <span class="stat-label">Active Listings</span>
+            </div>
+            <p class="stat-value">{{ active_listings }}</p>
+        </div>
+
+        <div class="stat-card total">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <span class="stat-label">Total Fees</span>
+            </div>
+            <p class="stat-value">{{ listing_fees.count }}</p>
         </div>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <h6 class="card-title">Total Paid</h6>
-                    <h3>{{ total_paid|currency }}</h3>
-                </div>
-            </div>
+    <!-- Payment History -->
+    <div class="history-card">
+        <div class="history-header">
+            <h2>Payment History</h2>
         </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <h6 class="card-title">Active Listings</h6>
-                    <h3>{{ active_listings }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <h6 class="card-title">Total Fees</h6>
-                    <h3>{{ listing_fees.count }}</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Fee List -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">Payment History</h5>
-        </div>
-        <div class="card-body">
+        <div class="history-body">
             {% if listing_fees %}
-            <div class="table-responsive">
-                <table class="table table-hover">
+            <div style="overflow-x: auto;">
+                <table class="fees-table">
                     <thead>
                         <tr>
                             <th>Property</th>
@@ -66,29 +422,44 @@
                         {% for fee in listing_fees %}
                         <tr>
                             <td>
-                                <a href="{% url 'post_detail' fee.listing.id %}">
+                                <a href="{% url 'post_detail' fee.listing.id %}" class="property-link">
                                     {{ fee.listing.title|truncatewords:5 }}
                                 </a>
                             </td>
                             <td>{{ fee.daily_fee|currency }}</td>
                             <td>{{ fee.days_paid }} days</td>
-                            <td><strong>{{ fee.total_amount|currency }}</strong></td>
+                            <td class="amount-value">{{ fee.total_amount|currency }}</td>
                             <td>{{ fee.start_date|date:"M d, Y" }}</td>
                             <td>{{ fee.end_date|date:"M d, Y" }}</td>
                             <td>
-                                <span class="badge 
-                                    {% if fee.payment_status == 'paid' %}bg-success
-                                    {% elif fee.payment_status == 'pending' %}bg-warning
-                                    {% elif fee.payment_status == 'overdue' %}bg-danger
-                                    {% else %}bg-secondary{% endif %}">
+                                {% if fee.payment_status == 'paid' %}
+                                    <span class="status-badge paid">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                        Paid
+                                    </span>
+                                {% elif fee.payment_status == 'pending' %}
+                                    <span class="status-badge pending">
+                                        <i class="bi bi-clock-fill"></i>
+                                        Pending
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge expired">
+                                        <i class="bi bi-x-circle-fill"></i>
                                     {{ fee.get_payment_status_display }}
                                 </span>
+                                {% endif %}
                             </td>
                             <td>
                                 {% if fee.is_active %}
-                                    <span class="text-success">{{ fee.days_remaining }} days</span>
+                                    <span class="days-remaining active">
+                                        <i class="bi bi-calendar-check"></i>
+                                        {{ fee.days_remaining }} days
+                                    </span>
                                 {% else %}
-                                    <span class="text-danger">Expired</span>
+                                    <span class="days-remaining expired">
+                                        <i class="bi bi-calendar-x"></i>
+                                        Expired
+                                    </span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -97,13 +468,19 @@
                 </table>
             </div>
             {% else %}
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i>
-                No listing fees yet. Create a property listing to get started!
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="bi bi-receipt-cutoff"></i>
+                </div>
+                <h3>No Listing Fees Yet</h3>
+                <p>Create a property listing to get started with InzuLink!</p>
+                <a href="{% url 'create_product' %}" class="btn-primary-custom">
+                    <i class="bi bi-plus-circle"></i>
+                    Create Your First Listing
+                </a>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
 {% endblock %}
-

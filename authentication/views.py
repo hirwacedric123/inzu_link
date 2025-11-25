@@ -1234,7 +1234,7 @@ def edit_product(request, product_id):
     product = get_object_or_404(Post, id=product_id, user=request.user)
     
     # Business Rule: Check if product has been purchased or bookmarked
-    has_purchases = Purchase.objects.filter(product=product).exists()
+    has_purchases = Purchase.objects.filter(property=product).exists()
     has_bookmarks = Bookmark.objects.filter(post=product).exists()
     
     if has_purchases or has_bookmarks:
