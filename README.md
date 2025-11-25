@@ -128,6 +128,27 @@ InzuLink/
 - Media files are stored in the 'media' directory
 - The project uses Django's built-in authentication system with custom user model
 
+## 🌐 Deployment
+
+### Deploy to PythonAnywhere
+
+Ready to deploy your InzuLink app to PythonAnywhere? We've got you covered!
+
+**Quick Start:**
+- 📖 [PYTHONANYWHERE_QUICK_START.md](PYTHONANYWHERE_QUICK_START.md) - 5-minute deployment guide
+- 📚 [PYTHONANYWHERE_DEPLOYMENT.md](PYTHONANYWHERE_DEPLOYMENT.md) - Detailed step-by-step guide
+- ✅ [DEPLOYMENT_CHECKLIST_PYTHONANYWHERE.md](DEPLOYMENT_CHECKLIST_PYTHONANYWHERE.md) - Complete checklist
+- ⚡ [QUICK_DEPLOY_COMMANDS.md](QUICK_DEPLOY_COMMANDS.md) - Copy-paste commands
+
+**One-Line Deploy:**
+```bash
+git clone https://github.com/hirwacedric123/inzu_link.git KoraQuest && cd KoraQuest && chmod +x pythonanywhere_setup.sh && ./pythonanywhere_setup.sh
+```
+
+For other deployment platforms:
+- 🚀 Render: See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
+- ☁️ Other platforms: See [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)
+
 ## 🔧 Troubleshooting
 
 ### Virtual Environment Issues

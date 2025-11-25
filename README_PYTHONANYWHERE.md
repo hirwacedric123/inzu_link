@@ -51,7 +51,7 @@ This directory contains everything you need to deploy KoraQuest on PythonAnywher
 ### Option 1: Automated (Recommended)
 ```bash
 # In PythonAnywhere Bash Console
-git clone <your-repo-url> KoraQuest
+git clone https://github.com/hirwacedric123/inzu_link.git KoraQuest
 cd KoraQuest
 chmod +x pythonanywhere_setup.sh
 ./pythonanywhere_setup.sh

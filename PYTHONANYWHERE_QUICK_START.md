@@ -5,7 +5,7 @@
 ### 1. Upload Your Code
 ```bash
 # In PythonAnywhere Bash Console
-git clone <your-repo-url> KoraQuest
+git clone https://github.com/hirwacedric123/inzu_link.git KoraQuest
 cd KoraQuest
 ```
 

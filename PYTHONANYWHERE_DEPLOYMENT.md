@@ -22,7 +22,7 @@ This guide will walk you through deploying your Django KoraQuest project on Pyth
 1. Open a **Bash Console** from your PythonAnywhere Dashboard
 2. Clone your repository:
    ```bash
-   git clone <your-repository-url> KoraQuest
+   git clone https://github.com/hirwacedric123/inzu_link.git KoraQuest
    cd KoraQuest
    ```
 

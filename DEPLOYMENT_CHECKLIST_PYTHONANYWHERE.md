@@ -16,7 +16,7 @@ Use this checklist to ensure you don't miss any critical steps during deployment
 ## Step 1: Upload Code to PythonAnywhere
 
 - [ ] Open Bash Console from PythonAnywhere Dashboard
-- [ ] Clone repository: `git clone <repo-url> KoraQuest`
+- [ ] Clone repository: `git clone https://github.com/hirwacedric123/inzu_link.git KoraQuest`
 - [ ] OR upload files manually via Files tab
 - [ ] Verify all files uploaded: `cd KoraQuest && ls -la`
 
