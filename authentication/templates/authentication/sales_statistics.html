@@ -4,7 +4,20 @@
 {% block title %}Sales Statistics - InzuLink{% endblock %}
 
 {% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
         width: 10px;
@@ -26,698 +39,775 @@
         background: #4A7C59;
     }
     
-    .statistics-container {
-        width: 100%;
-        margin: 0 auto;
+    /* Main Container */
+    .stats-wrapper {
         padding: 2rem;
-        background: 
-            linear-gradient(135deg, rgba(107, 144, 128, 0.05) 0%, rgba(164, 195, 178, 0.05) 100%),
-            linear-gradient(45deg, #F6F4F0 25%, transparent 25%, transparent 75%, #F6F4F0 75%, #F6F4F0),
-            linear-gradient(45deg, #F6F4F0 25%, #FDFCFA 25%, #FDFCFA 75%, #F6F4F0 75%, #F6F4F0);
-        background-size: 100% 100%, 60px 60px, 60px 60px;
-        background-position: 0 0, 0 0, 30px 30px;
+        max-width: 1400px;
+        margin: 0 auto;
         min-height: 100vh;
+    }
+
+    /* Header Section */
+    .stats-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
         position: relative;
+        overflow: hidden;
     }
     
-    .statistics-container::before {
+    .stats-header::before {
         content: '';
-        position: fixed;
+        position: absolute;
         top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: radial-gradient(circle at 20% 50%, rgba(107, 144, 128, 0.08) 0%, transparent 50%),
-                    radial-gradient(circle at 80% 80%, rgba(164, 195, 178, 0.08) 0%, transparent 50%);
-        pointer-events: none;
-        z-index: 0;
+        right: 0;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        transform: translate(30%, -30%);
     }
-    
-    /* Main Stats Grid */
-    .main-stats-grid {
+
+    .stats-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+        border-radius: 50%;
+        transform: translate(-30%, 30%);
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
+
+    .header-text h1 {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .header-text h1 i {
+        font-size: 2.5rem;
+    }
+
+    .header-text p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    /* Filter Section */
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        color: #4a5568;
+        font-size: 0.9rem;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        padding: 0.5rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-export {
+        margin-left: auto;
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-export:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 1.5rem;
         margin-bottom: 2rem;
     }
     
-    .main-stat-card {
-        background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.9) 0%,
-            rgba(255, 255, 255, 0.7) 100%
-        );
-        backdrop-filter: blur(40px) saturate(180%);
-        -webkit-backdrop-filter: blur(40px) saturate(180%);
-        border-radius: 24px;
+    .stat-card {
+        background: white;
+        border-radius: 16px;
         padding: 2rem;
-        box-shadow: 
-            0 8px 32px rgba(107, 144, 128, 0.12),
-            0 2px 8px rgba(0, 0, 0, 0.04),
-            inset 0 1px 1px rgba(255, 255, 255, 0.9),
-            inset 0 -1px 1px rgba(107, 144, 128, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
     }
     
-    .main-stat-card::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(
-            circle,
-            rgba(255, 255, 255, 0.4) 0%,
-            transparent 60%
-        );
-        opacity: 0;
-        transition: opacity 0.5s ease;
-        pointer-events: none;
-    }
-    
-    .main-stat-card::before {
+    .stat-card::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
-        right: 0;
+        width: 100%;
         height: 4px;
-        background: linear-gradient(90deg, #6B9080, #A4C3B2, #6B9080);
-        background-size: 200% 100%;
-        border-radius: 24px 24px 0 0;
-        animation: gradientSlide 3s ease infinite;
+        background: linear-gradient(90deg, var(--card-color-1, #667eea), var(--card-color-2, #764ba2));
     }
-    
-    @keyframes gradientSlide {
-        0%, 100% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
+
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     }
-    
-    .main-stat-card:hover {
-        transform: translateY(-8px) scale(1.02);
-        box-shadow: 
-            0 20px 50px rgba(107, 144, 128, 0.2),
-            0 10px 20px rgba(0, 0, 0, 0.08),
-            inset 0 1px 1px rgba(255, 255, 255, 1);
-        border-color: rgba(255, 255, 255, 0.8);
-        background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.95) 0%,
-            rgba(255, 255, 255, 0.8) 100%
-        );
+
+    .stat-card.vendor {
+        --card-color-1: #48bb78;
+        --card-color-2: #38a169;
     }
-    
-    .main-stat-card:hover::after {
-        opacity: 1;
+
+    .stat-card.inzulink {
+        --card-color-1: #667eea;
+        --card-color-2: #764ba2;
+    }
+
+    .stat-card.customer {
+        --card-color-1: #ed8936;
+        --card-color-2: #dd6b20;
     }
     
     .stat-icon {
         width: 60px;
         height: 60px;
-        border-radius: 16px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 2rem;
         margin-bottom: 1rem;
-        background: linear-gradient(
-            135deg,
-            rgba(107, 144, 128, 0.15) 0%,
-            rgba(164, 195, 178, 0.15) 100%
-        );
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        color: #4A7C59;
-        box-shadow: 
-            0 4px 15px rgba(107, 144, 128, 0.1),
-            inset 0 1px 1px rgba(255, 255, 255, 0.6);
-        transition: all 0.3s ease;
-    }
-    
-    .main-stat-card:hover .stat-icon {
-        transform: scale(1.1) rotate(5deg);
-        box-shadow: 
-            0 6px 20px rgba(107, 144, 128, 0.2),
-            inset 0 1px 1px rgba(255, 255, 255, 0.8);
+        background: linear-gradient(135deg, var(--card-color-1, #667eea), var(--card-color-2, #764ba2));
+        color: white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
     
     .stat-value {
         font-size: 2.5rem;
         font-weight: 700;
-        color: #3E4C4F;
+        color: #2d3748;
         margin-bottom: 0.5rem;
+        line-height: 1;
     }
     
     .stat-label {
-        color: #7A8B8F;
+        color: #718096;
         font-size: 1rem;
         font-weight: 500;
-        margin-bottom: 0.5rem;
-    }
-    
-    .stat-change {
-        font-size: 0.9rem;
-        color: #4A7C59;
-        font-weight: 600;
-        padding: 6px 14px;
-        background: linear-gradient(
-            135deg,
-            rgba(107, 144, 128, 0.15) 0%,
-            rgba(164, 195, 178, 0.15) 100%
-        );
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(107, 144, 128, 0.2);
-        border-radius: 20px;
-        display: inline-block;
-        box-shadow: 0 2px 8px rgba(107, 144, 128, 0.1);
-        transition: all 0.3s ease;
-    }
-    
-    .stat-change:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(107, 144, 128, 0.15);
-    }
-    
-    .stat-change.negative {
-        color: #DC6B4A;
-        background: linear-gradient(
-            135deg,
-            rgba(220, 107, 74, 0.15) 0%,
-            rgba(220, 107, 74, 0.1) 100%
-        );
-        border: 1px solid rgba(220, 107, 74, 0.2);
-        box-shadow: 0 2px 8px rgba(220, 107, 74, 0.1);
-    }
-    
-    /* Commission Breakdown */
-    .commission-breakdown {
-        background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.85) 0%,
-            rgba(255, 255, 255, 0.65) 100%
-        );
-        backdrop-filter: blur(30px) saturate(180%);
-        -webkit-backdrop-filter: blur(30px) saturate(180%);
-        border-radius: 24px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 
-            0 8px 32px rgba(107, 144, 128, 0.12),
-            0 2px 8px rgba(0, 0, 0, 0.04),
-            inset 0 1px 1px rgba(255, 255, 255, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .commission-breakdown::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(
-            circle,
-            rgba(164, 195, 178, 0.1) 0%,
-            transparent 70%
-        );
-        animation: pulse 4s ease-in-out infinite;
-    }
-    
-    @keyframes pulse {
-        0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
-        50% { transform: translate(10%, 10%) scale(1.1); opacity: 0.8; }
-    }
-    
-    .commission-breakdown:hover {
-        border-color: rgba(255, 255, 255, 0.7);
-        box-shadow: 
-            0 20px 50px rgba(107, 144, 128, 0.18),
-            0 10px 20px rgba(0, 0, 0, 0.06),
-            inset 0 1px 1px rgba(255, 255, 255, 0.9);
-        transform: translateY(-5px);
-        background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.9) 0%,
-            rgba(255, 255, 255, 0.7) 100%
-        );
-    }
-    
-    .breakdown-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid rgba(216, 212, 203, 0.5);
-    }
-    
-    .breakdown-header h3 {
-        margin: 0;
-        color: #3E4C4F;
-        font-size: 1.5rem;
-        font-weight: 600;
-    }
-    
-    .breakdown-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-    }
-    
-    .breakdown-item {
-        background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.6) 0%,
-            rgba(255, 255, 255, 0.4) 100%
-        );
-        backdrop-filter: blur(15px);
-        border-radius: 16px;
-        padding: 1.5rem;
-        text-align: center;
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        border-left: 4px solid #6B9080;
-        box-shadow: 
-            0 4px 15px rgba(107, 144, 128, 0.08),
-            inset 0 1px 1px rgba(255, 255, 255, 0.6);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .breakdown-item::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 0;
-        background: linear-gradient(180deg, #6B9080, #A4C3B2);
-        transition: height 0.4s ease;
-    }
-    
-    .breakdown-item:hover {
-        background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.8) 0%,
-            rgba(255, 255, 255, 0.6) 100%
-        );
-        transform: translateY(-5px) scale(1.03);
-        box-shadow: 
-            0 10px 25px rgba(107, 144, 128, 0.15),
-            inset 0 1px 1px rgba(255, 255, 255, 0.8);
-        border-color: rgba(255, 255, 255, 0.6);
-    }
-    
-    .breakdown-item:hover::before {
-        height: 100%;
-    }
-    
-    .breakdown-value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #3E4C4F;
-        margin-bottom: 0.5rem;
-    }
-    
-    .breakdown-label {
-        color: #7A8B8F;
-        font-size: 0.9rem;
-        font-weight: 500;
-    }
-    
-    /* Product/Vendor Stats */
-    .detailed-stats {
-        background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.85) 0%,
-            rgba(255, 255, 255, 0.65) 100%
-        );
-        backdrop-filter: blur(30px) saturate(180%);
-        -webkit-backdrop-filter: blur(30px) saturate(180%);
-        border-radius: 24px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 
-            0 8px 32px rgba(107, 144, 128, 0.12),
-            0 2px 8px rgba(0, 0, 0, 0.04),
-            inset 0 1px 1px rgba(255, 255, 255, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .detailed-stats::after {
-        content: '';
-        position: absolute;
-        top: -100%;
-        left: -100%;
-        width: 300%;
-        height: 300%;
-        background: linear-gradient(
-            45deg,
-            transparent 30%,
-            rgba(255, 255, 255, 0.3) 50%,
-            transparent 70%
-        );
-        animation: shimmer 6s ease-in-out infinite;
-    }
-    
-    @keyframes shimmer {
-        0% { transform: translate(-100%, -100%); }
-        50% { transform: translate(0%, 0%); }
-        100% { transform: translate(100%, 100%); }
-    }
-    
-    .detailed-stats:hover {
-        border-color: rgba(255, 255, 255, 0.7);
-        box-shadow: 
-            0 20px 50px rgba(107, 144, 128, 0.18),
-            0 10px 20px rgba(0, 0, 0, 0.06),
-            inset 0 1px 1px rgba(255, 255, 255, 0.9);
-        transform: translateY(-5px);
-    }
-    
-    .detailed-stats h3 {
-        margin: 0 0 1.5rem 0;
-        color: #3E4C4F;
-        font-size: 1.5rem;
-        font-weight: 600;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid rgba(216, 212, 203, 0.5);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .stats-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    
-    .stats-table th,
-    .stats-table td {
-        padding: 1rem;
-        text-align: left;
-        border-bottom: 1px solid rgba(216, 212, 203, 0.3);
-    }
-    
-    .stats-table th {
-        background: linear-gradient(
-            135deg,
-            rgba(107, 144, 128, 0.12) 0%,
-            rgba(164, 195, 178, 0.08) 100%
-        );
-        backdrop-filter: blur(10px);
-        font-weight: 600;
-        color: #3E4C4F;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        border: 1px solid rgba(255, 255, 255, 0.4);
-    }
-    
-    .stats-table tbody tr {
-        transition: all 0.2s ease;
-    }
-    
-    .stats-table tbody tr:hover {
-        background: linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.6) 0%,
-            rgba(255, 255, 255, 0.3) 100%
-        );
-        backdrop-filter: blur(10px);
-        transform: translateX(8px);
-        box-shadow: 0 2px 8px rgba(107, 144, 128, 0.08);
-    }
-    
-    .stats-table td {
-        color: #3E4C4F;
-        font-weight: 500;
-    }
-    
-    /* Recent Transactions */
-    .recent-transactions {
-        background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.85) 0%,
-            rgba(255, 255, 255, 0.65) 100%
-        );
-        backdrop-filter: blur(30px) saturate(180%);
-        -webkit-backdrop-filter: blur(30px) saturate(180%);
-        border-radius: 24px;
-        padding: 2rem;
-        box-shadow: 
-            0 8px 32px rgba(107, 144, 128, 0.12),
-            0 2px 8px rgba(0, 0, 0, 0.04),
-            inset 0 1px 1px rgba(255, 255, 255, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-    }
-    
-    .recent-transactions:hover {
-        border-color: rgba(255, 255, 255, 0.7);
-        box-shadow: 
-            0 20px 50px rgba(107, 144, 128, 0.18),
-            0 10px 20px rgba(0, 0, 0, 0.06),
-            inset 0 1px 1px rgba(255, 255, 255, 0.9);
-        transform: translateY(-5px);
-    }
-    
-    .transaction-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 0;
-        border-bottom: 1px solid rgba(216, 212, 203, 0.3);
-        transition: all 0.2s ease;
-    }
-    
-    .transaction-item:hover {
-        padding-left: 12px;
-        background: linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.6) 0%,
-            rgba(255, 255, 255, 0.2) 100%
-        );
-        backdrop-filter: blur(10px);
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(107, 144, 128, 0.1);
-    }
-    
-    .transaction-item:last-child {
-        border-bottom: none;
-    }
-    
-    .transaction-info h4 {
-        margin: 0 0 0.25rem 0;
-        color: #3E4C4F;
-        font-size: 1rem;
-        font-weight: 600;
-    }
-    
-    .transaction-info p {
-        margin: 0;
-        color: #7A8B8F;
-        font-size: 0.9rem;
-    }
-    
-    .transaction-amount {
-        font-weight: 700;
-        color: #6B9080;
-        font-size: 1.1rem;
-    }
-    
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .statistics-container {
-            padding: 1rem;
-        }
-        
-        .stats-header h1 {
-            font-size: 2rem;
-        }
-        
-        .main-stats-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .breakdown-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .stats-table {
-            font-size: 0.9rem;
-        }
-        
-        .stats-table th,
-        .stats-table td {
-            padding: 0.75rem 0.5rem;
-        }
-    }
-    
-    /* Role-specific styling */
-    /* .vendor-theme .stat-icon {
-        background: linear-gradient(135deg, #48bb78, #38a169);
-    }
-    
-    .inzulink-theme .stat-icon {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-    }
-    
-    .customer-theme .stat-icon {
-        background: linear-gradient(135deg, #ed8936, #dd6b20);
-    } */
-    
-    /* Progress bars for commission rates */
-    .commission-progress {
-        margin-top: 1rem;
-    }
-    
-    .progress-item {
         margin-bottom: 1rem;
     }
     
-    .progress-label {
+    .stat-change {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem 1rem;
+        background: rgba(72, 187, 120, 0.1);
+        color: #38a169;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .stat-change.negative {
+        background: rgba(245, 101, 101, 0.1);
+        color: #f56565;
+    }
+
+    .stat-change i {
+        font-size: 0.75rem;
+    }
+
+    /* Performance Section */
+    .performance-section {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .section-header {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
-        color: #3E4C4F;
-        font-weight: 500;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e2e8f0;
     }
     
-    .progress-bar {
+    .section-header h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2d3748;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-header h2 i {
+        color: #667eea;
+    }
+
+    .section-subtitle {
+        color: #718096;
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Table Styles */
+    .modern-table {
         width: 100%;
-        height: 10px;
-        background: rgba(216, 212, 203, 0.3);
-        border-radius: 10px;
+        border-collapse: collapse;
         overflow: hidden;
     }
-    
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #6B9080, #A4C3B2);
-        border-radius: 10px;
-        transition: width 0.5s ease;
+
+    .modern-table thead tr {
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
     }
-    
-    .vendor-progress .progress-fill {
-        background: linear-gradient(90deg, #4A7C59, #6B9080);
+
+    .modern-table th {
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #4a5568;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .modern-table td {
+        padding: 1rem;
+        color: #2d3748;
+        font-weight: 500;
+        border-bottom: 1px solid #f7fafc;
+    }
+
+    .modern-table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .modern-table tbody tr:hover {
+        background: #f7fafc;
+        transform: scale(1.01);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .vendor-name {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #667eea;
+    }
+
+    .btn-view {
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-view:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-state-icon {
+        font-size: 5rem;
+        color: #cbd5e0;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: #4a5568;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: #718096;
+        font-size: 1rem;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-content {
+        background: white;
+        margin: 2% auto;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 1200px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 20px 20px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h2 {
+        color: white;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .close {
+        color: white;
+        font-size: 2rem;
+        font-weight: bold;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.1);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .close:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: rotate(90deg);
+    }
+
+    .modal-body {
+        padding: 2rem;
+        background: #f7fafc;
+    }
+
+    .modal-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .modal-stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .modal-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .modal-stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 0.5rem;
+    }
+
+    .modal-stat-label {
+        color: #718096;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .modal-section {
+        margin-bottom: 2rem;
+    }
+
+    .modal-section h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 3rem;
+        color: #718096;
+        font-size: 1.2rem;
+    }
+
+    /* Dropdown Menu */
+    .dropdown-menu {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        padding: 0.5rem 0;
+    }
+
+    .dropdown-item {
+        padding: 0.75rem 1.5rem;
+        color: #4a5568;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .dropdown-item:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .dropdown-item i {
+        margin-right: 0.5rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .stats-wrapper {
+            padding: 1rem;
+        }
+
+        .stats-header {
+            padding: 2rem 1.5rem;
+        }
+
+        .header-text h1 {
+            font-size: 1.8rem;
+        }
+
+        .filter-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-export {
+            margin-left: 0;
+            justify-content: center;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-content {
+            width: 95%;
+            margin: 5% auto;
+        }
+
+        .modal-stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modern-table {
+            font-size: 0.85rem;
+        }
+
+        .modern-table th,
+        .modern-table td {
+            padding: 0.75rem 0.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .header-text h1 {
+            font-size: 1.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+        }
+
+        .modern-table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="statistics-container">
-    <!-- Export Section -->
-    <div class="export-section" style="margin-bottom: 2rem; text-align: right;">
-        <div class="dropdown d-inline-block">
-            <button class="btn btn-export dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-download me-1"></i>Export Report
+<div class="stats-wrapper">
+    <!-- Header Section -->
+    <div class="stats-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1>
+                    <i class="bi bi-graph-up-arrow"></i>
+                    Sales Analytics
+                </h1>
+                <p>Track your performance and revenue insights</p>
+            </div>
+            <div class="dropdown">
+                <button class="btn-export dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-download"></i>
+                    Export Report
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
-                <li><a class="dropdown-item" href="?export=csv"><i class="bi bi-file-earmark-text me-2"></i>Export as CSV</a></li>
-                <li><a class="dropdown-item" href="?export=pdf"><i class="bi bi-file-earmark-pdf me-2"></i>Export as PDF</a></li>
+                    <li><a class="dropdown-item" href="?export=csv"><i class="bi bi-file-earmark-text"></i>Export as CSV</a></li>
+                    <li><a class="dropdown-item" href="?export=pdf"><i class="bi bi-file-earmark-pdf"></i>Export as PDF</a></li>
+                    <li><a class="dropdown-item" href="?export=excel"><i class="bi bi-file-earmark-excel"></i>Export as Excel</a></li>
             </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-group">
+            <label for="periodFilter"><i class="bi bi-calendar3"></i> Period:</label>
+            <select id="periodFilter">
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month" selected>This Month</option>
+                <option value="year">This Year</option>
+                <option value="custom">Custom Range</option>
+            </select>
+        </div>
+        <div class="filter-group" id="customDateRange" style="display: none;">
+            <input type="date" id="startDate">
+            <span>to</span>
+            <input type="date" id="endDate">
         </div>
     </div>
 
     <!-- Main Statistics Grid -->
-    <div class="main-stats-grid">
+    <div class="stats-grid">
         {% if user_type == 'vendor' %}
-            <div class="main-stat-card vendor-theme">
+            <div class="stat-card vendor">
                 <div class="stat-icon">
-                    💵
+                    <i class="bi bi-cash-stack"></i>
                 </div>
-                <div class="stat-value">RWF {{ total_revenue|floatformat:2 }}</div>
+                <div class="stat-value">RWF {{ total_revenue|default:"0.00"|floatformat:2 }}</div>
                 <div class="stat-label">Total Revenue (80% of sales)</div>
-                <div class="stat-change">+{{ monthly_revenue|floatformat:2 }} this month</div>
+                <div class="stat-change">
+                    <i class="bi bi-arrow-up"></i>
+                    +{{ monthly_revenue|default:"0.00"|floatformat:2 }} this month
+                </div>
             </div>
             
-            <div class="main-stat-card vendor-theme">
-                <div class="stat-icon">📦</div>
-                <div class="stat-value">{{ total_sales }}</div>
+            <div class="stat-card vendor">
+                <div class="stat-icon">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="stat-value">{{ total_sales|default:0 }}</div>
                 <div class="stat-label">Total Sales</div>
-                <div class="stat-change">+{{ monthly_sales }} this month</div>
+                <div class="stat-change">
+                    <i class="bi bi-arrow-up"></i>
+                    +{{ monthly_sales|default:0 }} this month
+                </div>
             </div>
             
-            <div class="main-stat-card vendor-theme">
-                <div class="stat-icon">📈</div>
-                <div class="stat-value">RWF {{ monthly_revenue|floatformat:2 }}</div>
+            <div class="stat-card vendor">
+                <div class="stat-icon">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="stat-value">RWF {{ monthly_revenue|default:"0.00"|floatformat:2 }}</div>
                 <div class="stat-label">Monthly Revenue</div>
-                <div class="stat-change">Current month earnings</div>
+                <div class="stat-change">
+                    Current month earnings
+                </div>
             </div>
             
         {% elif user_type == 'inzulink' %}
-            <div class="main-stat-card">
+            <div class="stat-card inzulink">
                 <div class="stat-icon">
-                    💵
+                    <i class="bi bi-currency-dollar"></i>
                 </div>
-                <div class="stat-value">RWF {{ total_commission|floatformat:2 }}</div>
+                <div class="stat-value">RWF {{ total_commission|default:"0.00"|floatformat:2 }}</div>
                 <div class="stat-label">Total Commission Earned</div>
-                <div class="stat-change">+{{ monthly_commission|floatformat:2 }} this month</div>
+                <div class="stat-change">
+                    <i class="bi bi-arrow-up"></i>
+                    +{{ monthly_commission|default:"0.00"|floatformat:2 }} this month
+                </div>
             </div>
             
-            <div class="main-stat-card">
-                <div class="stat-icon">🔄</div>
-                <div class="stat-value">{{ total_transactions }}</div>
+            <div class="stat-card inzulink">
+                <div class="stat-icon">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+                <div class="stat-value">{{ total_transactions|default:0 }}</div>
                 <div class="stat-label">Total Transactions</div>
-                <div class="stat-change">+{{ monthly_transactions }} this month</div>
+                <div class="stat-change">
+                    <i class="bi bi-arrow-up"></i>
+                    +{{ monthly_transactions|default:0 }} this month
+                </div>
             </div>
             
-            <div class="main-stat-card">
-                <div class="stat-icon">📊</div>
-                <div class="stat-value">RWF {{ monthly_commission|floatformat:2 }}</div>
+            <div class="stat-card inzulink">
+                <div class="stat-icon">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div class="stat-value">RWF {{ monthly_commission|default:"0.00"|floatformat:2 }}</div>
                 <div class="stat-label">Monthly Commission</div>
-                <div class="stat-change">Current month earnings</div>
+                <div class="stat-change">
+                    Current month earnings
+                </div>
             </div>
             
-            <div class="main-stat-card">
-                <div class="stat-icon">🎯</div>
-                <div class="stat-value">{{ commission_rate }}%</div>
+            <div class="stat-card inzulink">
+                <div class="stat-icon">
+                    <i class="bi bi-percent"></i>
+                </div>
+                <div class="stat-value">{{ commission_rate|default:20 }}%</div>
                 <div class="stat-label">Commission Rate</div>
-                <div class="stat-change">+ delivery fees</div>
+                <div class="stat-change">
+                    + delivery fees
+                </div>
             </div>
             
         {% else %}
-            <div class="main-stat-card customer-theme">
-                <div class="stat-icon">💳</div>
-                <div class="stat-value">RWF {{ total_spent|floatformat:2 }}</div>
+            <div class="stat-card customer">
+                <div class="stat-icon">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+                <div class="stat-value">RWF {{ total_spent|default:"0.00"|floatformat:2 }}</div>
                 <div class="stat-label">Total Spent</div>
-                <div class="stat-change">+{{ monthly_spent|floatformat:2 }} this month</div>
+                <div class="stat-change">
+                    <i class="bi bi-arrow-up"></i>
+                    +{{ monthly_spent|default:"0.00"|floatformat:2 }} this month
+                </div>
             </div>
             
-            <div class="main-stat-card customer-theme">
-                <div class="stat-icon">🛒</div>
-                <div class="stat-value">{{ total_purchases }}</div>
+            <div class="stat-card customer">
+                <div class="stat-icon">
+                    <i class="bi bi-cart-check"></i>
+                </div>
+                <div class="stat-value">{{ total_purchases|default:0 }}</div>
                 <div class="stat-label">Total Purchases</div>
-                <div class="stat-change">+{{ monthly_purchases }} this month</div>
+                <div class="stat-change">
+                    <i class="bi bi-arrow-up"></i>
+                    +{{ monthly_purchases|default:0 }} this month
+                </div>
             </div>
             
-            <div class="main-stat-card customer-theme">
-                <div class="stat-icon">📅</div>
-                <div class="stat-value">RWF {{ monthly_spent|floatformat:2 }}</div>
+            <div class="stat-card customer">
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-month"></i>
+                </div>
+                <div class="stat-value">RWF {{ monthly_spent|default:"0.00"|floatformat:2 }}</div>
                 <div class="stat-label">Monthly Spending</div>
-                <div class="stat-change">Current month total</div>
+                <div class="stat-change">
+                    Current month total
+                </div>
             </div>
         {% endif %}
     </div>
 
-    {% if user_type == 'vendor' and product_stats %}
-    <!-- Product Performance -->
-    <div class="detailed-stats">
-        <h3>📊 Product Performance</h3>
+    <!-- Product Performance Section (Vendor) -->
+    {% if user_type == 'vendor' %}
+        <div class="performance-section">
+            <div class="section-header">
+                <h2><i class="bi bi-bar-chart-fill"></i> Product Performance</h2>
+            </div>
+            
+            {% if product_stats %}
         <div class="table-responsive">
-            <table class="stats-table">
+                    <table class="modern-table">
                 <thead>
                     <tr>
                         <th>Product</th>
@@ -726,30 +816,41 @@
                         <th>Average Price</th>
                     </tr>
                 </thead>
-                <div class="row-stats-table">
                     <tbody>
                         {% for product in product_stats %}
                         <tr>
-                            <td>{{ product.product__title|truncatechars:30 }}</td>
+                                <td class="product-name">{{ product.product__title|truncatechars:40 }}</td>
                             <td>{{ product.total_sales }}</td>
                             <td>RWF {{ product.total_revenue|floatformat:2 }}</td>
                             <td>RWF {{ product.avg_price|floatformat:2 }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
-                </div>
             </table>
         </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-inbox"></i>
+                    </div>
+                    <h3>No Sales Data Yet</h3>
+                    <p>Your product performance statistics will appear here once you make sales.</p>
+                </div>
+            {% endif %}
     </div>
     {% endif %}
 
-    {% if user_type == 'inzulink' and vendor_stats %}
-    <!-- Vendor Performance -->
-    <div class="detailed-stats">
-        <h3>Vendors</h3>
-        <p style="color: #718096; margin-bottom: 1rem;">Click on any vendor to view their detailed statistics</p>
+    <!-- Vendor Performance Section (InzuLink Admin) -->
+    {% if user_type == 'inzulink' %}
+        <div class="performance-section">
+            <div class="section-header">
+                <h2><i class="bi bi-people-fill"></i> Vendor Performance</h2>
+            </div>
+            <p class="section-subtitle">Click on any vendor to view their detailed statistics</p>
+            
+            {% if vendor_stats %}
         <div class="table-responsive">
-            <table class="stats-table">
+                    <table class="modern-table">
                 <thead>
                     <tr>
                         <th>Vendor</th>
@@ -762,14 +863,19 @@
                 <tbody>
                     {% for vendor in vendor_stats %}
                     <tr>
-                        <td>{{ vendor.vendor_username }}</td>
+                                <td>
+                                    <span class="vendor-name">
+                                        <i class="bi bi-person-circle"></i>
+                                        {{ vendor.vendor_username }}
+                                    </span>
+                                </td>
                         <td>{{ vendor.total_transactions }}</td>
                         <td>RWF {{ vendor.total_commission|floatformat:2 }}</td>
                         <td>RWF {{ vendor.avg_commission|floatformat:2 }}</td>
                         <td>
-                            <button onclick="openVendorModal({{ vendor.vendor_id }})" 
-                                    class="btn-view-vendor">
-                                <i class="bi bi-eye"></i> View Details
+                                    <button onclick="openVendorModal({{ vendor.vendor_id }})" class="btn-view">
+                                        <i class="bi bi-eye"></i>
+                                        View Details
                             </button>
                         </td>
                     </tr>
@@ -777,332 +883,53 @@
                 </tbody>
             </table>
         </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-shop"></i>
+                    </div>
+                    <h3>No Vendor Data Yet</h3>
+                    <p>Vendor performance statistics will appear here once vendors start making sales.</p>
     </div>
     {% endif %}
-
+        </div>
+    {% endif %}
 </div>
 
 <!-- Vendor Statistics Modal -->
-<div id="vendorModal" class="modal" style="display: none;">
+<div id="vendorModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
             <h2 id="modalVendorName">Vendor Statistics</h2>
             <span class="close" onclick="closeVendorModal()">&times;</span>
         </div>
         <div class="modal-body" id="modalBody">
-            <div class="loading">Loading...</div>
+            <div class="loading">
+                <i class="bi bi-hourglass-split"></i> Loading vendor statistics...
+            </div>
         </div>
     </div>
 </div>
 
-<style>
-    .btn {
-        display: inline-block;
-        padding: 12px 24px;
-        background: linear-gradient(135deg, #6B9080, #4A7C59);
-        color: white;
-        text-decoration: none;
-        border-radius: 12px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        border: none;
-        cursor: pointer;
-    }
-    
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(107, 144, 128, 0.3);
-        color: white;
-        text-decoration: none;
-        background: linear-gradient(135deg, #4A7C59, #6B9080);
-    }
-    
-    .btn-primary {
-        background: linear-gradient(135deg, #6B9080, #4A7C59);
-    }
-    
-    .btn-export {
-        background: linear-gradient(135deg, #6B9080, #4A7C59) !important;
-        border: none !important;
-        color: white !important;
-        font-weight: 600;
-        padding: 12px 24px;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-    }
-    
-    .btn-export:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(107, 144, 128, 0.3);
-        background: linear-gradient(135deg, #4A7C59, #6B9080) !important;
-    }
-    
-    .dropdown-menu {
-        border: 2px solid rgba(216, 212, 203, 0.5);
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(107, 144, 128, 0.15);
-    }
-    
-    .dropdown-item {
-        color: #3E4C4F;
-        padding: 10px 20px;
-        transition: all 0.2s ease;
-    }
-    
-    .dropdown-item:hover {
-        background: rgba(107, 144, 128, 0.1);
-        color: #4A7C59;
-    }
-    
-    .table-responsive {
-        overflow-x: auto;
-    }
-    
-    .btn-view-vendor {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: #6B9080;
-        color: white;
-        text-decoration: none;
-        border-radius: 8px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        border: none;
-        cursor: pointer;
-    }
-    
-    .btn-view-vendor:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(107, 144, 128, 0.3);
-        color: white;
-        text-decoration: none;
-        background: #4A7C59;
-    }
-    
-    /* Modal Styles */
-    .modal {
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(62, 76, 79, 0.6);
-        backdrop-filter: blur(10px);
-    }
-    
-    .modal-content {
-        background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(30px);
-        margin: 2% auto;
-        padding: 0;
-        border-radius: 24px;
-        width: 90%;
-        max-width: 1200px;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 25px 70px rgba(107, 144, 128, 0.25);
-        border: 2px solid rgba(216, 212, 203, 0.5);
-        animation: modalSlideIn 0.3s ease-out;
-    }
-    
-    @keyframes modalSlideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-50px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .modal-header {
-        background: linear-gradient(135deg, #4A7C59 0%, #6B9080 50%, #A4C3B2 100%);
-        color: white;
-        padding: 1.5rem 2rem;
-        border-radius: 24px 24px 0 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .modal-header h2 {
-        margin: 0;
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: white;
-    }
-    
-    .close {
-        color: white;
-        font-size: 2rem;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-    }
-    
-    .close:hover {
-        background: rgba(255, 255, 255, 0.2);
-        transform: rotate(90deg);
-    }
-    
-    .modal-body {
-        padding: 2rem;
-        max-height: 70vh;
-        overflow-y: auto;
-        background: #F6F4F0;
-    }
-    
-    .loading {
-        text-align: center;
-        padding: 2rem;
-        color: #7A8B8F;
-        font-size: 1.1rem;
-    }
-    
-    .modal-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
-    }
-
-    .modal-stats-flex{
-        display: flex;
-        flex-direction: row;
-        gap: 1rem;
-        padding-bottom: 2rem;
-    }
-    
-    .modal-stat-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: 0 8px 25px rgba(107, 144, 128, 0.15);
-        border: 2px solid rgba(216, 212, 203, 0.5);
-        text-align: center;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-    }
-    
-    .modal-stat-card:hover {
-        border-color: #A4C3B2;
-        transform: translateY(-3px);
-        box-shadow: 0 12px 30px rgba(107, 144, 128, 0.2);
-    }
-    
-    .modal-stat-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #3E4C4F;
-        margin-bottom: 0.5rem;
-    }
-    
-    .modal-stat-label {
-        color: #7A8B8F;
-        font-size: 0.9rem;
-        font-weight: 500;
-    }
-    
-    .modal-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 12px;
-        overflow: hidden;
-    }
-    
-    .modal-table th,
-    .modal-table td {
-        padding: 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid rgba(216, 212, 203, 0.3);
-    }
-    
-    .modal-table th {
-        background: rgba(246, 244, 240, 0.8);
-        font-weight: 600;
-        color: #3E4C4F;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    
-    .modal-table tbody tr {
-        transition: all 0.2s ease;
-    }
-    
-    .modal-table tbody tr:hover {
-        background: rgba(107, 144, 128, 0.05);
-    }
-    
-    .modal-table td {
-        color: #3E4C4F;
-        font-weight: 500;
-    }
-    
-    .modal-section {
-        padding-bottom: 3rem;
-    }
-    
-    .modal-section h3 {
-        color: #3E4C4F;
-        font-size: 1.3rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid rgba(216, 212, 203, 0.5);
-    }
-    
-    @media (max-width: 768px) {
-        .modal-content {
-            width: 95%;
-            margin: 5% auto;
-        }
-        
-        .modal-header {
-            padding: 1rem 1.5rem;
-        }
-        
-        .modal-body {
-            padding: 1.5rem;
-        }
-        
-        .modal-stats-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-
 <script>
+// Period Filter
+document.getElementById('periodFilter').addEventListener('change', function() {
+    const customRange = document.getElementById('customDateRange');
+    if (this.value === 'custom') {
+        customRange.style.display = 'flex';
+    } else {
+        customRange.style.display = 'none';
+    }
+});
+
+// Vendor Modal Functions
 function openVendorModal(vendorId) {
     const modal = document.getElementById('vendorModal');
     const modalBody = document.getElementById('modalBody');
-    const modalVendorName = document.getElementById('modalVendorName');
     
-    // Show modal with loading state
     modal.style.display = 'block';
-    modalBody.innerHTML = '<div class="loading">Loading vendor statistics...</div>';
+    modalBody.innerHTML = '<div class="loading"><i class="bi bi-hourglass-split"></i> Loading vendor statistics...</div>';
     
-    // Fetch vendor statistics
     fetch(`/auth/api/vendor-statistics/${vendorId}/`)
         .then(response => {
             if (!response.ok) {
@@ -1114,30 +941,29 @@ function openVendorModal(vendorId) {
             displayVendorModal(data);
         })
         .catch(error => {
-            modalBody.innerHTML = `<div class="loading" style="color: #e53e3e;">Error: ${error.message}</div>`;
+            modalBody.innerHTML = `<div class="loading" style="color: #f56565;"><i class="bi bi-exclamation-triangle"></i> Error: ${error.message}</div>`;
         });
 }
 
 function closeVendorModal() {
-    const modal = document.getElementById('vendorModal');
-    modal.style.display = 'none';
+    document.getElementById('vendorModal').style.display = 'none';
 }
 
 function displayVendorModal(data) {
     const modalBody = document.getElementById('modalBody');
     const modalVendorName = document.getElementById('modalVendorName');
     
-    modalVendorName.textContent = `${data.vendor.username} vendor Statistics`;
+    modalVendorName.textContent = `${data.vendor.username} - Vendor Statistics`;
     
     const stats = data.statistics;
     const breakdown = data.commission_breakdown;
     
     modalBody.innerHTML = `
-        <!-- Main Statistics Grid -->
-        <div class="modal-stats-flex">
+        <!-- Vendor Statistics Grid -->
+        <div class="modal-stats-grid">
             <div class="modal-stat-card">
                 <div class="modal-stat-value">RWF ${stats.total_revenue.toFixed(2)}</div>
-                <div class="modal-stat-label">Vendor's Total Revenue (80%)</div>
+                <div class="modal-stat-label">Vendor Revenue (80%)</div>
             </div>
             <div class="modal-stat-card">
                 <div class="modal-stat-value">${stats.total_sales}</div>
@@ -1160,9 +986,9 @@ function displayVendorModal(data) {
         ${data.product_stats.length > 0 ? `
         <!-- Product Performance -->
         <div class="modal-section">
-            <h3>Product Performance</h3>
+            <h3><i class="bi bi-box-seam"></i> Product Performance</h3>
             <div class="table-responsive">
-                <table class="modal-table">
+                <table class="modern-table">
                     <thead>
                         <tr>
                             <th>Product</th>
@@ -1174,7 +1000,7 @@ function displayVendorModal(data) {
                     <tbody>
                         ${data.product_stats.map(product => `
                             <tr>
-                                <td>${product.product__title.length > 30 ? product.product__title.substring(0, 30) + '...' : product.product__title}</td>
+                                <td class="product-name">${product.product__title.length > 35 ? product.product__title.substring(0, 35) + '...' : product.product__title}</td>
                                 <td>${product.total_sales}</td>
                                 <td>RWF ${parseFloat(product.total_revenue).toFixed(2)}</td>
                                 <td>RWF ${parseFloat(product.avg_price).toFixed(2)}</td>
@@ -1184,14 +1010,14 @@ function displayVendorModal(data) {
                 </table>
             </div>
         </div>
-        ` : ''}
+        ` : '<div class="empty-state"><div class="empty-state-icon"><i class="bi bi-inbox"></i></div><h3>No Product Data</h3></div>'}
         
         ${data.recent_transactions.length > 0 ? `
         <!-- Recent Transactions -->
         <div class="modal-section">
-            <h3>Recent Transactions</h3>
+            <h3><i class="bi bi-receipt"></i> Recent Transactions</h3>
             <div class="table-responsive">
-                <table class="modal-table">
+                <table class="modern-table">
                     <thead>
                         <tr>
                             <th>Product</th>
@@ -1205,9 +1031,9 @@ function displayVendorModal(data) {
                     <tbody>
                         ${data.recent_transactions.map(transaction => `
                             <tr>
-                                <td>${transaction.product__title.length > 25 ? transaction.product__title.substring(0, 25) + '...' : transaction.product__title}</td>
+                                <td class="product-name">${transaction.product__title.length > 30 ? transaction.product__title.substring(0, 30) + '...' : transaction.product__title}</td>
                                 <td>${transaction.buyer__username}</td>
-                                <td>${transaction.order_id}</td>
+                                <td><code>${transaction.order_id}</code></td>
                                 <td>${transaction.quantity}</td>
                                 <td>RWF ${parseFloat(transaction.vendor_payment_amount).toFixed(2)}</td>
                                 <td>${transaction.pickup_confirmed_at}</td>
@@ -1217,11 +1043,11 @@ function displayVendorModal(data) {
                 </table>
             </div>
         </div>
-        ` : ''}
+        ` : '<div class="empty-state"><div class="empty-state-icon"><i class="bi bi-clock-history"></i></div><h3>No Recent Transactions</h3></div>'}
     `;
 }
 
-// Close modal when clicking outside of it
+// Close modal when clicking outside
 window.onclick = function(event) {
     const modal = document.getElementById('vendorModal');
     if (event.target === modal) {
@@ -1237,3 +1063,4 @@ document.addEventListener('keydown', function(event) {
 });
 </script>
 {% endblock %} 
+

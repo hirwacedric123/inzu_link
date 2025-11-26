@@ -294,3 +294,4 @@ Users can:
 *Issue: Profile photo not updating*  
 *Solution: Added CSRF token to AJAX request headers*
 
+
