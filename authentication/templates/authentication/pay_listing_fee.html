@@ -15,24 +15,49 @@
     }
 
     .payment-card {
-        background: white;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
         border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid #E5E7EB;
+        box-shadow: 0 8px 32px rgba(107, 144, 128, 0.1);
     }
 
     .payment-header {
-        padding: 2rem;
-        background: linear-gradient(135deg, #6B9080 0%, #A4C3B2 100%);
+        padding: 3rem 2rem;
+        background: linear-gradient(135deg, #4A7C59 0%, #6B9080 50%, #A4C3B2 100%);
         color: white;
         text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .payment-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+        animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .payment-header-content {
+        position: relative;
+        z-index: 1;
     }
 
     .payment-header h1 {
-        font-size: 1.75rem;
-        font-weight: 600;
-        margin: 0 0 0.5rem 0;
+        font-size: 2rem;
+        font-weight: 800;
+        margin: 0 0 0.75rem 0;
+        text-shadow: 0 4px 8px rgba(0,0,0,0.2);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -40,7 +65,7 @@
     }
 
     .payment-header p {
-        font-size: 0.938rem;
+        font-size: 1.125rem;
         margin: 0;
         opacity: 0.95;
     }
@@ -305,12 +330,14 @@
 <div class="payment-container">
     <div class="payment-card">
         <div class="payment-header">
-            <h1>
-                <i class="bi bi-credit-card"></i>
-                Pay Listing Fee
-            </h1>
-            <p>Activate your property listing on InzuLink</p>
-                </div>
+            <div class="payment-header-content">
+                <h1>
+                    <i class="bi bi-credit-card"></i>
+                    Pay Listing Fee
+                </h1>
+                <p>Activate your property listing on InzuLink</p>
+            </div>
+        </div>
 
         <div class="payment-body">
                     <!-- Property Info -->
