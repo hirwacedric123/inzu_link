@@ -81,6 +81,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',  # ASGI server for Django Channels (must be first)
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -88,6 +89,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'channels',  # Django Channels for WebSocket support
     'rest_framework',
     'django_filters',
     'corsheaders',
@@ -126,6 +128,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'InzuLink.wsgi.application'
+ASGI_APPLICATION = 'InzuLink.asgi.application'
 
 
 # Database
@@ -281,3 +284,32 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
+
+# ==============================================
+# Django Channels Configuration (WebSocket Chat)
+# ==============================================
+
+# Channel Layers - Use Redis in production, In-Memory for development
+REDIS_URL = os.environ.get('REDIS_URL')
+
+if REDIS_URL:
+    # Production: Use Redis for channel layer
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [REDIS_URL],
+            },
+        },
+    }
+else:
+    # Development: Use In-Memory channel layer
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
+    }
+
+# Chat Settings
+CHAT_MESSAGE_MAX_LENGTH = 2000  # Maximum message length
+CHAT_MESSAGES_PER_PAGE = 50    # Messages to load per page

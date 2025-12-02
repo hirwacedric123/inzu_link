@@ -4,6 +4,11 @@ asgiref==3.8.1
 sqlparse==0.5.2
 tzdata==2024.2
 
+# Django Channels (WebSocket Support)
+channels==4.0.0
+channels-redis==4.2.0
+daphne==4.1.0
+
 # Production Server
 gunicorn==23.0.0
 whitenoise==6.8.2

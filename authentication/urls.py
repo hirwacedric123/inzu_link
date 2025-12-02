@@ -1,6 +1,7 @@
 from django.urls import path, include
 from . import views
 from . import api_views
+from . import chat_views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -41,6 +42,23 @@ urlpatterns = [
     
     # Legacy paths (kept for compatibility)
     path('become-vendor/', views.become_vendor, name='become_vendor'),
+    
+    # ==============================================
+    # Chat URLs - Real-time messaging
+    # ==============================================
+    path('chat/', chat_views.chat_list, name='chat_list'),
+    path('chat/<int:conversation_id>/', chat_views.chat_room, name='chat_room'),
+    path('chat/start/property/<int:property_id>/', chat_views.start_conversation, name='start_chat_property'),
+    path('chat/start/user/<int:user_id>/', chat_views.start_conversation, name='start_chat_user'),
+    path('chat/start/inquiry/<str:inquiry_id>/', chat_views.start_conversation_from_inquiry, name='start_chat_inquiry'),
+    
+    # Chat API endpoints
+    path('api/chat/conversations/', chat_views.api_conversations, name='api_conversations'),
+    path('api/chat/<int:conversation_id>/messages/', chat_views.api_get_messages, name='api_get_messages'),
+    path('api/chat/<int:conversation_id>/send/', chat_views.api_send_message, name='api_send_message'),
+    path('api/chat/<int:conversation_id>/read/', chat_views.api_mark_read, name='api_mark_read'),
+    path('api/chat/<int:conversation_id>/archive/', chat_views.api_archive_conversation, name='api_archive_conversation'),
+    path('api/chat/unread/', chat_views.api_unread_count, name='api_unread_count'),
     
     # InzuLink specific URLs
     path('qr-code/', views.user_qr_code, name='user_qr_code'),

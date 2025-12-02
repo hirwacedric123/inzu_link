@@ -465,3 +465,183 @@ class OTPVerification(models.Model):
             # Set expiration to 10 minutes from creation
             self.expires_at = timezone.now() + timezone.timedelta(minutes=10)
         super().save(*args, **kwargs)
+
+
+# ==============================================
+# CHAT MODELS - Real-time messaging between buyers and sellers
+# ==============================================
+
+class Conversation(models.Model):
+    """
+    Model for chat conversations between buyers and sellers.
+    Each conversation is linked to a specific property and optionally an inquiry.
+    """
+    # Unique conversation identifier
+    conversation_id = models.CharField(max_length=50, unique=True, blank=True)
+    
+    # Participants
+    buyer = models.ForeignKey(
+        User, on_delete=models.CASCADE, 
+        related_name='buyer_conversations',
+        help_text="The user initiating the conversation (potential buyer)"
+    )
+    seller = models.ForeignKey(
+        User, on_delete=models.CASCADE, 
+        related_name='seller_conversations',
+        help_text="The property owner/vendor"
+    )
+    
+    # Related property (optional - for context)
+    property = models.ForeignKey(
+        Post, on_delete=models.SET_NULL, 
+        null=True, blank=True,
+        related_name='conversations',
+        help_text="The property this conversation is about"
+    )
+    
+    # Related inquiry (optional - if conversation started from an inquiry)
+    inquiry = models.ForeignKey(
+        PropertyInquiry, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='conversations',
+        help_text="Related property inquiry if any"
+    )
+    
+    # Conversation status
+    STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('archived', 'Archived'),
+        ('blocked', 'Blocked'),
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_message_at = models.DateTimeField(null=True, blank=True)
+    
+    # Read tracking
+    buyer_last_read = models.DateTimeField(null=True, blank=True)
+    seller_last_read = models.DateTimeField(null=True, blank=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.conversation_id:
+            # Generate a unique conversation ID
+            self.conversation_id = f"CONV-{uuid.uuid4().hex[:12].upper()}"
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        property_title = self.property.title if self.property else "General"
+        return f"Chat: {self.buyer.username} ↔ {self.seller.username} ({property_title})"
+    
+    def get_other_participant(self, user):
+        """Get the other participant in the conversation."""
+        if user == self.buyer:
+            return self.seller
+        return self.buyer
+    
+    def get_unread_count(self, user):
+        """Get count of unread messages for a user."""
+        if user == self.buyer:
+            last_read = self.buyer_last_read
+        else:
+            last_read = self.seller_last_read
+        
+        if not last_read:
+            return self.messages.exclude(sender=user).count()
+        
+        return self.messages.exclude(sender=user).filter(created_at__gt=last_read).count()
+    
+    def mark_as_read(self, user):
+        """Mark all messages as read for a user."""
+        now = timezone.now()
+        if user == self.buyer:
+            self.buyer_last_read = now
+        else:
+            self.seller_last_read = now
+        self.save(update_fields=['buyer_last_read' if user == self.buyer else 'seller_last_read'])
+        
+        # Also update individual message read status
+        self.messages.exclude(sender=user).filter(is_read=False).update(
+            is_read=True,
+            read_at=now
+        )
+    
+    def get_last_message(self):
+        """Get the most recent message in the conversation."""
+        return self.messages.order_by('-created_at').first()
+    
+    class Meta:
+        ordering = ['-last_message_at', '-created_at']
+        # Ensure unique conversation between buyer and seller for a specific property
+        unique_together = ['buyer', 'seller', 'property']
+
+
+class Message(models.Model):
+    """
+    Model for individual chat messages.
+    """
+    conversation = models.ForeignKey(
+        Conversation, on_delete=models.CASCADE,
+        related_name='messages'
+    )
+    sender = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='sent_messages'
+    )
+    
+    # Message content
+    content = models.TextField(help_text="Message text content")
+    
+    # Optional: attachment support for future
+    attachment = models.FileField(
+        upload_to='chat_attachments/', 
+        blank=True, null=True,
+        help_text="Optional file attachment"
+    )
+    attachment_type = models.CharField(
+        max_length=20, blank=True, null=True,
+        help_text="Type of attachment: image, document, etc."
+    )
+    
+    # Message status
+    is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # Soft delete (for message deletion without losing history)
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        preview = self.content[:50] + "..." if len(self.content) > 50 else self.content
+        return f"{self.sender.username}: {preview}"
+    
+    def mark_as_read(self):
+        """Mark this message as read."""
+        if not self.is_read:
+            self.is_read = True
+            self.read_at = timezone.now()
+            self.save(update_fields=['is_read', 'read_at'])
+    
+    def soft_delete(self):
+        """Soft delete the message."""
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.save(update_fields=['is_deleted', 'deleted_at'])
+    
+    def get_display_content(self):
+        """Return content or deletion placeholder."""
+        if self.is_deleted:
+            return "This message was deleted"
+        return self.content
+    
+    class Meta:
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['conversation', 'created_at']),
+            models.Index(fields=['sender', 'created_at']),
+        ]
