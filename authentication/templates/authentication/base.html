@@ -154,8 +154,10 @@
             justify-content: center;
         }
 
-        .logo h3{
-            font-size: 20px;
+        .logo img{
+            height: 60px;
+            width: auto;
+            object-fit: contain;
         }
         
         .great-container{
@@ -438,7 +440,9 @@
         <div class="header-container">
                 <div class="nav-brand-section">
                     <div class="logo">
-                        <h3 style="color: #3E4C4F; margin-bottom: 0;">Inzu<span style="color: #6B9080;"><i class="bi bi-link-45deg" style="color: #6B9080;"></i>Link</span></h3>
+                        <a href="{% url 'home' %}" style="text-decoration: none; display: inline-block;">
+                            <img src="{% static 'images/logo.png' %}" alt="InzuLink Logo" style="height: 60px; width: auto;">
+                        </a>
                     </div>
                 </div>
             </div>

@@ -141,6 +141,7 @@
                         {% else %}
                         <div class="purchase-actions">
                             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                {% if user.is_authenticated %}
                                 <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#inquiryModal">
                                     <i class="bi bi-envelope"></i>
                                     Send Inquiry
@@ -149,16 +150,30 @@
                                     <i class="bi bi-chat-dots"></i>
                                     Start Chat
                                 </a>
+                                {% else %}
+                                <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                    <i class="bi bi-envelope"></i>
+                                    Send Inquiry
+                                </a>
+                                <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                    <i class="bi bi-chat-dots"></i>
+                                    Start Chat
+                                </a>
+                                {% endif %}
                             </div>
                             <p class="security-note">
                                 <i class="bi bi-shield-check"></i>
                                 Contact seller directly • Schedule viewing • Real-time chat available
+                                {% if not user.is_authenticated %}
+                                <br><small style="color: #6b7280;">Please <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" style="color: #6B9080; text-decoration: underline;">login</a> to contact the seller</small>
+                                {% endif %}
                             </p>
                         </div>
                         {% endif %}
 
                         {% if not is_owner %}
                         <div class="social-actions">
+                            {% if user.is_authenticated %}
                             <button class="btn-action bookmark-btn" data-post-id="{{ post.id }}">
                                 <i class="bi {% if is_bookmarked %}bi-bookmark-fill{% else %}bi-bookmark{% endif %}"></i>
                                 <span>{% if is_bookmarked %}Saved{% else %}Save for Later{% endif %}</span>
@@ -168,6 +183,17 @@
                                 <i class="bi {% if user in post.likes.all %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
                                 <span>{{ post.total_likes }}</span>
                             </button>
+                            {% else %}
+                            <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" class="btn-action" style="text-decoration: none;">
+                                <i class="bi bi-bookmark"></i>
+                                <span>Save for Later</span>
+                            </a>
+                            
+                            <button class="btn-action" disabled title="Login to like">
+                                <i class="bi bi-heart"></i>
+                                <span>{{ post.total_likes }}</span>
+                            </button>
+                            {% endif %}
                             
                             <button class="btn-action share-btn">
                                 <i class="bi bi-share"></i>
@@ -193,6 +219,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                {% if user.is_authenticated %}
                 <form method="POST" action="{% url 'send_property_inquiry' post.id %}" id="inquiryForm">
                     {% csrf_token %}
                     
@@ -277,14 +304,36 @@
                         </div>
                     </div>
                 </form>
+                {% else %}
+                <!-- Login Prompt for Unauthenticated Users -->
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-lock-fill" style="font-size: 4rem; color: #6B9080;"></i>
+                    </div>
+                    <h5 class="mb-3">Login Required</h5>
+                    <p class="text-muted mb-4">
+                        Please log in to send an inquiry about this property. This allows you to contact the seller and schedule viewings.
+                    </p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                        </a>
+                        <a href="{% url 'register' %}?next={% url 'post_detail' post.id %}" class="btn btn-outline-primary btn-lg">
+                            <i class="bi bi-person-plus me-2"></i>Register
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="bi bi-x-circle me-2"></i>Cancel
                 </button>
+                {% if user.is_authenticated %}
                 <button type="submit" form="inquiryForm" class="btn btn-primary btn-lg">
                     <i class="bi bi-send me-2"></i>Send Inquiry
                 </button>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -806,13 +855,23 @@
                 },
                 body: JSON.stringify({})
             })
-            .then(response => response.json())
+            .then(response => {
+                if (response.status === 401 || response.status === 403) {
+                    // Redirect to login if not authenticated
+                    window.location.href = '{% url "login" %}?next={% url "post_detail" post.id %}';
+                    return;
+                }
+                return response.json();
+            })
             .then(data => {
-                if (data.is_bookmarked || data.status === 'added') {
+                if (data && (data.is_bookmarked || data.status === 'added')) {
                     bookmarkBtn.innerHTML = '<i class="bi bi-bookmark-fill me-2"></i> Saved';
-                } else {
+                } else if (data) {
                     bookmarkBtn.innerHTML = '<i class="bi bi-bookmark me-2"></i> Save for Later';
                 }
+            })
+            .catch(error => {
+                console.error('Bookmark error:', error);
             });
         });
     }
@@ -833,13 +892,23 @@
                 },
                 body: JSON.stringify({})
             })
-            .then(response => response.json())
+            .then(response => {
+                if (response.status === 401 || response.status === 403) {
+                    // Redirect to login if not authenticated
+                    window.location.href = '{% url "login" %}?next={% url "post_detail" post.id %}';
+                    return;
+                }
+                return response.json();
+            })
             .then(data => {
-                if (data.liked) {
+                if (data && data.liked) {
                     likeBtn.innerHTML = `<i class="bi bi-heart-fill me-2"></i> Like (${data.total_likes})`;
-                } else {
+                } else if (data) {
                     likeBtn.innerHTML = `<i class="bi bi-heart me-2"></i> Like (${data.total_likes})`;
                 }
+            })
+            .catch(error => {
+                console.error('Like error:', error);
             });
         });
     }

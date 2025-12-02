@@ -60,18 +60,24 @@
         }
 
         .navbar-brand {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--inzu-text) !important;
+            display: inline-block;
+            text-decoration: none;
             transition: transform 0.3s ease;
+        }
+
+        .navbar-brand img {
+            height: 80px;
+            width: auto;
+            object-fit: contain;
+            transition: all 0.3s ease;
         }
 
         .navbar-brand:hover {
             transform: scale(1.05);
         }
 
-        .navbar-brand span {
-            color: var(--inzu-primary);
+        .navbar-brand:hover img {
+            opacity: 0.9;
         }
 
         .nav-link {
@@ -826,7 +832,7 @@
     <nav class="navbar navbar-expand-lg sticky-top" role="navigation" aria-label="Main navigation">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}" aria-label="InzuLink Home">
-                Inzu<span><i class="bi bi-link-45deg" aria-hidden="true"></i>Link</span>
+                <img src="{% static 'images/logo.png' %}" alt="InzuLink Logo" style="height: 80px; width: auto;">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -879,22 +885,16 @@
 
                         <!-- Statistics -->
                         <div class="row stats-row" role="region" aria-label="Platform statistics">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="stat-box">
                                     <h3 class="counter" data-target="{{ total_products }}" aria-live="polite">0</h3>
                                     <p>Properties Listed</p>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="stat-box">
                                     <h3 class="counter" data-target="{{ total_vendors }}" aria-live="polite">0</h3>
                                     <p>Property Owners</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="stat-box">
-                                    <h3 class="counter" data-target="100" aria-live="polite">0</h3>
-                                    <p>Successful Sales</p>
                                 </div>
                             </div>
                         </div>
@@ -996,7 +996,7 @@
     <section class="cta-section scroll-reveal">
         <div class="container">
             <h2>Ready to Start Selling?</h2>
-            <p>Join thousands of vendors already selling on InzuLink</p>
+            <p>Start listing your properties and connect with buyers</p>
             {% if not user.is_authenticated %}
                 <a href="{% url 'register' %}" class="btn-outline-custom btn-lg" style="background: white; color: var(--inzu-primary); border: none;">Create Your Account</a>
             {% elif not user.is_vendor_role %}

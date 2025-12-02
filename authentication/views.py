@@ -134,6 +134,10 @@ def register(request):
         if form.is_valid():
             user = form.save()
             messages.success(request, f'Account created for {user.username}! You can now log in.')
+            # Preserve 'next' parameter when redirecting to login
+            next_url = request.GET.get('next') or request.POST.get('next')
+            if next_url:
+                return redirect(f'login?next={next_url}')
             return redirect('login')  # Redirect to login page after successful registration
     else:
         form = SignUpForm()
@@ -206,6 +210,10 @@ def login_view(request):
             user = form.get_user()
             auth_login(request, user)
             messages.success(request, f'Welcome back, {user.username}!')
+            # Redirect to 'next' parameter if provided, otherwise to dashboard
+            next_url = request.GET.get('next') or request.POST.get('next')
+            if next_url:
+                return redirect(next_url)
             return redirect('dashboard')  # Redirect to dashboard or homepage
         else:
             # Form is invalid, re-render with errors
@@ -791,24 +799,28 @@ def dashboard(request):
     
     return render(request, 'authentication/dashboard.html', context)
 
-@login_required
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
-    is_bookmarked = Bookmark.objects.filter(user=request.user, post=post).exists()
     
-    # Check if the user is the owner of the post
-    is_owner = (post.user == request.user)
+    # Handle unauthenticated users
+    is_bookmarked = False
+    is_owner = False
+    has_purchased = False
+    
+    if request.user.is_authenticated:
+        is_bookmarked = Bookmark.objects.filter(user=request.user, post=post).exists()
+        # Check if the user is the owner of the post
+        is_owner = (post.user == request.user)
+        # Allow repeat purchases - remove the restriction
+        # has_purchased = Purchase.objects.filter(
+        #     buyer=request.user, 
+        #     product=post, 
+        #     status__in=['completed', 'processing']
+        # ).exists()
+        has_purchased = False  # Always allow purchases
     
     # Get auxiliary images for the product
     auxiliary_images = ProductImage.objects.filter(product=post).order_by('display_order')
-    
-    # Allow repeat purchases - remove the restriction
-    # has_purchased = Purchase.objects.filter(
-    #     buyer=request.user, 
-    #     product=post, 
-    #     status__in=['completed', 'processing']
-    # ).exists()
-    has_purchased = False  # Always allow purchases
     
     # Get product reviews
     reviews = ProductReview.objects.filter(product=post).order_by('-created_at')

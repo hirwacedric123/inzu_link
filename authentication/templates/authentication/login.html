@@ -14,6 +14,27 @@
     {% load static %}
     <link href="{% static 'css/login.css' %}" rel="stylesheet">
     <link href="{% static 'css/accessibility.css' %}" rel="stylesheet">
+    <style>
+        .back-to-home-btn {
+            color: #6B9080 !important;
+            border-color: #6B9080 !important;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .back-to-home-btn:hover {
+            background-color: #6B9080 !important;
+            color: white !important;
+            border-color: #6B9080 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(107, 144, 128, 0.3);
+        }
+        .logo a {
+            transition: opacity 0.3s ease;
+        }
+        .logo a:hover {
+            opacity: 0.8;
+        }
+    </style>
 </head>
 
 <body>
@@ -22,12 +43,19 @@
     
     <div class="body-container">
         <div class="logo">
-            <h3 style="color: #3E4C4F;">Inzu<span style="color: #6B9080;"><i class="bi bi-link-45deg" style="color: #6B9080;" aria-hidden="true"></i>Link</span></h3>
+            <a href="{% url 'home' %}" style="text-decoration: none; display: inline-block;">
+                <img src="{% static 'images/logo.png' %}" alt="InzuLink Logo" style="height: 70px; width: auto;">
+            </a>
         </div>
     </div>
     <div class="container">
         <div class="sub-container">
             <div class="login-container">
+                <div style="margin-bottom: 15px; text-align: left;">
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm back-to-home-btn">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Home
+                    </a>
+                </div>
                 <div class="">
                     <h1 class="login-title">Login</h1>
                 </div>
