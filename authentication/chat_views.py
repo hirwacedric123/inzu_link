@@ -308,6 +308,9 @@ def api_get_messages(request, conversation_id):
             'attachment_type': msg.attachment_type,
         })
     
+    # Reverse again to show oldest first (for display)
+    messages_data = list(reversed(messages_data))
+    
     return JsonResponse({
         'success': True,
         'messages': messages_data,

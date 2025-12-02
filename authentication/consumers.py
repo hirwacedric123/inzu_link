@@ -230,9 +230,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         from authentication.models import Conversation
         
         try:
-            conversation = Conversation.objects.get(id=self.conversation_id)
+            # Convert conversation_id to integer
+            conv_id = int(self.conversation_id)
+            conversation = Conversation.objects.get(id=conv_id)
             return conversation.buyer == self.user or conversation.seller == self.user
-        except Conversation.DoesNotExist:
+        except (Conversation.DoesNotExist, ValueError):
             return False
     
     @database_sync_to_async
@@ -244,7 +246,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         from authentication.models import Conversation, Message
         
         try:
-            conversation = Conversation.objects.get(id=self.conversation_id)
+            # Convert conversation_id to integer
+            conv_id = int(self.conversation_id)
+            conversation = Conversation.objects.get(id=conv_id)
             
             message = Message.objects.create(
                 conversation=conversation,
@@ -264,6 +268,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'sender_avatar': message.sender.profile_picture.url if message.sender.profile_picture else None,
                 'timestamp': message.created_at.isoformat(),
                 'is_read': message.is_read,
+                'is_mine': message.sender == self.user,
             }
         except Exception as e:
             print(f"Error saving message: {e}")

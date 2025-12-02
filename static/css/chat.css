@@ -1,0 +1,182 @@
+/**
+ * KoraQuest Chat Styles
+ * 
+ * Consistent styling for chat functionality matching platform design system
+ */
+
+/* Use platform CSS variables */
+:root {
+    --chat-primary: var(--inzu-primary);
+    --chat-primary-dark: var(--inzu-primary-dark);
+    --chat-primary-light: var(--inzu-primary-light);
+    --chat-background: var(--inzu-background);
+    --chat-card-bg: var(--inzu-card-bg);
+    --chat-text: var(--inzu-text);
+    --chat-text-secondary: var(--inzu-text-secondary);
+    --chat-border: var(--inzu-border);
+    --chat-shadow: var(--inzu-shadow);
+    --chat-hover-bg: var(--inzu-hover-bg);
+}
+
+/* Smooth transitions for all interactive elements */
+.conversation-item,
+.message,
+.chat-input,
+.send-button,
+.back-button,
+.chat-property-link {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced hover effects */
+.conversation-item:hover {
+    transform: translateY(-4px);
+}
+
+.message-bubble {
+    transition: transform 0.2s ease;
+}
+
+.message:hover .message-bubble {
+    transform: scale(1.02);
+}
+
+/* Focus states matching platform */
+.chat-input:focus,
+.send-button:focus {
+    outline: none;
+}
+
+/* Loading states */
+.loading-messages {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Connection status animation */
+.connection-status.connected .status-dot {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Message animations */
+@keyframes messageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message {
+    animation: messageFadeIn 0.3s ease;
+}
+
+/* Typing indicator animation */
+.typing-indicator {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Scrollbar styling - consistent with platform */
+.chat-messages-container::-webkit-scrollbar,
+.conversations-scroll::-webkit-scrollbar,
+.messages-area::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-messages-container::-webkit-scrollbar-track,
+.conversations-scroll::-webkit-scrollbar-track,
+.messages-area::-webkit-scrollbar-track {
+    background: var(--inzu-background);
+    border-radius: 10px;
+}
+
+.chat-messages-container::-webkit-scrollbar-thumb,
+.conversations-scroll::-webkit-scrollbar-thumb,
+.messages-area::-webkit-scrollbar-thumb {
+    background: var(--inzu-gray);
+    border-radius: 10px;
+}
+
+.chat-messages-container::-webkit-scrollbar-thumb:hover,
+.conversations-scroll::-webkit-scrollbar-thumb:hover,
+.messages-area::-webkit-scrollbar-thumb:hover {
+    background: var(--inzu-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .chat-list-container,
+    .chat-room-container {
+        padding: 1rem;
+    }
+
+    .message {
+        max-width: 85%;
+    }
+
+    .conversation-item {
+        padding: 1rem;
+    }
+}
+
+/* Accessibility improvements */
+.conversation-item:focus,
+.back-button:focus,
+.send-button:focus,
+.chat-property-link:focus {
+    outline: 2px solid var(--inzu-primary);
+    outline-offset: 2px;
+}
+
+/* Empty state styling */
+.empty-state {
+    animation: fadeIn 0.5s ease;
+}
+
+/* Unread badge pulse animation */
+.conversation-unread {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Smooth scroll behavior */
+.messages-area,
+.conversations-scroll {
+    scroll-behavior: smooth;
+}
+
+/* Message read receipt animation */
+.message-read {
+    animation: checkmark 0.3s ease;
+}
+
+@keyframes checkmark {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}

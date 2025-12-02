@@ -140,13 +140,19 @@
                         </div>
                         {% else %}
                         <div class="purchase-actions">
-                            <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#inquiryModal">
-                                <i class="bi bi-envelope"></i>
-                                Send Inquiry
-                            </button>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#inquiryModal">
+                                    <i class="bi bi-envelope"></i>
+                                    Send Inquiry
+                                </button>
+                                <a href="{% url 'start_chat_property' post.id %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                    <i class="bi bi-chat-dots"></i>
+                                    Start Chat
+                                </a>
+                            </div>
                             <p class="security-note">
                                 <i class="bi bi-shield-check"></i>
-                                Contact seller directly • Schedule viewing
+                                Contact seller directly • Schedule viewing • Real-time chat available
                             </p>
                         </div>
                         {% endif %}

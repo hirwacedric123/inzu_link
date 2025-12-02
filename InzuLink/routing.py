@@ -10,6 +10,7 @@ from authentication import consumers
 websocket_urlpatterns = [
     # Chat room WebSocket connection
     # URL pattern: ws://server/ws/chat/<conversation_id>/
-    re_path(r'ws/chat/(?P<conversation_id>\w+)/$', consumers.ChatConsumer.as_asgi()),
+    # conversation_id can be integer or UUID string
+    re_path(r'ws/chat/(?P<conversation_id>[0-9]+)/$', consumers.ChatConsumer.as_asgi()),
 ]
 
