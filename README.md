@@ -4,11 +4,6 @@ InzuLink is a Django-based real estate and furniture marketplace platform that c
 
 ![Alt InzuLink](./static/images/hero.png)
 
-## 🌐 Demo UI
-
-- **Live Website**: [InzuLink Marketplace](https://inzulink.bonasolutions.tech)
-- **Demo Video**: [Watch Demo](https://youtu.be/x3JjtgzZsGA?si=6HRMwlj9GTLLGAjL)
-
 ## 🚀 Features
 
 ### Property Types
