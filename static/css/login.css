@@ -153,10 +153,7 @@ body::after {
     align-items: center;
     padding: 25px 35px;
     z-index: 1100;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: 0 0 20px 0;
-    box-shadow: 0 2px 10px rgba(107, 144, 128, 0.15);
+    background: transparent;
 }
 
 .logo img {
