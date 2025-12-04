@@ -202,6 +202,15 @@ class ListingFee(models.Model):
     paid_at = models.DateTimeField(null=True, blank=True)
     payment_reference = models.CharField(max_length=100, blank=True, null=True)
     
+    # MoMo Payment tracking
+    payment_method = models.CharField(max_length=20, default='manual', 
+                                      help_text="Payment method: manual, momo")
+    momo_transaction_id = models.CharField(max_length=100, blank=True, null=True,
+                                          help_text="MTN MoMo transaction reference ID")
+    momo_status = models.CharField(max_length=50, blank=True, null=True,
+                                   help_text="MoMo payment status: PENDING, SUCCESSFUL, FAILED")
+    momo_status_checked_at = models.DateTimeField(null=True, blank=True)
+    
     # Auto-renewal
     auto_renew = models.BooleanField(default=False, help_text="Automatically renew listing")
     

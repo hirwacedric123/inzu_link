@@ -382,6 +382,31 @@
             <form method="POST" id="paymentForm">
                         {% csrf_token %}
                         
+                <!-- Payment Method Selection -->
+                <div class="form-group">
+                    <label class="form-label">Payment Method <span class="required">*</span></label>
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <label style="flex: 1; padding: 1rem; border: 2px solid #E5E7EB; border-radius: 10px; cursor: pointer; transition: all 0.2s; background: white;" 
+                               onmouseover="this.style.borderColor='#6B9080'" 
+                               onmouseout="this.style.borderColor='#E5E7EB'">
+                            <input type="radio" name="payment_method" value="momo" id="payment_momo" checked style="margin-right: 0.5rem;">
+                            <strong>MTN MoMo</strong>
+                            <div style="font-size: 0.875rem; color: #6B7280; margin-top: 0.25rem;">
+                                Pay instantly via Mobile Money
+                            </div>
+                        </label>
+                        <label style="flex: 1; padding: 1rem; border: 2px solid #E5E7EB; border-radius: 10px; cursor: pointer; transition: all 0.2s; background: white;"
+                               onmouseover="this.style.borderColor='#6B9080'" 
+                               onmouseout="this.style.borderColor='#E5E7EB'">
+                            <input type="radio" name="payment_method" value="manual" id="payment_manual" style="margin-right: 0.5rem;">
+                            <strong>Manual Payment</strong>
+                            <div style="font-size: 0.875rem; color: #6B7280; margin-top: 0.25rem;">
+                                Enter transaction reference
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                        
                 <div class="form-group">
                     <label for="id_days_paid" class="form-label">
                         Number of Days <span class="required">*</span>
@@ -401,7 +426,8 @@
                     </span>
                         </div>
 
-                <div class="form-group">
+                <!-- Manual Payment Reference (hidden by default) -->
+                <div class="form-group" id="manual_payment_group" style="display: none;">
                     <label for="id_payment_reference" class="form-label">
                         Payment Reference <span class="required">*</span>
                     </label>
@@ -411,12 +437,27 @@
                         id="id_payment_reference" 
                         class="form-input" 
                         placeholder="Enter your transaction ID" 
-                        required
                     >
                     <span class="form-help">
                         Enter the transaction ID or reference number from your payment
                     </span>
                         </div>
+                
+                <!-- MoMo Payment Info -->
+                <div id="momo_payment_info" style="background: #EBF8FF; border: 1px solid #BAE6FD; border-radius: 10px; padding: 1rem; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: start; gap: 0.75rem;">
+                        <i class="bi bi-info-circle-fill" style="color: #0369A1; font-size: 1.25rem;"></i>
+                        <div>
+                            <strong style="color: #0C4A6E; display: block; margin-bottom: 0.5rem;">How MoMo Payment Works:</strong>
+                            <ul style="margin: 0; padding-left: 1.25rem; color: #0C4A6E; font-size: 0.875rem;">
+                                <li>Click "Pay with MoMo" to send a payment request</li>
+                                <li>You'll receive a prompt on your phone to approve the payment</li>
+                                <li>Once approved, your listing will be activated automatically</li>
+                                <li>Make sure your phone number is registered with MTN MoMo</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="form-check">
                     <input 
@@ -437,9 +478,9 @@
                         </div>
 
                 <!-- Submit Button -->
-                <button type="submit" class="btn-submit">
+                <button type="submit" class="btn-submit" id="submitBtn">
                     <i class="bi bi-check-circle"></i>
-                    Confirm Payment
+                    <span id="submitBtnText">Pay with MoMo</span>
                         </button>
 
                 <!-- Security Note -->
@@ -456,6 +497,13 @@
     const dailyFee = {{ listing_fee.daily_fee }};
     const daysInput = document.getElementById('id_days_paid');
     const totalAmount = document.getElementById('totalAmount');
+    const paymentMethodMomo = document.getElementById('payment_momo');
+    const paymentMethodManual = document.getElementById('payment_manual');
+    const manualPaymentGroup = document.getElementById('manual_payment_group');
+    const momoPaymentInfo = document.getElementById('momo_payment_info');
+    const paymentReference = document.getElementById('id_payment_reference');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
 
     function updateTotal() {
         const days = parseInt(daysInput.value) || 0;
@@ -463,15 +511,35 @@
         totalAmount.textContent = total.toLocaleString('en-US') + ' RWF';
     }
 
-    daysInput.addEventListener('input', updateTotal);
+    function updatePaymentMethod() {
+        if (paymentMethodMomo.checked) {
+            // MoMo payment selected
+            manualPaymentGroup.style.display = 'none';
+            momoPaymentInfo.style.display = 'block';
+            paymentReference.removeAttribute('required');
+            submitBtnText.textContent = 'Pay with MoMo';
+        } else {
+            // Manual payment selected
+            manualPaymentGroup.style.display = 'block';
+            momoPaymentInfo.style.display = 'none';
+            paymentReference.setAttribute('required', 'required');
+            submitBtnText.textContent = 'Confirm Payment';
+        }
+    }
+
+    // Payment method change handler
+    paymentMethodMomo.addEventListener('change', updatePaymentMethod);
+    paymentMethodManual.addEventListener('change', updatePaymentMethod);
     
-    // Initialize on page load
+    // Initialize
+    updatePaymentMethod();
+    daysInput.addEventListener('input', updateTotal);
     updateTotal();
 
     // Form validation
     document.getElementById('paymentForm').addEventListener('submit', function(e) {
         const days = parseInt(daysInput.value);
-        const reference = document.getElementById('id_payment_reference').value.trim();
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
 
         if (days < 1 || days > 365) {
             e.preventDefault();
@@ -479,10 +547,14 @@
             return;
         }
 
-        if (reference.length < 3) {
-            e.preventDefault();
-            alert('Please enter a valid payment reference');
-            return;
+        // Only validate reference for manual payment
+        if (paymentMethod === 'manual') {
+            const reference = paymentReference.value.trim();
+            if (reference.length < 3) {
+                e.preventDefault();
+                alert('Please enter a valid payment reference');
+                return;
+            }
         }
     });
 </script>

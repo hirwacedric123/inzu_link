@@ -31,7 +31,11 @@ urlpatterns = [
     
     # Listing Fee Management
     path('listing/<int:listing_id>/pay-fee/', views.pay_listing_fee, name='pay_listing_fee'),
+    path('listing/<int:listing_id>/payment-status/<str:transaction_id>/', views.check_payment_status, name='check_payment_status'),
     path('my-listing-fees/', views.my_listing_fees, name='my_listing_fees'),
+    
+    # MoMo Payment Callback (webhook)
+    path('api/momo/callback/', views.momo_payment_callback, name='momo_payment_callback'),
     
     # User dashboards
     path('vendor-dashboard/', views.vendor_dashboard, name='vendor_dashboard'),

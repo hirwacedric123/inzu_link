@@ -314,3 +314,20 @@ else:
 # Chat Settings
 CHAT_MESSAGE_MAX_LENGTH = 2000  # Maximum message length
 CHAT_MESSAGES_PER_PAGE = 50    # Messages to load per page
+
+# ==============================================
+# MTN MoMo Payment Configuration
+# ==============================================
+# MoMo API Environment: 'sandbox' or 'production'
+MOMO_ENVIRONMENT = os.environ.get('MOMO_ENVIRONMENT', 'sandbox')
+
+# MoMo API Credentials (from developer portal)
+MOMO_SUBSCRIPTION_KEY_PRIMARY = os.environ.get('MOMO_SUBSCRIPTION_KEY_PRIMARY', '99ac5454271a4b4ba9105b9217d9efa8')
+MOMO_SUBSCRIPTION_KEY_SECONDARY = os.environ.get('MOMO_SUBSCRIPTION_KEY_SECONDARY', 'e3cce05bee0845289bfe7ae7c5885cab')
+
+# MoMo API User and Key (generate from developer portal)
+MOMO_API_USER = os.environ.get('MOMO_API_USER', '')
+MOMO_API_KEY = os.environ.get('MOMO_API_KEY', '')
+
+# Callback URL for payment status updates
+MOMO_CALLBACK_URL = os.environ.get('MOMO_CALLBACK_URL', '')

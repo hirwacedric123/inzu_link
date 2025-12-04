@@ -1,0 +1,240 @@
+{% extends "authentication/base.html" %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Payment Status - InzuLink{% endblock %}
+
+{% block content %}
+<style>
+    .payment-status-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
+        min-height: 100vh;
+        background: #F6F4F0;
+    }
+
+    .status-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(107, 144, 128, 0.1);
+        padding: 2rem;
+    }
+
+    .status-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .status-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .status-icon.pending {
+        color: #F59E0B;
+        animation: pulse 2s infinite;
+    }
+
+    .status-icon.success {
+        color: #10B981;
+    }
+
+    .status-icon.failed {
+        color: #EF4444;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .status-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .status-message {
+        color: #6B7280;
+        font-size: 1rem;
+    }
+
+    .transaction-details {
+        background: #F9FAFB;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        font-weight: 500;
+        color: #6B7280;
+    }
+
+    .detail-value {
+        font-weight: 600;
+        color: #1F2937;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #6B9080 0%, #4A7C59 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(107, 144, 128, 0.3);
+    }
+
+    .btn-secondary {
+        background: #F3F4F6;
+        color: #374151;
+    }
+
+    .btn-secondary:hover {
+        background: #E5E7EB;
+    }
+
+    .auto-refresh-notice {
+        background: #EBF8FF;
+        border: 1px solid #BAE6FD;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+        text-align: center;
+        color: #0C4A6E;
+        font-size: 0.875rem;
+    }
+</style>
+
+<div class="payment-status-container">
+    <div class="status-card">
+        <div class="status-header">
+            {% if payment_status == 'SUCCESSFUL' %}
+                <div class="status-icon success">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <h1 class="status-title">Payment Successful!</h1>
+                <p class="status-message">Your listing fee has been paid and your listing is now active.</p>
+            {% elif payment_status == 'FAILED' %}
+                <div class="status-icon failed">
+                    <i class="bi bi-x-circle-fill"></i>
+                </div>
+                <h1 class="status-title">Payment Failed</h1>
+                <p class="status-message">The payment could not be processed. Please try again.</p>
+            {% else %}
+                <div class="status-icon pending">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+                <h1 class="status-title">Payment Pending</h1>
+                <p class="status-message">Waiting for payment confirmation. Please approve the payment on your phone.</p>
+            {% endif %}
+        </div>
+
+        <div class="transaction-details">
+            <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #374151;">Transaction Details</h3>
+            
+            <div class="detail-row">
+                <span class="detail-label">Transaction ID:</span>
+                <span class="detail-value">{{ transaction_id }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Property:</span>
+                <span class="detail-value">{{ property_listing.title }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Days Paid:</span>
+                <span class="detail-value">{{ listing_fee.days_paid }} days</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Total Amount:</span>
+                <span class="detail-value">{{ listing_fee.total_amount|currency }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span class="detail-value">{{ payment_status }}</span>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            {% if payment_status == 'PENDING' %}
+                <button class="btn btn-primary" onclick="checkStatus()">
+                    <i class="bi bi-arrow-clockwise"></i> Check Status
+                </button>
+                <a href="{% url 'pay_listing_fee' listing_id=property_listing.id %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            {% elif payment_status == 'SUCCESSFUL' %}
+                <a href="{% url 'vendor_dashboard' %}" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Go to Dashboard
+                </a>
+            {% else %}
+                <a href="{% url 'pay_listing_fee' listing_id=property_listing.id %}" class="btn btn-primary">
+                    <i class="bi bi-arrow-clockwise"></i> Try Again
+                </a>
+                <a href="{% url 'vendor_dashboard' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Dashboard
+                </a>
+            {% endif %}
+        </div>
+
+        {% if payment_status == 'PENDING' %}
+        <div class="auto-refresh-notice">
+            <i class="bi bi-info-circle"></i>
+            This page will automatically check payment status every 10 seconds.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function checkStatus() {
+        window.location.reload();
+    }
+
+    // Auto-refresh for pending payments
+    {% if payment_status == 'PENDING' %}
+    setTimeout(function() {
+        checkStatus();
+    }, 10000); // Refresh every 10 seconds
+    {% endif %}
+</script>
+{% endblock %}
+

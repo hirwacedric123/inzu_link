@@ -2,9 +2,9 @@ import os
 import csv
 import io
 import json
+import logging
 from datetime import datetime
 from decimal import Decimal
-import json
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -2089,35 +2089,74 @@ def pay_listing_fee(request, listing_id):
         )
     
     if request.method == 'POST':
-        form = ListingFeePaymentForm(request.POST, listing=property_listing)
-        if form.is_valid():
-            days_paid = form.cleaned_data['days_paid']
-            payment_reference = form.cleaned_data.get('payment_reference', '')
-            auto_renew = form.cleaned_data.get('auto_renew', False)
-            
-            # Update or create new fee record
-            new_fee = ListingFee.objects.create(
-                listing=property_listing,
-                vendor=request.user,
-                days_paid=days_paid,
-                payment_reference=payment_reference,
-                auto_renew=auto_renew,
-                payment_status='paid',
-                paid_at=timezone.now()
-            )
-            
-            # Activate the listing
-            property_listing.is_active = True
-            property_listing.save()
-            
-            messages.success(
-                request,
-                f'Payment successful! Your listing is now active for {days_paid} days. '
-                f'Total: RWF {new_fee.total_amount:,.2f}'
-            )
-            return redirect('vendor_dashboard')
+        payment_method = request.POST.get('payment_method', 'manual')
+        
+        if payment_method == 'momo':
+            # Handle MoMo payment initiation
+            form = ListingFeePaymentForm(request.POST, listing=property_listing)
+            if form.is_valid():
+                days_paid = form.cleaned_data['days_paid']
+                auto_renew = form.cleaned_data.get('auto_renew', False)
+                
+                # Update listing fee with days and calculate total
+                listing_fee.days_paid = days_paid
+                listing_fee.auto_renew = auto_renew
+                listing_fee.save()  # This will calculate total_amount
+                
+                # Initiate MoMo payment
+                from .momo_payment import initiate_momo_payment
+                payment_result = initiate_momo_payment(listing_fee, request.user)
+                
+                if payment_result.get('success'):
+                    # Update listing fee with MoMo transaction details
+                    listing_fee.payment_method = 'momo'
+                    listing_fee.momo_transaction_id = payment_result.get('transaction_id')
+                    listing_fee.momo_status = payment_result.get('status', 'PENDING')
+                    listing_fee.payment_status = 'pending'
+                    listing_fee.save()
+                    
+                    messages.info(
+                        request,
+                        f'Payment request sent! Please approve the payment on your phone. '
+                        f'Transaction ID: {payment_result.get("transaction_id")}'
+                    )
+                    return redirect('check_payment_status', listing_id=listing_id, transaction_id=payment_result.get('transaction_id'))
+                else:
+                    messages.error(request, payment_result.get('message', 'Failed to initiate MoMo payment.'))
+            else:
+                messages.error(request, 'Please correct the errors below.')
         else:
-            messages.error(request, 'Please correct the errors below.')
+            # Handle manual payment (existing flow)
+            form = ListingFeePaymentForm(request.POST, listing=property_listing)
+            if form.is_valid():
+                days_paid = form.cleaned_data['days_paid']
+                payment_reference = form.cleaned_data.get('payment_reference', '')
+                auto_renew = form.cleaned_data.get('auto_renew', False)
+                
+                # Update or create new fee record
+                new_fee = ListingFee.objects.create(
+                    listing=property_listing,
+                    vendor=request.user,
+                    days_paid=days_paid,
+                    payment_reference=payment_reference,
+                    payment_method='manual',
+                    auto_renew=auto_renew,
+                    payment_status='paid',
+                    paid_at=timezone.now()
+                )
+                
+                # Activate the listing
+                property_listing.is_active = True
+                property_listing.save()
+                
+                messages.success(
+                    request,
+                    f'Payment successful! Your listing is now active for {days_paid} days. '
+                    f'Total: RWF {new_fee.total_amount:,.2f}'
+                )
+                return redirect('vendor_dashboard')
+            else:
+                messages.error(request, 'Please correct the errors below.')
     else:
         form = ListingFeePaymentForm(listing=property_listing)
     
@@ -2127,6 +2166,135 @@ def pay_listing_fee(request, listing_id):
         'form': form
     }
     return render(request, 'authentication/pay_listing_fee.html', context)
+
+@login_required
+def check_payment_status(request, listing_id, transaction_id):
+    """Check MoMo payment status and update listing fee"""
+    property_listing = get_object_or_404(Post, id=listing_id)
+    
+    # Check if user owns this listing
+    if property_listing.user != request.user:
+        messages.error(request, 'You do not have permission to view this listing.')
+        return redirect('dashboard')
+    
+    # Get listing fee with this transaction ID
+    listing_fee = get_object_or_404(
+        ListingFee,
+        listing=property_listing,
+        vendor=request.user,
+        momo_transaction_id=transaction_id
+    )
+    
+    # Check payment status with MoMo API
+    from .momo_payment import MTNMoMoPayment
+    momo = MTNMoMoPayment()
+    status_result = momo.check_payment_status(transaction_id)
+    
+    if status_result.get('success'):
+        momo_status = status_result.get('status', 'UNKNOWN')
+        listing_fee.momo_status = momo_status
+        listing_fee.momo_status_checked_at = timezone.now()
+        
+        # If payment successful, update listing fee
+        if momo_status == 'SUCCESSFUL':
+            listing_fee.payment_status = 'paid'
+            listing_fee.paid_at = timezone.now()
+            listing_fee.payment_reference = transaction_id
+            
+            # Activate the listing
+            property_listing.is_active = True
+            property_listing.save()
+            
+            messages.success(
+                request,
+                f'Payment confirmed! Your listing is now active for {listing_fee.days_paid} days. '
+                f'Total: RWF {listing_fee.total_amount:,.2f}'
+            )
+            listing_fee.save()
+            return redirect('vendor_dashboard')
+        elif momo_status == 'FAILED':
+            listing_fee.payment_status = 'cancelled'
+            listing_fee.save()
+            messages.error(request, 'Payment failed. Please try again.')
+        else:
+            # Still pending
+            listing_fee.save()
+            messages.info(request, f'Payment status: {momo_status}. Please wait for confirmation.')
+    else:
+        messages.warning(request, 'Could not check payment status. Please try again later.')
+    
+    context = {
+        'property_listing': property_listing,
+        'listing_fee': listing_fee,
+        'payment_status': status_result.get('status', 'UNKNOWN'),
+        'transaction_id': transaction_id
+    }
+    return render(request, 'authentication/payment_status.html', context)
+
+@require_http_methods(["POST", "PUT"])
+def momo_payment_callback(request):
+    """
+    Handle MoMo payment callback/webhook
+    This endpoint receives payment status updates from MTN MoMo
+    
+    Per MoMo API documentation:
+    - Callbacks are sent via PUT method
+    - Callback is sent only once (no retry)
+    - If callback not received, use GET to check status
+    """
+    logger = logging.getLogger(__name__)
+    
+    try:
+        # Parse callback data
+        callback_data = json.loads(request.body)
+        
+        # MoMo callback format: externalId or referenceId
+        transaction_id = callback_data.get('externalId') or callback_data.get('referenceId')
+        status = callback_data.get('status', 'UNKNOWN')
+        
+        if not transaction_id:
+            logger.warning(f"MoMo callback missing transaction ID: {callback_data}")
+            return JsonResponse({'error': 'Missing transaction ID'}, status=400)
+        
+        # Find listing fee by transaction ID
+        try:
+            listing_fee = ListingFee.objects.get(momo_transaction_id=transaction_id)
+        except ListingFee.DoesNotExist:
+            logger.warning(f"MoMo callback for unknown transaction: {transaction_id}")
+            return JsonResponse({'error': 'Transaction not found'}, status=404)
+        
+        # Log callback received
+        logger.info(f"MoMo callback received for transaction {transaction_id}: status={status}")
+        
+        # Update payment status
+        listing_fee.momo_status = status
+        listing_fee.momo_status_checked_at = timezone.now()
+        
+        if status == 'SUCCESSFUL':
+            listing_fee.payment_status = 'paid'
+            listing_fee.paid_at = timezone.now()
+            listing_fee.payment_reference = transaction_id
+            
+            # Activate the listing
+            listing_fee.listing.is_active = True
+            listing_fee.listing.save()
+            
+            logger.info(f"Payment successful for transaction {transaction_id}, listing activated")
+        elif status == 'FAILED':
+            listing_fee.payment_status = 'cancelled'
+            logger.info(f"Payment failed for transaction {transaction_id}")
+        
+        listing_fee.save()
+        
+        # Return 200 OK to acknowledge callback (per documentation)
+        return JsonResponse({'success': True, 'message': 'Callback processed'}, status=200)
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON in MoMo callback: {e}")
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        logger.error(f"Error processing MoMo callback: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 @login_required
 def my_inquiries(request):

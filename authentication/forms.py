@@ -206,6 +206,9 @@ class ListingFeePaymentForm(forms.ModelForm):
         self.listing = kwargs.pop('listing', None)
         super().__init__(*args, **kwargs)
         
+        # Make payment_reference optional (not required for MoMo payments)
+        self.fields['payment_reference'].required = False
+        
         # Add help text showing fee calculation
         if self.listing:
             from decimal import Decimal
