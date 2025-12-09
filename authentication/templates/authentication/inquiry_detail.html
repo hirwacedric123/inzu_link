@@ -181,6 +181,41 @@
         color: #6B9080;
     }
 
+    .property-details-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #E5E7EB;
+    }
+
+    .property-detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #E5E7EB;
+        font-size: 0.875rem;
+    }
+
+    .property-detail-item i {
+        color: #6B9080;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .property-detail-item span {
+        color: #374151;
+    }
+
+    .property-detail-item strong {
+        color: #1F2937;
+        font-weight: 600;
+    }
+
     /* Contact Card */
     .contact-card {
         background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
@@ -491,6 +526,44 @@
                     </span>
                 </div>
                 <div class="property-price">{{ inquiry.property.price|currency }}</div>
+                
+                <!-- Property Details -->
+                {% if inquiry.property.property_type == 'house' or inquiry.property.property_type == 'land' %}
+                <div class="property-details-list">
+                    {% if inquiry.property.size_sqm %}
+                    <div class="property-detail-item">
+                        <i class="bi bi-rulers"></i>
+                        <span><strong>Size:</strong> {{ inquiry.property.size_sqm|intcomma }} m²</span>
+                    </div>
+                    {% endif %}
+                    {% if inquiry.property.property_type == 'house' %}
+                        {% if inquiry.property.bedrooms is not None %}
+                        <div class="property-detail-item">
+                            <i class="bi bi-door-open"></i>
+                            <span><strong>Bedrooms:</strong> {{ inquiry.property.bedrooms }} {% if inquiry.property.bedrooms == 0 %}Studio{% else %}Bedroom{{ inquiry.property.bedrooms|pluralize }}{% endif %}</span>
+                        </div>
+                        {% endif %}
+                        {% if inquiry.property.bathrooms %}
+                        <div class="property-detail-item">
+                            <i class="bi bi-droplet"></i>
+                            <span><strong>Bathrooms:</strong> {{ inquiry.property.bathrooms }} Bathroom{{ inquiry.property.bathrooms|pluralize }}</span>
+                        </div>
+                        {% endif %}
+                        {% if inquiry.property.parking_spaces %}
+                        <div class="property-detail-item">
+                            <i class="bi bi-car-front"></i>
+                            <span><strong>Parking:</strong> {{ inquiry.property.parking_spaces }} Space{{ inquiry.property.parking_spaces|pluralize }}</span>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                    {% if inquiry.property.city %}
+                    <div class="property-detail-item">
+                        <i class="bi bi-geo-alt"></i>
+                        <span><strong>Location:</strong> {{ inquiry.property.city }}{% if inquiry.property.district %}, {{ inquiry.property.district }}{% endif %}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
                     </div>
 

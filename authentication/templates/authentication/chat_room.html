@@ -130,15 +130,15 @@
         .chat-property-link {
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
-            padding: 0.625rem 1.25rem;
-            border-radius: 100px;
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
             text-decoration: none;
             color: white;
             font-size: 0.938rem;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             transition: all 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
@@ -148,6 +148,41 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             color: white;
+        }
+
+        .chat-property-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .chat-property-title {
+            font-size: 0.938rem;
+            font-weight: 600;
+        }
+
+        .chat-property-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .chat-property-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .chat-property-price {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.95);
         }
 
         /* Messages container - frosted glass */
@@ -523,7 +558,22 @@
             {% if property %}
             <a href="{% url 'post_detail' property.id %}" class="chat-property-link">
                 <i class="bi bi-house-door"></i>
-                <span>{{ property.title|truncatewords:4 }}</span>
+                <div class="chat-property-info">
+                    <span class="chat-property-title">{{ property.title|truncatewords:4 }}</span>
+                    {% if property.property_type == 'house' or property.property_type == 'land' %}
+                    <div class="chat-property-details">
+                        {% if property.size_sqm %}
+                        <span class="chat-property-badge">{{ property.size_sqm|intcomma }} m²</span>
+                        {% endif %}
+                        {% if property.property_type == 'house' and property.bedrooms is not None %}
+                        <span class="chat-property-badge">{{ property.bedrooms }} {% if property.bedrooms == 0 %}Studio{% else %}Bed{% endif %}</span>
+                        {% endif %}
+                        {% if property.price %}
+                        <span class="chat-property-price">{{ property.price|currency }}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
             </a>
             {% endif %}
         </div>

@@ -207,6 +207,31 @@
         margin-bottom: 0.75rem;
     }
 
+    .card-property-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .property-detail-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        background: linear-gradient(135deg, #F0FDF4, #ECFDF5);
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #4A7C59;
+        border: 1px solid rgba(107, 144, 128, 0.2);
+    }
+
+    .property-detail-badge i {
+        font-size: 0.875rem;
+        color: #6B9080;
+    }
+
     .card-meta {
         display: flex;
         flex-direction: column;
@@ -446,6 +471,32 @@
                             <div class="card-price">{{ bookmark.post.price|currency }}</div>
                         {% endif %}
                         
+                        <!-- Property Details -->
+                        {% if bookmark.post.post_type == 'product' and bookmark.post.property_type == 'house' or bookmark.post.property_type == 'land' %}
+                        <div class="card-property-details">
+                            {% if bookmark.post.size_sqm %}
+                            <span class="property-detail-badge">
+                                <i class="bi bi-rulers"></i>
+                                {{ bookmark.post.size_sqm|intcomma }} m²
+                            </span>
+                            {% endif %}
+                            {% if bookmark.post.property_type == 'house' %}
+                                {% if bookmark.post.bedrooms is not None %}
+                                <span class="property-detail-badge">
+                                    <i class="bi bi-door-open"></i>
+                                    {{ bookmark.post.bedrooms }} {% if bookmark.post.bedrooms == 0 %}Studio{% else %}Bed{% endif %}
+                                </span>
+                                {% endif %}
+                                {% if bookmark.post.bathrooms %}
+                                <span class="property-detail-badge">
+                                    <i class="bi bi-droplet"></i>
+                                    {{ bookmark.post.bathrooms }} Bath
+                                </span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
                         <div class="card-meta">
                             {% if bookmark.post.post_type == 'job' %}
                                 {% if bookmark.post.job_location %}
@@ -461,7 +512,12 @@
                                 </div>
                                 {% endif %}
                             {% else %}
-                                {% if bookmark.post.location_city %}
+                                {% if bookmark.post.city %}
+                                <div class="meta-item">
+                                    <i class="bi bi-geo-alt"></i>
+                                    <span>{{ bookmark.post.city }}</span>
+                                </div>
+                                {% elif bookmark.post.location_city %}
                                 <div class="meta-item">
                                     <i class="bi bi-geo-alt"></i>
                                     <span>{{ bookmark.post.location_city }}</span>

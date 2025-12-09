@@ -96,6 +96,115 @@
                     <div class="current-price">{{ post.price|currency }}</div>
                 </div>
 
+                <!-- Property Details Section -->
+                {% if post.property_type == 'house' or post.property_type == 'land' %}
+                <div class="property-details-section">
+                    <h2><i class="bi bi-info-circle"></i> Property Details</h2>
+                    <div class="property-details-grid">
+                        {% if post.size_sqm %}
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="bi bi-rulers"></i>
+                            </div>
+                            <div class="detail-content">
+                                <span class="detail-label">Size</span>
+                                <span class="detail-value">{{ post.size_sqm|intcomma }} m²</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if post.property_type == 'house' %}
+                            {% if post.bedrooms is not None %}
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="bi bi-door-open"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Bedrooms</span>
+                                    <span class="detail-value">{{ post.bedrooms }} {% if post.bedrooms == 0 %}Studio{% else %}Bedroom{{ post.bedrooms|pluralize }}{% endif %}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if post.bathrooms %}
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="bi bi-droplet"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Bathrooms</span>
+                                    <span class="detail-value">{{ post.bathrooms }} Bathroom{{ post.bathrooms|pluralize }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if post.parking_spaces %}
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="bi bi-car-front"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Parking</span>
+                                    <span class="detail-value">{{ post.parking_spaces }} Space{{ post.parking_spaces|pluralize }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if post.year_built %}
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="bi bi-calendar-check"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Year Built</span>
+                                    <span class="detail-value">{{ post.year_built }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if post.is_furnished %}
+                            <div class="detail-item">
+                                <div class="detail-icon">
+                                    <i class="bi bi-house-check"></i>
+                                </div>
+                                <div class="detail-content">
+                                    <span class="detail-label">Furnished</span>
+                                    <span class="detail-value">Yes</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Location Section -->
+                {% if post.city or post.district or post.address %}
+                <div class="location-section">
+                    <h2><i class="bi bi-geo-alt"></i> Location</h2>
+                    <div class="location-details">
+                        {% if post.city %}
+                        <div class="location-item">
+                            <i class="bi bi-building"></i>
+                            <span>{{ post.city }}</span>
+                        </div>
+                        {% endif %}
+                        {% if post.district %}
+                        <div class="location-item">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <span>{{ post.district }}</span>
+                        </div>
+                        {% endif %}
+                        {% if post.address %}
+                        <div class="location-item">
+                            <i class="bi bi-pin-map"></i>
+                            <span>{{ post.address }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
                 <!-- Description Section -->
                 <div class="description-section">
                     <h2>Description</h2>
@@ -546,6 +655,132 @@
         font-weight: 800;
         color: var(--inzu-primary);
         letter-spacing: -1px;
+    }
+
+    .property-details-section {
+        margin-bottom: 24px;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #F0FDF4, #ECFDF5);
+        border-radius: 16px;
+        border: 1px solid rgba(107, 144, 128, 0.15);
+    }
+
+    .property-details-section h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--inzu-text);
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .property-details-section h2 i {
+        color: var(--inzu-primary);
+    }
+
+    .property-details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid rgba(107, 144, 128, 0.1);
+        transition: all 0.2s;
+    }
+
+    .detail-item:hover {
+        border-color: var(--inzu-primary);
+        box-shadow: 0 4px 12px rgba(107, 144, 128, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .detail-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--inzu-primary-light), var(--inzu-primary));
+        border-radius: 10px;
+        color: white;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .detail-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .detail-label {
+        font-size: 0.75rem;
+        color: var(--inzu-text-secondary);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .detail-value {
+        font-size: 1rem;
+        color: var(--inzu-text);
+        font-weight: 600;
+    }
+
+    .location-section {
+        margin-bottom: 24px;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #F0F9FF, #E0F2FE);
+        border-radius: 16px;
+        border: 1px solid rgba(107, 144, 128, 0.15);
+    }
+
+    .location-section h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--inzu-text);
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .location-section h2 i {
+        color: var(--inzu-primary);
+    }
+
+    .location-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .location-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        background: white;
+        border-radius: 10px;
+        border: 1px solid rgba(107, 144, 128, 0.1);
+    }
+
+    .location-item i {
+        color: var(--inzu-primary);
+        font-size: 1.125rem;
+    }
+
+    .location-item span {
+        color: var(--inzu-text);
+        font-weight: 500;
     }
 
     .description-section {

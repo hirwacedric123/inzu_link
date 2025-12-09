@@ -553,6 +553,31 @@
             color: var(--inzu-primary-dark);
         }
 
+        .product-property-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .property-detail-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            background: linear-gradient(135deg, #F0FDF4, #ECFDF5);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4A7C59;
+            border: 1px solid rgba(107, 144, 128, 0.2);
+        }
+
+        .property-detail-badge i {
+            font-size: 0.875rem;
+            color: #6B9080;
+        }
+
         .product-vendor {
             font-size: 0.9rem;
             color: var(--inzu-text-secondary);
@@ -975,6 +1000,39 @@
                                     <span class="product-category">{{ product.get_category_display }}</span>
                                     <h3 class="product-title">{{ product.title }}</h3>
                                     <div class="product-price" aria-label="Price">{{ product.price|currency }}</div>
+                                    
+                                    <!-- Property Details -->
+                                    {% if product.property_type == 'house' or product.property_type == 'land' %}
+                                    <div class="product-property-details">
+                                        {% if product.size_sqm %}
+                                        <span class="property-detail-badge">
+                                            <i class="bi bi-rulers"></i>
+                                            {{ product.size_sqm|intcomma }} m²
+                                        </span>
+                                        {% endif %}
+                                        {% if product.property_type == 'house' %}
+                                            {% if product.bedrooms is not None %}
+                                            <span class="property-detail-badge">
+                                                <i class="bi bi-door-open"></i>
+                                                {{ product.bedrooms }} {% if product.bedrooms == 0 %}Studio{% else %}Bed{% endif %}
+                                            </span>
+                                            {% endif %}
+                                            {% if product.bathrooms %}
+                                            <span class="property-detail-badge">
+                                                <i class="bi bi-droplet"></i>
+                                                {{ product.bathrooms }} Bath
+                                            </span>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% if product.city %}
+                                        <span class="property-detail-badge">
+                                            <i class="bi bi-geo-alt"></i>
+                                            {{ product.city }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    
                                     <div class="product-vendor" aria-label="Vendor">
                                         <i class="bi bi-shop" aria-hidden="true"></i>
                                         <span>{{ product.user.username }}</span>

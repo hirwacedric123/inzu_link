@@ -553,6 +553,32 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
+        .card-property-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .property-detail-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #4A7C59;
+            border: 1px solid rgba(107, 144, 128, 0.2);
+            backdrop-filter: blur(4px);
+        }
+
+        .property-detail-badge i {
+            font-size: 10px;
+            color: #6B9080;
+        }
+
         @media (max-width: 768px) {
             .card-title {
                 font-size: 13px;
@@ -1390,6 +1416,38 @@
                 <div class="card-content">
                     <h3 id="product-title-{{ post.id }}" class="card-title">{{ post.title }}</h3>
                     <div class="card-price" aria-label="Price">{{ post.price|currency }}</div>
+
+                        <!-- Property Details -->
+                        {% if post.property_type == 'house' or post.property_type == 'land' %}
+                        <div class="card-property-details">
+                            {% if post.size_sqm %}
+                            <span class="property-detail-badge">
+                                <i class="bi bi-rulers"></i>
+                                {{ post.size_sqm|intcomma }} m²
+                            </span>
+                            {% endif %}
+                            {% if post.property_type == 'house' %}
+                                {% if post.bedrooms is not None %}
+                                <span class="property-detail-badge">
+                                    <i class="bi bi-door-open"></i>
+                                    {{ post.bedrooms }} {% if post.bedrooms == 0 %}Studio{% else %}Bed{% endif %}
+                                </span>
+                                {% endif %}
+                                {% if post.bathrooms %}
+                                <span class="property-detail-badge">
+                                    <i class="bi bi-droplet"></i>
+                                    {{ post.bathrooms }} Bath
+                                </span>
+                                {% endif %}
+                            {% endif %}
+                            {% if post.city %}
+                            <span class="property-detail-badge">
+                                <i class="bi bi-geo-alt"></i>
+                                {{ post.city }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
 
                         <div class="card-vendor" aria-label="Vendor">
                             <div class="vendor-avatar" aria-hidden="true">{{ post.user.username|first|upper }}</div>
