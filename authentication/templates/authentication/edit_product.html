@@ -1,117 +1,314 @@
 {% extends "authentication/base.html" %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Edit Product - {{ product.title }} - InzuLink{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-0">
-    <div class="row fade-in">
-        <div class="col-12 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold">Edit Product</h5>
-                    <a href="{% url 'vendor_dashboard' %}" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-x-lg"></i> Cancel
-                    </a>
+<div class="marketplace-container">
+    <div class="create-product-grid">
+        <div class="form-section">
+            <div class="form-header">
+                <h1><i class="bi bi-pencil-square"></i> Edit Property Listing</h1>
+                <p>Update your property details and information</p>
+            </div>
+
+            {% if messages %}
+                <div class="messages-container">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
                 </div>
-                <div class="card-body">
-                    <form method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        
-                        <div class="mb-4">
-                            <label for="title" class="form-label">Product Name</label>
-                            <input type="text" class="form-control" id="title" name="title" value="{{ product.title }}" required>
-                            <div class="form-text">
-                                A clear and concise name for your product
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data" class="product-form" id="product-form">
+                {% csrf_token %}
+                    
+                <!-- Basic Info Section -->
+                <div class="form-section-group">
+                    <h2>Basic Information</h2>
+                    
+                    <div class="form-field">
+                        <label for="title">Property Title <span class="required-star">*</span></label>
+                        <input type="text" id="title" name="title" required placeholder="e.g., Luxury 3BR Villa in Kigali" value="{{ product.title }}">
+                        <span class="field-hint">A clear and descriptive title for your property</span>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="description">Property Description <span class="required-star">*</span></label>
+                        <textarea id="description" name="description" rows="5" required placeholder="Describe the property in detail...">{{ product.description }}</textarea>
+                        <span class="field-hint">Describe your property features, location benefits, and other relevant details</span>
+                    </div>
+                </div>
+
+                <!-- Pricing & Category Section -->
+                <div class="form-section-group">
+                    <h2>Pricing & Category</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="price">Price <span class="required-star">*</span></label>
+                            <div class="price-input">
+                                <span class="currency-symbol">RWF</span>
+                                <input type="number" id="price" name="price" step="1" min="0" required value="{{ product.price }}">
                             </div>
+                            <span class="field-hint">Product price in RWF</span>
                         </div>
                         
-                        <div class="mb-4">
-                            <label for="description" class="form-label">Product Description</label>
-                            <textarea class="form-control" id="description" name="description" rows="5" required>{{ product.description }}</textarea>
-                            <div class="form-text">
-                                Describe your product features, specifications, and other relevant details
-                            </div>
+                        <div class="form-field">
+                            <label for="category">Category <span class="required-star">*</span></label>
+                            <select id="category" name="category" required>
+                                <option value="" disabled>Select category</option>
+                                <!-- House Categories -->
+                                <optgroup label="Houses">
+                                    <option value="apartment" {% if product.category == 'apartment' %}selected{% endif %}>Apartment</option>
+                                    <option value="villa" {% if product.category == 'villa' %}selected{% endif %}>Villa</option>
+                                    <option value="townhouse" {% if product.category == 'townhouse' %}selected{% endif %}>Townhouse</option>
+                                    <option value="duplex" {% if product.category == 'duplex' %}selected{% endif %}>Duplex</option>
+                                    <option value="studio" {% if product.category == 'studio' %}selected{% endif %}>Studio</option>
+                                    <option value="bungalow" {% if product.category == 'bungalow' %}selected{% endif %}>Bungalow</option>
+                                </optgroup>
+                                <!-- Land Categories -->
+                                <optgroup label="Land Plots">
+                                    <option value="residential_land" {% if product.category == 'residential_land' %}selected{% endif %}>Residential Land</option>
+                                    <option value="commercial_land" {% if product.category == 'commercial_land' %}selected{% endif %}>Commercial Land</option>
+                                    <option value="agricultural_land" {% if product.category == 'agricultural_land' %}selected{% endif %}>Agricultural Land</option>
+                                    <option value="industrial_land" {% if product.category == 'industrial_land' %}selected{% endif %}>Industrial Land</option>
+                                    <option value="mixed_use_land" {% if product.category == 'mixed_use_land' %}selected{% endif %}>Mixed-Use Land</option>
+                                </optgroup>
+                                <!-- Furniture Categories -->
+                                <optgroup label="Furniture">
+                                    <option value="living_room" {% if product.category == 'living_room' %}selected{% endif %}>Living Room Furniture</option>
+                                    <option value="bedroom" {% if product.category == 'bedroom' %}selected{% endif %}>Bedroom Furniture</option>
+                                    <option value="kitchen" {% if product.category == 'kitchen' %}selected{% endif %}>Kitchen Furniture</option>
+                                    <option value="office" {% if product.category == 'office' %}selected{% endif %}>Office Furniture</option>
+                                    <option value="outdoor" {% if product.category == 'outdoor' %}selected{% endif %}>Outdoor Furniture</option>
+                                    <option value="storage" {% if product.category == 'storage' %}selected{% endif %}>Storage Furniture</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="property_type">Property Type <span class="required-star">*</span></label>
+                            <select id="property_type" name="property_type" required>
+                                <option value="" disabled>Select property type</option>
+                                <option value="house" {% if product.property_type == 'house' %}selected{% endif %}>House</option>
+                                <option value="land" {% if product.property_type == 'land' %}selected{% endif %}>Land Plot</option>
+                                <option value="furniture" {% if product.property_type == 'furniture' %}selected{% endif %}>Furniture</option>
+                            </select>
                         </div>
                         
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label for="price" class="form-label">Price</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">RWF</span>
-                                    <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" value="{{ product.price }}" required>
-                                </div>
-                                <div class="form-text">
-                                    Product price in USD
-                                </div>
+                        <div class="form-field">
+                            <label for="condition">Condition <span class="required-star">*</span></label>
+                            <select id="condition" name="condition" required>
+                                <option value="" disabled>Select condition</option>
+                                <option value="new" {% if product.condition == 'new' %}selected{% endif %}>New</option>
+                                <option value="excellent" {% if product.condition == 'excellent' %}selected{% endif %}>Excellent</option>
+                                <option value="good" {% if product.condition == 'good' %}selected{% endif %}>Good</option>
+                                <option value="fair" {% if product.condition == 'fair' %}selected{% endif %}>Fair</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="inventory">Quantity in Stock</label>
+                        <input type="number" id="inventory" name="inventory" min="1" value="{{ product.inventory }}" required>
+                        <span class="field-hint">Number of items available for purchase</span>
+                    </div>
+                </div>
+
+                <!-- Property Details Section -->
+                <div class="form-section-group" id="property-details-section">
+                    <h2>
+                        <i class="bi bi-house-door"></i>
+                        Property Details
+                    </h2>
+                    <p class="section-description">Provide essential property specifications</p>
+                    
+                    <!-- Size (Required for Houses and Land Plots) -->
+                    <div class="form-field" id="size-field">
+                        <label for="size_sqm">
+                            Property Size (Square Meters) 
+                            <span class="required-star">*</span>
+                        </label>
+                        <div class="input-with-icon">
+                            <i class="bi bi-rulers"></i>
+                            <input type="number" id="size_sqm" name="size_sqm" 
+                                   step="0.01" min="0" 
+                                   placeholder="e.g., 150.50" 
+                                   value="{% if product.size_sqm %}{{ product.size_sqm }}{% endif %}">
+                        </div>
+                        <span class="field-hint">Total area in square meters (sqm). Required for houses and land plots.</span>
+                    </div>
+
+                    <!-- House-Specific Fields -->
+                    <div id="house-fields" style="display: {% if product.property_type == 'house' %}block{% else %}none{% endif %};">
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="bedrooms">
+                                    <i class="bi bi-door-closed"></i>
+                                    Bedrooms 
+                                    <span class="required-star">*</span>
+                                </label>
+                                <input type="number" id="bedrooms" name="bedrooms" 
+                                       min="0" max="20" 
+                                       placeholder="e.g., 3" 
+                                       value="{% if product.bedrooms is not None %}{{ product.bedrooms }}{% endif %}">
+                                <span class="field-hint">Number of bedrooms (enter 0 for studio)</span>
                             </div>
                             
-                            <div class="col-md-6">
-                                <label for="category" class="form-label">Category</label>
-                                <select class="form-select" id="category" name="category" required>
-                                    <option value="" disabled>Select category</option>
-                                    <!-- House Categories -->
-                                    <optgroup label="Houses">
-                                        <option value="apartment" {% if product.category == 'apartment' %}selected{% endif %}>Apartment</option>
-                                        <option value="villa" {% if product.category == 'villa' %}selected{% endif %}>Villa</option>
-                                        <option value="townhouse" {% if product.category == 'townhouse' %}selected{% endif %}>Townhouse</option>
-                                        <option value="duplex" {% if product.category == 'duplex' %}selected{% endif %}>Duplex</option>
-                                        <option value="studio" {% if product.category == 'studio' %}selected{% endif %}>Studio</option>
-                                        <option value="bungalow" {% if product.category == 'bungalow' %}selected{% endif %}>Bungalow</option>
-                                    </optgroup>
-                                    <!-- Land Categories -->
-                                    <optgroup label="Land Plots">
-                                        <option value="residential_land" {% if product.category == 'residential_land' %}selected{% endif %}>Residential Land</option>
-                                        <option value="commercial_land" {% if product.category == 'commercial_land' %}selected{% endif %}>Commercial Land</option>
-                                        <option value="agricultural_land" {% if product.category == 'agricultural_land' %}selected{% endif %}>Agricultural Land</option>
-                                        <option value="industrial_land" {% if product.category == 'industrial_land' %}selected{% endif %}>Industrial Land</option>
-                                        <option value="mixed_use_land" {% if product.category == 'mixed_use_land' %}selected{% endif %}>Mixed-Use Land</option>
-                                    </optgroup>
-                                    <!-- Furniture Categories -->
-                                    <optgroup label="Furniture">
-                                        <option value="living_room" {% if product.category == 'living_room' %}selected{% endif %}>Living Room Furniture</option>
-                                        <option value="bedroom" {% if product.category == 'bedroom' %}selected{% endif %}>Bedroom Furniture</option>
-                                        <option value="kitchen" {% if product.category == 'kitchen' %}selected{% endif %}>Kitchen Furniture</option>
-                                        <option value="office" {% if product.category == 'office' %}selected{% endif %}>Office Furniture</option>
-                                        <option value="outdoor" {% if product.category == 'outdoor' %}selected{% endif %}>Outdoor Furniture</option>
-                                        <option value="storage" {% if product.category == 'storage' %}selected{% endif %}>Storage Furniture</option>
-                                    </optgroup>
-                                </select>
+                            <div class="form-field">
+                                <label for="bathrooms">
+                                    <i class="bi bi-water"></i>
+                                    Bathrooms 
+                                    <span class="required-star">*</span>
+                                </label>
+                                <input type="number" id="bathrooms" name="bathrooms" 
+                                       min="1" max="20" 
+                                       placeholder="e.g., 2" 
+                                       value="{% if product.bathrooms %}{{ product.bathrooms }}{% endif %}">
+                                <span class="field-hint">Number of bathrooms</span>
                             </div>
                         </div>
-                        
-                        <div class="mb-4">
-                            <label for="inventory" class="form-label">Quantity in Stock</label>
-                            <input type="number" class="form-control" id="inventory" name="inventory" min="1" value="{{ product.inventory }}" required>
-                            <div class="form-text">
-                                Number of items available for purchase
+
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="parking_spaces">
+                                    <i class="bi bi-car-front"></i>
+                                    Parking Spaces
+                                </label>
+                                <input type="number" id="parking_spaces" name="parking_spaces" 
+                                       min="0" max="10" 
+                                       placeholder="e.g., 2" 
+                                       value="{% if product.parking_spaces %}{{ product.parking_spaces }}{% else %}0{% endif %}">
+                                <span class="field-hint">Number of parking spaces available</span>
                             </div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="main_image" class="form-label">Main Product Image</label>
-                            {% if product.image %}
-                            <div class="mb-2">
-                                <img src="{{ product.image.url }}" alt="{{ product.title }}" style="max-height: 150px; object-fit: contain;">
-                                <p class="form-text">Current main image</p>
-                            </div>
-                            {% endif %}
-                            <input type="file" class="form-control" id="main_image" name="main_image" accept="image/*" onchange="previewMainImage(this)">
-                            <div id="main-image-preview" class="mt-2"></div>
-                            <div class="form-text">
-                                Upload a new main image to replace the current one (optional)
-                            </div>
-                        </div>
-                        
-                        <!-- Auxiliary Images Section -->
-                        <div class="mb-4">
-                            <label class="form-label">Additional Product Images (Gallery)</label>
                             
-                            {% if auxiliary_images %}
-                            <div class="row mb-3">
-                                <div class="col-12">
-                                    <h6 class="text-muted mb-2">Current gallery images:</h6>
-                                </div>
+                            <div class="form-field">
+                                <label for="year_built">
+                                    <i class="bi bi-calendar"></i>
+                                    Year Built
+                                </label>
+                                <input type="number" id="year_built" name="year_built" 
+                                       min="1900" max="{% now 'Y' %}" 
+                                       placeholder="e.g., 2020" 
+                                       value="{% if product.year_built %}{{ product.year_built }}{% endif %}">
+                                <span class="field-hint">Year the property was built</span>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="is_furnished" name="is_furnished" 
+                                       {% if product.is_furnished %}checked{% endif %}>
+                                <span>
+                                    <i class="bi bi-check-square"></i>
+                                    Fully Furnished
+                                </span>
+                            </label>
+                            <span class="field-hint">Check if the property comes with furniture</span>
+                        </div>
+                    </div>
+
+                    <!-- Land Plot Specific Info -->
+                    <div id="land-fields" style="display: {% if product.property_type == 'land' %}block{% else %}none{% endif %};">
+                        <div class="info-card">
+                            <i class="bi bi-info-circle"></i>
+                            <div>
+                                <strong>Land Plot Information</strong>
+                                <p>For land plots, the size in square meters is the most important detail. Additional information like zoning, access roads, and utilities can be included in the description.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Section -->
+                <div class="form-section-group">
+                    <h2>
+                        <i class="bi bi-geo-alt"></i>
+                        Location
+                    </h2>
+                    <p class="section-description">Where is this property located?</p>
+                    
+                    <div class="form-field">
+                        <label for="city">City <span class="required-star">*</span></label>
+                        <input type="text" id="city" name="city" 
+                               placeholder="e.g., Kigali" 
+                               value="{% if product.city %}{{ product.city }}{% elif product.location_city %}{{ product.location_city }}{% endif %}" required>
+                        <span class="field-hint">City where the property is located</span>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="district">District/Region</label>
+                        <input type="text" id="district" name="district" 
+                               placeholder="e.g., Nyarugenge, Gasabo, Kicukiro" 
+                               value="{% if product.district %}{{ product.district }}{% elif product.location_district %}{{ product.location_district }}{% endif %}">
+                        <span class="field-hint">District or region</span>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="address">Full Address</label>
+                        <textarea id="address" name="address" rows="2" 
+                                  placeholder="e.g., KG 123 St, Kacyiru, Kigali">{% if product.address %}{{ product.address }}{% elif product.location_address %}{{ product.location_address }}{% endif %}</textarea>
+                        <span class="field-hint">Complete street address (optional but recommended)</span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="latitude">Latitude (Optional)</label>
+                            <input type="number" id="latitude" name="latitude" 
+                                   step="0.000001" 
+                                   placeholder="e.g., -1.9441" 
+                                   value="{% if product.latitude %}{{ product.latitude }}{% elif product.location_latitude %}{{ product.location_latitude }}{% endif %}">
+                            <span class="field-hint">For map display</span>
+                        </div>
+                        
+                        <div class="form-field">
+                            <label for="longitude">Longitude (Optional)</label>
+                            <input type="number" id="longitude" name="longitude" 
+                                   step="0.000001" 
+                                   placeholder="e.g., 30.0619" 
+                                   value="{% if product.longitude %}{{ product.longitude }}{% elif product.location_longitude %}{{ product.location_longitude }}{% endif %}">
+                            <span class="field-hint">For map display</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images Section -->
+                <div class="form-section-group">
+                    <h2>Product Images</h2>
+                    
+                    <div class="form-field">
+                        <label for="main_image">Main Product Image</label>
+                        {% if product.image %}
+                        <div class="mb-2">
+                            <img src="{{ product.image.url }}" alt="{{ product.title }}" style="max-height: 150px; object-fit: contain; border-radius: 8px;">
+                            <p class="form-text">Current main image (upload new image to replace)</p>
+                        </div>
+                        {% endif %}
+                        <div class="image-upload-container">
+                            <input type="file" id="main_image" name="main_image" accept="image/*">
+                            <div class="upload-placeholder">
+                                <i class="bi bi-cloud-upload"></i>
+                                <span>Click to upload or drag and drop</span>
+                                <small>PNG, JPG up to 10MB</small>
+                            </div>
+                        </div>
+                        <div id="main-image-preview" class="image-preview"></div>
+                    </div>
+                    
+                    <div class="form-field">
+                        <label for="auxiliary_images">Additional Product Images</label>
+                        
+                        {% if auxiliary_images %}
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">Current gallery images:</h6>
+                            <div class="row">
                                 {% for aux_image in auxiliary_images %}
                                 <div class="col-md-3 mb-2">
                                     <div class="card">
@@ -128,71 +325,399 @@
                                 </div>
                                 {% endfor %}
                             </div>
-                            {% else %}
-                            <p class="text-muted mb-3">No additional images currently.</p>
-                            {% endif %}
-                            
-                            <div class="card border-light bg-light mb-3">
-                                <div class="card-body">
-                                    <h6 class="card-title">Add new gallery images</h6>
-                                    
-                                    <p class="text-muted">You can add up to {% if auxiliary_images %}{{ 5|add:"-"|add:auxiliary_images|length }}{% else %}5{% endif %} more images (maximum 5 total).</p>
-                                    
-                                    <div class="mb-3">
-                                        <label for="auxiliary_images" class="form-label fw-bold">Select multiple images:</label>
-                                        <input type="file" class="form-control" id="auxiliary_images" name="auxiliary_images" accept="image/*" multiple>
-                                    </div>
-                                    
-                                    <div class="alert alert-info">
-                                        <i class="bi bi-info-circle-fill me-2"></i>
-                                        <strong>Tip:</strong> To select multiple images, hold down the Ctrl key (or Command key on Mac) while clicking on the files you want to upload.
-                                    </div>
-                                </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="image-upload-container">
+                            <input type="file" id="auxiliary_images" name="auxiliary_images" accept="image/*" multiple>
+                            <div class="upload-placeholder">
+                                <i class="bi bi-images"></i>
+                                <span>Add up to {% if auxiliary_images %}{{ 5|add:"-"|add:auxiliary_images|length }}{% else %}5{% endif %} more gallery images</span>
+                                <small>Hold Ctrl/Cmd to select multiple</small>
                             </div>
                         </div>
-                        
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'vendor_dashboard' %}" class="btn btn-outline-secondary me-md-2">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Update Product</button>
-                        </div>
-                    </form>
+                        <div id="auxiliary-preview" class="gallery-preview"></div>
+                    </div>
                 </div>
-            </div>
+                        
+                <div class="form-actions">
+                    <a href="{% url 'vendor_dashboard' %}" class="btn-secondary">Cancel</a>
+                    <button type="submit" class="btn-primary">
+                        <i class="bi bi-check-lg"></i>
+                        <span>Update Product</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-    // Preview main product image
-    function previewMainImage(input) {
-        const previewContainer = document.getElementById('main-image-preview');
-        previewContainer.innerHTML = '';
+<style>
+    .marketplace-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .form-header {
+        margin-bottom: 2rem;
+    }
+
+    .form-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .form-header p {
+        color: #6B7280;
+        font-size: 1rem;
+    }
+
+    .form-section-group {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid #E5E7EB;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .form-section-group h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-description {
+        color: #6B7280;
+        font-size: 0.938rem;
+        margin: -0.5rem 0 1.5rem 0;
+    }
+
+    .form-field {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-field label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        font-size: 0.938rem;
+    }
+
+    .required-star {
+        color: #EF4444;
+    }
+
+    .form-field input,
+    .form-field textarea,
+    .form-field select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #D1D5DB;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+
+    .form-field input:focus,
+    .form-field textarea:focus,
+    .form-field select:focus {
+        outline: none;
+        border-color: #6B9080;
+        box-shadow: 0 0 0 3px rgba(107, 144, 128, 0.1);
+    }
+
+    .field-hint {
+        display: block;
+        color: #6B7280;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .price-input {
+        display: flex;
+        align-items: center;
+        border: 1px solid #D1D5DB;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .currency-symbol {
+        padding: 0.75rem 1rem;
+        background: #F3F4F6;
+        color: #6B7280;
+        font-weight: 600;
+        border-right: 1px solid #D1D5DB;
+    }
+
+    .price-input input {
+        border: none;
+        flex: 1;
+    }
+
+    .input-with-icon {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-with-icon i {
+        position: absolute;
+        left: 1rem;
+        color: #6B9080;
+        font-size: 1.125rem;
+        z-index: 1;
+    }
+
+    .input-with-icon input {
+        padding-left: 3rem !important;
+    }
+
+    .info-card {
+        background: #EBF8FF;
+        border: 1px solid #BAE6FD;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin: 1rem 0;
+        display: flex;
+        gap: 1rem;
+        align-items: start;
+    }
+
+    .info-card i {
+        color: #0369A1;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .info-card strong {
+        display: block;
+        color: #0C4A6E;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-card p {
+        color: #0C4A6E;
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #F9FAFB;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 2px solid #E5E7EB;
+    }
+
+    .checkbox-label:hover {
+        background: #F3F4F6;
+        border-color: #6B9080;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #6B9080;
+        margin: 0;
+    }
+
+    .image-upload-container {
+        position: relative;
+        border: 2px dashed #D1D5DB;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.2s;
+    }
+
+    .image-upload-container:hover {
+        border-color: #6B9080;
+        background: #F9FAFB;
+    }
+
+    .image-upload-container input[type="file"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .upload-placeholder {
+        pointer-events: none;
+    }
+
+    .upload-placeholder i {
+        font-size: 2rem;
+        color: #6B9080;
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-placeholder span {
+        display: block;
+        color: #374151;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .upload-placeholder small {
+        color: #6B7280;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 0.875rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: #6B9080;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #4A7C59;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(107, 144, 128, 0.3);
+    }
+
+    .btn-secondary {
+        background: #F3F4F6;
+        color: #374151;
+    }
+
+    .btn-secondary:hover {
+        background: #E5E7EB;
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
         
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                const preview = document.createElement('div');
-                preview.classList.add('main-preview');
-                preview.innerHTML = `
-                    <p class="text-success mb-1"><i class="bi bi-check-circle"></i> New main image preview:</p>
-                    <img src="${e.target.result}" alt="Main image preview" style="max-height: 150px; max-width: 100%; object-fit: contain; border-radius: 4px;">
-                `;
-                previewContainer.appendChild(preview);
-            };
-            
-            reader.readAsDataURL(input.files[0]);
+        .marketplace-container {
+            padding: 20px 10px;
         }
     }
-    
-    // Initialize components when DOM is loaded
+</style>
+
+<script>
+    // Dynamic field visibility based on property type
     document.addEventListener('DOMContentLoaded', function() {
-        // Set up event listeners
-        document.getElementById('main_image').addEventListener('change', function() {
-            previewMainImage(this);
-        });
+        const propertyTypeSelect = document.getElementById('property_type');
+        const propertyDetailsSection = document.getElementById('property-details-section');
+        const sizeField = document.getElementById('size-field');
+        const houseFields = document.getElementById('house-fields');
+        const landFields = document.getElementById('land-fields');
+        
+        function updateFieldVisibility() {
+            const propertyType = propertyTypeSelect.value;
+            
+            if (propertyType === 'house' || propertyType === 'land') {
+                propertyDetailsSection.style.display = 'block';
+                sizeField.style.display = 'block';
+                
+                if (propertyType === 'house') {
+                    houseFields.style.display = 'block';
+                    landFields.style.display = 'none';
+                    // Make size required for houses
+                    const sizeInput = document.getElementById('size_sqm');
+                    if (sizeInput) sizeInput.required = true;
+                } else if (propertyType === 'land') {
+                    houseFields.style.display = 'none';
+                    landFields.style.display = 'block';
+                    // Make size required for land
+                    const sizeInput = document.getElementById('size_sqm');
+                    if (sizeInput) sizeInput.required = true;
+                }
+            } else {
+                propertyDetailsSection.style.display = 'none';
+                const sizeInput = document.getElementById('size_sqm');
+                if (sizeInput) sizeInput.required = false;
+            }
+        }
+        
+        // Initial visibility update
+        updateFieldVisibility();
+        
+        // Update on change
+        if (propertyTypeSelect) {
+            propertyTypeSelect.addEventListener('change', updateFieldVisibility);
+        }
+        
+        // Image preview functionality
+        const mainImageInput = document.getElementById('main_image');
+        if (mainImageInput) {
+            mainImageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.getElementById('main-image-preview');
+                        preview.innerHTML = `
+                            <div style="margin-top: 1rem;">
+                                <p class="text-success mb-2"><i class="bi bi-check-circle"></i> New image preview:</p>
+                                <img src="${e.target.result}" alt="Preview" style="max-height: 200px; border-radius: 8px; border: 1px solid #D1D5DB;">
+                            </div>
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        // CSRF token validation
+        const form = document.getElementById('product-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (!csrfToken || !csrfToken.value) {
+                    e.preventDefault();
+                    alert('⚠️ Security error: Please refresh the page and try again.');
+                    return false;
+                }
+            });
+        }
     });
 </script>
-{% endblock %} 
+{% endblock %}

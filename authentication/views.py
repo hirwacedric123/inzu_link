@@ -1268,14 +1268,20 @@ def edit_product(request, product_id):
         description = request.POST.get('description')
         price = request.POST.get('price')
         category = request.POST.get('category')
+        property_type = request.POST.get('property_type')
+        condition = request.POST.get('condition')
         inventory = request.POST.get('inventory')
         
         if title and description and price:
-            # Update product details
+            # Update basic product details
             product.title = title
             product.description = description
             product.price = price
             product.category = category
+            if property_type:
+                product.property_type = property_type
+            if condition:
+                product.condition = condition
             
             # Update inventory if provided
             if inventory:
@@ -1285,6 +1291,86 @@ def edit_product(request, product_id):
                         product.inventory = inventory_value
                 except (ValueError, TypeError):
                     pass  # Keep existing inventory if invalid value
+            
+            # Update property details (size, bedrooms, bathrooms, etc.)
+            size_sqm = request.POST.get('size_sqm')
+            if size_sqm:
+                try:
+                    product.size_sqm = float(size_sqm)
+                except (ValueError, TypeError):
+                    pass
+            
+            # House-specific fields
+            if property_type == 'house':
+                bedrooms = request.POST.get('bedrooms')
+                if bedrooms is not None and bedrooms != '':
+                    try:
+                        product.bedrooms = int(bedrooms)
+                    except (ValueError, TypeError):
+                        pass
+                
+                bathrooms = request.POST.get('bathrooms')
+                if bathrooms:
+                    try:
+                        product.bathrooms = int(bathrooms)
+                    except (ValueError, TypeError):
+                        pass
+                
+                parking_spaces = request.POST.get('parking_spaces')
+                if parking_spaces:
+                    try:
+                        product.parking_spaces = int(parking_spaces)
+                    except (ValueError, TypeError):
+                        pass
+                
+                year_built = request.POST.get('year_built')
+                if year_built:
+                    try:
+                        product.year_built = int(year_built)
+                    except (ValueError, TypeError):
+                        pass
+                
+                product.is_furnished = request.POST.get('is_furnished') == 'on'
+            else:
+                # Clear house-specific fields if not a house
+                product.bedrooms = None
+                product.bathrooms = None
+                product.parking_spaces = None
+                product.year_built = None
+                product.is_furnished = False
+            
+            # Location fields
+            city = request.POST.get('city')
+            if city:
+                product.city = city
+                # Also update location_city for backward compatibility
+                product.location_city = city
+            
+            district = request.POST.get('district')
+            if district:
+                product.district = district
+                product.location_district = district
+            
+            address = request.POST.get('address')
+            if address:
+                product.address = address
+                product.location_address = address
+            
+            latitude = request.POST.get('latitude')
+            if latitude:
+                try:
+                    product.latitude = float(latitude)
+                    product.location_latitude = float(latitude)
+                except (ValueError, TypeError):
+                    pass
+            
+            longitude = request.POST.get('longitude')
+            if longitude:
+                try:
+                    product.longitude = float(longitude)
+                    product.location_longitude = float(longitude)
+                except (ValueError, TypeError):
+                    pass
             
             # Handle main image update if provided
             main_image = request.FILES.get('main_image')
