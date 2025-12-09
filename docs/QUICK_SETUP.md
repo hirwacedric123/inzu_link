@@ -1,14 +1,17 @@
 # ⚡ Quick Setup Guide - MTN MoMo Integration
 
 ## What You Have ✅
-- Primary Key: `99ac5454271a4b4ba9105b9217d9efa8`
-- Secondary Key: `e3cce05bee0845289bfe7ae7c5885cab`
+- **Subscription Keys** (for API access):
+  - Primary Key: `99ac5454271a4b4ba9105b9217d9efa8`
+  - Secondary Key: `e3cce05bee0845289bfe7ae7c5885cab`
 
 ## What You Need 🔑
-- **API User ID** (UUID format)
-- **API Key** (long string)
+- **API User ID** (UUID format) - for OAuth 2.0
+- **API Key** (long string) - for OAuth 2.0
 
-These are **DIFFERENT** from your subscription keys!
+**Important**: API User and API Key are **completely different** from subscription keys!
+- **Subscription Keys** → Used in `Ocp-Apim-Subscription-Key` header
+- **API User/Key** → Used for OAuth 2.0 authentication (Basic Auth)
 
 ---
 
@@ -16,19 +19,21 @@ These are **DIFFERENT** from your subscription keys!
 
 ### Step 1: Generate API User & API Key
 
-**Option A: Automatic (Sandbox Only)**
+**For Sandbox (Testing):**
 ```bash
-# Run the helper script
+# Use Provisioning API (automatic)
 python create_momo_credentials.py
 ```
-This will automatically create and display your credentials.
+This uses the Provisioning API to automatically create credentials.
 
-**Option B: Manual (Portal)**
-1. Go to https://momodeveloper.mtn.co.rw/
+**For Production (Live):**
+1. Go to MTN MoMo Partner Portal: https://momodeveloper.mtn.co.rw/
 2. Navigate to your Collection API subscription
-3. Find "API User" or "Sandbox User Provisioning" section
+3. Go to "API User" section in Partner Portal
 4. Create API User → Generate API Key
-5. Copy both values
+5. **Copy both immediately** - API Key cannot be retrieved again!
+
+**Note**: Provisioning API is only available in Sandbox. Production requires Partner Portal.
 
 ### Step 2: Configure Credentials
 

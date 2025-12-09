@@ -4,19 +4,59 @@ This guide will help you set up MTN Mobile Money (MoMo) payment integration for 
 
 ## Prerequisites
 
-1. **MTN MoMo Developer Account**: You already have an active subscription to the Collection Widget API
-2. **API Credentials**: 
+1. **MTN MoMo Developer Account**: You already have an active subscription to the Collection API
+2. **Subscription Keys** (Already have these):
    - Primary Key: `99ac5454271a4b4ba9105b9217d9efa8`
    - Secondary Key: `e3cce05bee0845289bfe7ae7c5885cab`
-3. **API User and API Key**: You need to generate these from the MTN MoMo Developer Portal
+3. **API User and API Key**: Need to be generated (different from subscription keys)
+
+## Understanding MTN MoMo Authentication
+
+MTN MoMo API uses **two types of credentials**:
+
+### 1. Subscription Key
+- **Purpose**: Grants access to APIs in the API Manager portal
+- **Location**: Found under user profile in API Manager Portal
+- **Usage**: Set in `Ocp-Apim-Subscription-Key` header parameter
+- **Status**: ✅ You already have this
+
+### 2. API User and API Key (OAuth 2.0)
+- **Purpose**: Grants access to the wallet system in a specific country
+- **Management**: Managed by user through Partner Portal
+- **Usage**: Used for OAuth 2.0 authentication (Basic Auth)
+- **Status**: ⚠️ Need to generate
+
+**Important**: These are **completely different** from subscription keys!
 
 ## Step 1: Generate API User and API Key
 
-1. Log in to the MTN MoMo Developer Portal: https://momodeveloper.mtn.co.rw/
-2. Navigate to your subscription: "Collection Widget | Receive mobile money payments on your website through a USSD or QR code"
-3. Go to the "API User" section and create a new API User
-4. Generate an API Key for that user
-5. Save these credentials securely
+The process differs for **Sandbox** and **Production** environments:
+
+### For Sandbox Environment (Testing)
+
+**Option A: Use Provisioning API (Automatic)**
+```bash
+# Run the helper script
+python create_momo_credentials.py
+```
+This uses the Provisioning API to automatically create API User and API Key.
+
+**Option B: Use Provisioning API Manually**
+The code includes functions to create API User and API Key programmatically:
+- `create_api_user()` - Creates API User
+- `create_api_key()` - Generates API Key
+
+### For Production Environment (Live)
+
+**Use Partner Portal (Manual Process)**
+1. Log in to MTN MoMo Partner Portal: https://momodeveloper.mtn.co.rw/
+2. Navigate to your Collection API subscription
+3. Go to "API User" or "Credentials" section
+4. Create a new API User
+5. Generate an API Key for that user
+6. **Save both credentials immediately** - API Key cannot be retrieved again!
+
+**Note**: In production, you cannot use the Provisioning API. You must use the Partner Portal.
 
 ## Step 2: Configure Environment Variables
 

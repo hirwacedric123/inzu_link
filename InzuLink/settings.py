@@ -318,21 +318,33 @@ CHAT_MESSAGES_PER_PAGE = 50    # Messages to load per page
 # ==============================================
 # MTN MoMo Payment Configuration
 # ==============================================
+# 
+# MTN MoMo API uses TWO types of credentials:
+# 1. Subscription Key - For API access (Ocp-Apim-Subscription-Key header)
+# 2. API User and API Key - For OAuth 2.0 authentication (Basic Auth)
+#
+# See docs/MOMO_AUTHENTICATION_GUIDE.md for detailed explanation
+
 # MoMo API Environment: 'sandbox' or 'production'
 MOMO_ENVIRONMENT = os.environ.get('MOMO_ENVIRONMENT', 'sandbox')
 
-# MoMo API Credentials (from developer portal)
-# Primary and Secondary Subscription Keys
+# ==============================================
+# 1. Subscription Keys (Already have these)
+# ==============================================
+# Found under user profile in API Manager Portal
+# Used in Ocp-Apim-Subscription-Key header parameter
 MOMO_SUBSCRIPTION_KEY_PRIMARY = os.environ.get('MOMO_SUBSCRIPTION_KEY_PRIMARY', '99ac5454271a4b4ba9105b9217d9efa8')
 MOMO_SUBSCRIPTION_KEY_SECONDARY = os.environ.get('MOMO_SUBSCRIPTION_KEY_SECONDARY', 'e3cce05bee0845289bfe7ae7c5885cab')
 
-# MoMo API User and Key (generate from developer portal or use provisioning API)
-# For sandbox: You can use create_momo_credentials.py script to generate these
-# For production: Generate from Developer Portal
-# NOTE: These will be set via environment variables or generated using create_momo_credentials.py
-# Once you have them, you can set them here or use environment variables (recommended)
+# ==============================================
+# 2. API User and API Key (OAuth 2.0)
+# ==============================================
+# Sandbox: Use Provisioning API (create_momo_credentials.py script)
+# Production: Use Partner Portal (manual process)
+# Used for OAuth 2.0 Client Credentials Grant authentication
+# NOTE: These are DIFFERENT from subscription keys!
 MOMO_API_USER = os.environ.get('MOMO_API_USER', '')
 MOMO_API_KEY = os.environ.get('MOMO_API_KEY', '')
 
-# Callback URL for payment status updates
+# Callback URL for payment status updates (optional)
 MOMO_CALLBACK_URL = os.environ.get('MOMO_CALLBACK_URL', '')
