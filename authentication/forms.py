@@ -125,6 +125,20 @@ class PropertyListingForm(forms.ModelForm):
             }),
         }
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make size_sqm required for houses and land plots
+        self.fields['size_sqm'].required = False  # Will validate in clean()
+        
+        # Make bedrooms and bathrooms required for houses
+        self.fields['bedrooms'].required = False  # Will validate in clean()
+        self.fields['bathrooms'].required = False  # Will validate in clean()
+        
+        # Update help text for size_sqm
+        self.fields['size_sqm'].help_text = "Size in square meters (sqm) - Required for houses and land plots"
+        self.fields['bedrooms'].help_text = "Number of bedrooms - Required for houses"
+        self.fields['bathrooms'].help_text = "Number of bathrooms - Required for houses"
+    
     def clean(self):
         cleaned_data = super().clean()
         property_type = cleaned_data.get('property_type')
@@ -141,6 +155,30 @@ class PropertyListingForm(forms.ModelForm):
             raise forms.ValidationError("Please select a valid land category.")
         elif property_type == 'furniture' and category not in furniture_categories:
             raise forms.ValidationError("Please select a valid furniture category.")
+        
+        # Property-specific validation
+        if property_type in ['house', 'land']:
+            # Size is required for houses and land plots
+            size_sqm = cleaned_data.get('size_sqm')
+            if not size_sqm or size_sqm <= 0:
+                raise forms.ValidationError({
+                    'size_sqm': 'Size in square meters is required for properties. Please enter the property size.'
+                })
+        
+        if property_type == 'house':
+            # Bedrooms and bathrooms are required for houses
+            bedrooms = cleaned_data.get('bedrooms')
+            bathrooms = cleaned_data.get('bathrooms')
+            
+            if not bedrooms or bedrooms < 0:
+                raise forms.ValidationError({
+                    'bedrooms': 'Number of bedrooms is required for houses. Enter 0 if studio.'
+                })
+            
+            if not bathrooms or bathrooms < 0:
+                raise forms.ValidationError({
+                    'bathrooms': 'Number of bathrooms is required for houses. Enter at least 1.'
+                })
         
         return cleaned_data
 

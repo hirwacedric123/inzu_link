@@ -393,6 +393,184 @@
                         </div>
                     </div>
 
+                    <!-- Property Details Section -->
+                    <div class="form-section-group" id="property-details-section">
+                        <h2>
+                            <i class="bi bi-house-door"></i>
+                            Property Details
+                        </h2>
+                        <p class="section-description">Provide essential property specifications</p>
+                        
+                        <!-- Size (Required for Houses and Land Plots) -->
+                        <div class="form-field {% if form.size_sqm.errors %}field-error{% endif %}" id="size-field">
+                            <label for="size_sqm">
+                                Property Size (Square Meters) 
+                                <span class="required-star">*</span>
+                            </label>
+                            <div class="input-with-icon">
+                                <i class="bi bi-rulers"></i>
+                                <input type="number" id="size_sqm" name="size_sqm" 
+                                       step="0.01" min="0" 
+                                       placeholder="e.g., 150.50" 
+                                       class="{% if form.size_sqm.errors %}input-error{% endif %}">
+                            </div>
+                            {% if form.size_sqm.errors %}
+                                <span class="field-error-message">
+                                    <i class="bi bi-exclamation-circle-fill"></i>
+                                    {{ form.size_sqm.errors.0 }}
+                                </span>
+                            {% else %}
+                                <span class="field-hint">Total area in square meters (sqm). Required for houses and land plots.</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- House-Specific Fields -->
+                        <div id="house-fields" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-field {% if form.bedrooms.errors %}field-error{% endif %}">
+                                    <label for="bedrooms">
+                                        <i class="bi bi-door-closed"></i>
+                                        Bedrooms 
+                                        <span class="required-star">*</span>
+                                    </label>
+                                    <input type="number" id="bedrooms" name="bedrooms" 
+                                           min="0" max="20" 
+                                           placeholder="e.g., 3" 
+                                           class="{% if form.bedrooms.errors %}input-error{% endif %}">
+                                    {% if form.bedrooms.errors %}
+                                        <span class="field-error-message">
+                                            <i class="bi bi-exclamation-circle-fill"></i>
+                                            {{ form.bedrooms.errors.0 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="field-hint">Number of bedrooms (enter 0 for studio)</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-field {% if form.bathrooms.errors %}field-error{% endif %}">
+                                    <label for="bathrooms">
+                                        <i class="bi bi-water"></i>
+                                        Bathrooms 
+                                        <span class="required-star">*</span>
+                                    </label>
+                                    <input type="number" id="bathrooms" name="bathrooms" 
+                                           min="1" max="20" 
+                                           placeholder="e.g., 2" 
+                                           class="{% if form.bathrooms.errors %}input-error{% endif %}">
+                                    {% if form.bathrooms.errors %}
+                                        <span class="field-error-message">
+                                            <i class="bi bi-exclamation-circle-fill"></i>
+                                            {{ form.bathrooms.errors.0 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="field-hint">Number of bathrooms</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-field">
+                                    <label for="parking_spaces">
+                                        <i class="bi bi-car-front"></i>
+                                        Parking Spaces
+                                    </label>
+                                    <input type="number" id="parking_spaces" name="parking_spaces" 
+                                           min="0" max="10" 
+                                           placeholder="e.g., 2" 
+                                           value="{{ form.parking_spaces.value|default:0 }}">
+                                    <span class="field-hint">Number of parking spaces available</span>
+                                </div>
+                                
+                                <div class="form-field">
+                                    <label for="year_built">
+                                        <i class="bi bi-calendar"></i>
+                                        Year Built
+                                    </label>
+                                    <input type="number" id="year_built" name="year_built" 
+                                           min="1900" max="{% now 'Y' %}" 
+                                           placeholder="e.g., 2020" 
+                                           value="{{ form.year_built.value|default:'' }}">
+                                    <span class="field-hint">Year the property was built</span>
+                                </div>
+                            </div>
+
+                            <div class="form-field">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="is_furnished" name="is_furnished" 
+                                           {% if form.is_furnished.value %}checked{% endif %}>
+                                    <span>
+                                        <i class="bi bi-check-square"></i>
+                                        Fully Furnished
+                                    </span>
+                                </label>
+                                <span class="field-hint">Check if the property comes with furniture</span>
+                            </div>
+                        </div>
+
+                        <!-- Land Plot Specific Info -->
+                        <div id="land-fields" style="display: none;">
+                            <div class="info-card">
+                                <i class="bi bi-info-circle"></i>
+                                <div>
+                                    <strong>Land Plot Information</strong>
+                                    <p>For land plots, the size in square meters is the most important detail. Additional information like zoning, access roads, and utilities can be included in the description.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location Section -->
+                    <div class="form-section-group">
+                        <h2>
+                            <i class="bi bi-geo-alt"></i>
+                            Location
+                        </h2>
+                        <p class="section-description">Where is this property located?</p>
+                        
+                        <div class="form-field">
+                            <label for="location_city">City <span class="required-star">*</span></label>
+                            <input type="text" id="location_city" name="location_city" 
+                                   placeholder="e.g., Kigali" 
+                                   value="{{ form.location_city.value|default:'' }}" required>
+                            <span class="field-hint">City where the property is located</span>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="location_district">District/Region</label>
+                            <input type="text" id="location_district" name="location_district" 
+                                   placeholder="e.g., Nyarugenge, Gasabo, Kicukiro" 
+                                   value="{{ form.location_district.value|default:'' }}">
+                            <span class="field-hint">District or region</span>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="location_address">Full Address</label>
+                            <textarea id="location_address" name="location_address" rows="2" 
+                                      placeholder="e.g., KG 123 St, Kacyiru, Kigali">{{ form.location_address.value|default:'' }}</textarea>
+                            <span class="field-hint">Complete street address (optional but recommended)</span>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="location_latitude">Latitude (Optional)</label>
+                                <input type="number" id="location_latitude" name="location_latitude" 
+                                       step="0.000001" 
+                                       placeholder="e.g., -1.9441" 
+                                       value="{{ form.location_latitude.value|default:'' }}">
+                                <span class="field-hint">For map display</span>
+                            </div>
+                            
+                            <div class="form-field">
+                                <label for="location_longitude">Longitude (Optional)</label>
+                                <input type="number" id="location_longitude" name="location_longitude" 
+                                       step="0.000001" 
+                                       placeholder="e.g., 30.0619" 
+                                       value="{{ form.location_longitude.value|default:'' }}">
+                                <span class="field-hint">For map display</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Images Section -->
                     <div class="form-section-group">
                         <h2>Product Images</h2>
@@ -568,6 +746,97 @@
         height: 24px;
         background: linear-gradient(135deg, #6B9080, #A4C3B2);
         border-radius: 4px;
+    }
+
+    .section-description {
+        color: #6B7280;
+        font-size: 0.938rem;
+        margin: -0.5rem 0 1.5rem 0;
+        font-weight: 400;
+    }
+
+    .input-with-icon {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-with-icon i {
+        position: absolute;
+        left: 1rem;
+        color: #6B9080;
+        font-size: 1.125rem;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .input-with-icon input {
+        padding-left: 3rem !important;
+    }
+
+    .info-card {
+        background: #EBF8FF;
+        border: 1px solid #BAE6FD;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin: 1rem 0;
+        display: flex;
+        gap: 1rem;
+        align-items: start;
+    }
+
+    .info-card i {
+        color: #0369A1;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        margin-top: 0.25rem;
+    }
+
+    .info-card strong {
+        display: block;
+        color: #0C4A6E;
+        margin-bottom: 0.5rem;
+        font-size: 0.938rem;
+    }
+
+    .info-card p {
+        color: #0C4A6E;
+        font-size: 0.875rem;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #F9FAFB;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 2px solid #E5E7EB;
+    }
+
+    .checkbox-label:hover {
+        background: #F3F4F6;
+        border-color: #6B9080;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #6B9080;
+        margin: 0;
+    }
+
+    .checkbox-label span {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #374151;
+        font-weight: 500;
     }
 
     .form-field {
@@ -1072,7 +1341,49 @@
         // Property type change listener
         document.getElementById('property_type').addEventListener('change', function() {
             updateCategoryOptions();
+            updatePropertyFields();
         });
+        
+        // Function to show/hide property-specific fields
+        function updatePropertyFields() {
+            const propertyType = document.getElementById('property_type').value;
+            const propertyDetailsSection = document.getElementById('property-details-section');
+            const houseFields = document.getElementById('house-fields');
+            const landFields = document.getElementById('land-fields');
+            const sizeField = document.getElementById('size-field');
+            
+            if (propertyType === 'house' || propertyType === 'land') {
+                // Show property details section for houses and land
+                propertyDetailsSection.style.display = 'block';
+                sizeField.style.display = 'block';
+                
+                // Show/hide house-specific fields
+                if (propertyType === 'house') {
+                    houseFields.style.display = 'block';
+                    landFields.style.display = 'none';
+                    // Make size, bedrooms, bathrooms required
+                    document.getElementById('size_sqm').required = true;
+                    document.getElementById('bedrooms').required = true;
+                    document.getElementById('bathrooms').required = true;
+                } else {
+                    houseFields.style.display = 'none';
+                    landFields.style.display = 'block';
+                    // Make size required, bedrooms/bathrooms not required
+                    document.getElementById('size_sqm').required = true;
+                    document.getElementById('bedrooms').required = false;
+                    document.getElementById('bathrooms').required = false;
+                }
+            } else {
+                // Hide property details for furniture
+                propertyDetailsSection.style.display = 'none';
+                document.getElementById('size_sqm').required = false;
+                document.getElementById('bedrooms').required = false;
+                document.getElementById('bathrooms').required = false;
+            }
+        }
+        
+        // Initialize property fields on page load
+        updatePropertyFields();
         
         // Initial category filter on page load
         updateCategoryOptions();
