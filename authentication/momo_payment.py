@@ -47,8 +47,16 @@ class MTNMoMoPayment:
         self.request_to_pay_status_url = f"{self.base_url}/collection/v1_0/requesttopay"
         
         # Provisioning API endpoints (for sandbox only)
-        self.provisioning_api_user_url = f"{self.base_url}/v1_0/apiuser"
-        self.provisioning_api_key_url = f"{self.base_url}/v1_0/apiuser"
+        # Based on official MTN MoMo Postman collection
+        # Note: Sandbox URL might be different - check Postman collection
+        if self.environment == 'sandbox':
+            # Sandbox Provisioning API (may use different base URL)
+            provisioning_base = "https://sandbox.momodeveloper.mtn.com"
+        else:
+            provisioning_base = self.base_url
+        
+        self.provisioning_api_user_url = f"{provisioning_base}/v1_0/apiuser"
+        self.provisioning_api_key_url = f"{provisioning_base}/v1_0/apiuser"
         
         # Callback URL (will be set dynamically)
         self.callback_url = getattr(settings, 'MOMO_CALLBACK_URL', '')
