@@ -333,8 +333,8 @@ MOMO_ENVIRONMENT = os.environ.get('MOMO_ENVIRONMENT', 'sandbox')
 # ==============================================
 # Found under user profile in API Manager Portal
 # Used in Ocp-Apim-Subscription-Key header parameter
-MOMO_SUBSCRIPTION_KEY_PRIMARY = os.environ.get('MOMO_SUBSCRIPTION_KEY_PRIMARY', '99ac5454271a4b4ba9105b9217d9efa8')
-MOMO_SUBSCRIPTION_KEY_SECONDARY = os.environ.get('MOMO_SUBSCRIPTION_KEY_SECONDARY', 'e3cce05bee0845289bfe7ae7c5885cab')
+MOMO_SUBSCRIPTION_KEY_PRIMARY = os.environ.get('MOMO_SUBSCRIPTION_KEY_PRIMARY', 'e968a63339b94f1dae91a9419d57d3ec')
+MOMO_SUBSCRIPTION_KEY_SECONDARY = os.environ.get('MOMO_SUBSCRIPTION_KEY_SECONDARY', '2938e2c4a2c4414ca3917864e4527cbf')
 
 # ==============================================
 # 2. API User and API Key (OAuth 2.0)
