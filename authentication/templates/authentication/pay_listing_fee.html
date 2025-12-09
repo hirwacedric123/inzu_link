@@ -407,6 +407,25 @@
                     </div>
                 </div>
                         
+                <!-- MoMo Phone Number (shown when MoMo is selected) -->
+                <div class="form-group" id="momo_phone_group">
+                    <label for="id_phone_number" class="form-label">
+                        MTN MoMo Phone Number <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="tel" 
+                        name="phone_number" 
+                        id="id_phone_number" 
+                        class="form-input" 
+                        placeholder="250788123456" 
+                        pattern="[0-9]+"
+                        maxlength="15"
+                    >
+                    <span class="form-help">
+                        Enter your MTN MoMo phone number (format: 250788123456). You'll receive a payment prompt on this number.
+                    </span>
+                </div>
+
                 <div class="form-group">
                     <label for="id_days_paid" class="form-label">
                         Number of Days <span class="required">*</span>
@@ -450,6 +469,7 @@
                         <div>
                             <strong style="color: #0C4A6E; display: block; margin-bottom: 0.5rem;">How MoMo Payment Works:</strong>
                             <ul style="margin: 0; padding-left: 1.25rem; color: #0C4A6E; font-size: 0.875rem;">
+                                <li>Enter your MTN MoMo phone number below</li>
                                 <li>Click "Pay with MoMo" to send a payment request</li>
                                 <li>You'll receive a prompt on your phone to approve the payment</li>
                                 <li>Once approved, your listing will be activated automatically</li>
@@ -511,18 +531,25 @@
         totalAmount.textContent = total.toLocaleString('en-US') + ' RWF';
     }
 
+    const momoPhoneGroup = document.getElementById('momo_phone_group');
+    const phoneNumberInput = document.getElementById('id_phone_number');
+
     function updatePaymentMethod() {
         if (paymentMethodMomo.checked) {
             // MoMo payment selected
             manualPaymentGroup.style.display = 'none';
             momoPaymentInfo.style.display = 'block';
+            momoPhoneGroup.style.display = 'block';
             paymentReference.removeAttribute('required');
+            phoneNumberInput.setAttribute('required', 'required');
             submitBtnText.textContent = 'Pay with MoMo';
         } else {
             // Manual payment selected
             manualPaymentGroup.style.display = 'block';
             momoPaymentInfo.style.display = 'none';
+            momoPhoneGroup.style.display = 'none';
             paymentReference.setAttribute('required', 'required');
+            phoneNumberInput.removeAttribute('required');
             submitBtnText.textContent = 'Confirm Payment';
         }
     }
@@ -547,12 +574,28 @@
             return;
         }
 
-        // Only validate reference for manual payment
+        // Validate based on payment method
         if (paymentMethod === 'manual') {
             const reference = paymentReference.value.trim();
             if (reference.length < 3) {
                 e.preventDefault();
                 alert('Please enter a valid payment reference');
+                return;
+            }
+        } else if (paymentMethod === 'momo') {
+            // Validate phone number for MoMo
+            const phone = phoneNumberInput.value.trim();
+            if (!phone) {
+                e.preventDefault();
+                alert('Please enter your MTN MoMo phone number');
+                return;
+            }
+            // Basic phone validation
+            const phoneRegex = /^[0-9]{9,15}$/;
+            const cleanPhone = phone.replace(/[\s\-+]/g, '');
+            if (!phoneRegex.test(cleanPhone)) {
+                e.preventDefault();
+                alert('Please enter a valid phone number (e.g., 250788123456)');
                 return;
             }
         }

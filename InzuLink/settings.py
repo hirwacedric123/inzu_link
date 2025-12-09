@@ -322,10 +322,15 @@ CHAT_MESSAGES_PER_PAGE = 50    # Messages to load per page
 MOMO_ENVIRONMENT = os.environ.get('MOMO_ENVIRONMENT', 'sandbox')
 
 # MoMo API Credentials (from developer portal)
+# Primary and Secondary Subscription Keys
 MOMO_SUBSCRIPTION_KEY_PRIMARY = os.environ.get('MOMO_SUBSCRIPTION_KEY_PRIMARY', '99ac5454271a4b4ba9105b9217d9efa8')
 MOMO_SUBSCRIPTION_KEY_SECONDARY = os.environ.get('MOMO_SUBSCRIPTION_KEY_SECONDARY', 'e3cce05bee0845289bfe7ae7c5885cab')
 
-# MoMo API User and Key (generate from developer portal)
+# MoMo API User and Key (generate from developer portal or use provisioning API)
+# For sandbox: You can use create_momo_credentials.py script to generate these
+# For production: Generate from Developer Portal
+# NOTE: These will be set via environment variables or generated using create_momo_credentials.py
+# Once you have them, you can set them here or use environment variables (recommended)
 MOMO_API_USER = os.environ.get('MOMO_API_USER', '')
 MOMO_API_KEY = os.environ.get('MOMO_API_KEY', '')
 

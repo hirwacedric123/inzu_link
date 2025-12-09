@@ -436,26 +436,38 @@ class MTNMoMoPayment:
         return qr_data
 
 
-def initiate_momo_payment(listing_fee, user):
+def initiate_momo_payment(listing_fee, user, phone_number=None):
     """
     Convenience function to initiate MoMo payment for a listing fee
     
     Args:
         listing_fee: ListingFee instance
         user: User instance (vendor making payment)
+        phone_number: Optional phone number (if not provided, uses user's profile phone)
         
     Returns:
         dict with payment request result
     """
     momo = MTNMoMoPayment()
     
-    # Get user's phone number
-    payer_phone = user.phone_number or ''
+    # Get phone number from parameter or user profile
+    payer_phone = phone_number or user.phone_number or ''
+    
     if not payer_phone:
         return {
             'success': False,
-            'message': 'Phone number is required for MoMo payment. Please update your profile.'
+            'message': 'Phone number is required for MoMo payment. Please enter your phone number.'
         }
+    
+    # Format phone number (ensure it's in correct format)
+    phone = str(payer_phone).strip()
+    if not phone.startswith('250'):
+        if phone.startswith('0'):
+            phone = '250' + phone[1:]
+        elif phone.startswith('+250'):
+            phone = phone[1:]
+        else:
+            phone = '250' + phone
     
     # Generate transaction ID
     transaction_id = f"LISTING-{listing_fee.id}-{uuid.uuid4().hex[:8].upper()}"
@@ -463,7 +475,7 @@ def initiate_momo_payment(listing_fee, user):
     # Request payment
     result = momo.request_payment(
         amount=listing_fee.total_amount,
-        payer_phone=payer_phone,
+        payer_phone=phone,
         external_id=transaction_id,
         payment_reason=f"Listing fee for {listing_fee.listing.title}"
     )

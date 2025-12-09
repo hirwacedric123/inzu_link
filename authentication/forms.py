@@ -183,6 +183,18 @@ class PropertyInquiryForm(forms.ModelForm):
 class ListingFeePaymentForm(forms.ModelForm):
     """Form for vendors to pay listing fees"""
     
+    # Add phone number field for MoMo payments
+    phone_number = forms.CharField(
+        required=False,
+        max_length=15,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '250788123456',
+            'pattern': '[0-9]+',
+        }),
+        help_text='Enter your MTN MoMo phone number (format: 250788123456)'
+    )
+    
     class Meta:
         model = ListingFee
         fields = ['days_paid', 'payment_reference', 'auto_renew']
@@ -204,10 +216,15 @@ class ListingFeePaymentForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         self.listing = kwargs.pop('listing', None)
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
         # Make payment_reference optional (not required for MoMo payments)
         self.fields['payment_reference'].required = False
+        
+        # Pre-fill phone number from user profile if available
+        if user and user.phone_number:
+            self.fields['phone_number'].initial = user.phone_number
         
         # Add help text showing fee calculation
         if self.listing:
@@ -225,3 +242,25 @@ class ListingFeePaymentForm(forms.ModelForm):
                 daily_fee = Decimal('1000.00')
             
             self.fields['days_paid'].help_text = f"Daily fee: {daily_fee} RWF/day"
+    
+    def clean_phone_number(self):
+        """Validate and format phone number"""
+        phone = self.cleaned_data.get('phone_number', '').strip()
+        if not phone:
+            return phone
+        
+        # Remove any spaces, dashes, or plus signs
+        phone = phone.replace(' ', '').replace('-', '').replace('+', '')
+        
+        # If starts with 0, replace with 250 (Rwanda)
+        if phone.startswith('0'):
+            phone = '250' + phone[1:]
+        # If doesn't start with 250, add it
+        elif not phone.startswith('250'):
+            phone = '250' + phone
+        
+        # Validate length (should be 12 digits: 250 + 9 digits)
+        if len(phone) != 12 or not phone.isdigit():
+            raise forms.ValidationError('Please enter a valid phone number (e.g., 250788123456)')
+        
+        return phone

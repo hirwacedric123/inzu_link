@@ -2093,19 +2093,31 @@ def pay_listing_fee(request, listing_id):
         
         if payment_method == 'momo':
             # Handle MoMo payment initiation
-            form = ListingFeePaymentForm(request.POST, listing=property_listing)
+            form = ListingFeePaymentForm(request.POST, listing=property_listing, user=request.user)
             if form.is_valid():
                 days_paid = form.cleaned_data['days_paid']
                 auto_renew = form.cleaned_data.get('auto_renew', False)
+                phone_number = form.cleaned_data.get('phone_number', '').strip()
+                
+                # Validate phone number for MoMo payment
+                if not phone_number:
+                    messages.error(request, 'Phone number is required for MoMo payment.')
+                    form = ListingFeePaymentForm(listing=property_listing, user=request.user)
+                    context = {
+                        'property_listing': property_listing,
+                        'listing_fee': listing_fee,
+                        'form': form
+                    }
+                    return render(request, 'authentication/pay_listing_fee.html', context)
                 
                 # Update listing fee with days and calculate total
                 listing_fee.days_paid = days_paid
                 listing_fee.auto_renew = auto_renew
                 listing_fee.save()  # This will calculate total_amount
                 
-                # Initiate MoMo payment
+                # Initiate MoMo payment with phone number from form
                 from .momo_payment import initiate_momo_payment
-                payment_result = initiate_momo_payment(listing_fee, request.user)
+                payment_result = initiate_momo_payment(listing_fee, request.user, phone_number=phone_number)
                 
                 if payment_result.get('success'):
                     # Update listing fee with MoMo transaction details
@@ -2158,7 +2170,7 @@ def pay_listing_fee(request, listing_id):
             else:
                 messages.error(request, 'Please correct the errors below.')
     else:
-        form = ListingFeePaymentForm(listing=property_listing)
+        form = ListingFeePaymentForm(listing=property_listing, user=request.user)
     
     context = {
         'property_listing': property_listing,
