@@ -256,8 +256,8 @@
                 </div>
                 {% endif %}
 
-                <form method="POST" enctype="multipart/form-data" class="product-form">
-                        {% csrf_token %}
+                <form method="POST" enctype="multipart/form-data" class="product-form" id="product-form">
+                    {% csrf_token %}
                         
                     <!-- Basic Info Section -->
                     <div class="form-section-group">
@@ -1487,6 +1487,15 @@
                 let hasErrors = false;
                 let firstErrorField = null;
 
+                // Ensure CSRF token is present
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (!csrfToken || !csrfToken.value) {
+                    console.error('CSRF token not found!');
+                    e.preventDefault();
+                    alert('⚠️ Security error: Please refresh the page and try again.');
+                    return false;
+                }
+
                 requiredFields.forEach(field => {
                     if (field.value.trim() === '') {
                         hasErrors = true;
@@ -1521,7 +1530,11 @@
                             setTimeout(() => firstErrorField.classList.remove('shake'), 500);
                         }, 300);
                     }
+                    return false;
                 }
+                
+                // If no errors, allow form to submit normally
+                return true;
             });
         }
 

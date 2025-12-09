@@ -206,6 +206,13 @@ LOGIN_URL = '/auth/login/'  # URL where unauthenticated users are redirected
 LOGIN_REDIRECT_URL = 'dashboard'  # Change to your preferred redirect page
 LOGOUT_REDIRECT_URL = 'login'
 
+# Session Configuration
+SESSION_COOKIE_AGE = 86400  # 24 hours in seconds (default is 2 weeks)
+SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request to prevent expiration
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keep session alive after browser close
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
+SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
+
 # Email Configuration for OTP
 # For development, use console backend to see emails in terminal
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
