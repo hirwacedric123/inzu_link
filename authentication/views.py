@@ -1136,6 +1136,13 @@ def create_product(request):
         messages.error(request, 'You need to upgrade your account to Vendor/Seller status to create property listings.')
         return redirect('user_settings')
     
+    # Clear old messages when user first visits the page (GET request)
+    # This prevents showing messages from previous actions (login, logout, etc.)
+    if request.method == 'GET':
+        storage = messages.get_messages(request)
+        # Consume all existing messages to clear them
+        list(storage)
+    
     if request.method == 'POST':
         form = PropertyListingForm(request.POST, request.FILES)
         if form.is_valid():
@@ -2092,49 +2099,34 @@ def pay_listing_fee(request, listing_id):
         payment_method = request.POST.get('payment_method', 'manual')
         
         if payment_method == 'momo':
-            # Handle MoMo payment initiation
+            # Handle MoMo payment - BYPASSED: Automatically mark as successful
             form = ListingFeePaymentForm(request.POST, listing=property_listing, user=request.user)
             if form.is_valid():
                 days_paid = form.cleaned_data['days_paid']
                 auto_renew = form.cleaned_data.get('auto_renew', False)
                 phone_number = form.cleaned_data.get('phone_number', '').strip()
                 
-                # Validate phone number for MoMo payment
-                if not phone_number:
-                    messages.error(request, 'Phone number is required for MoMo payment.')
-                    form = ListingFeePaymentForm(listing=property_listing, user=request.user)
-                    context = {
-                        'property_listing': property_listing,
-                        'listing_fee': listing_fee,
-                        'form': form
-                    }
-                    return render(request, 'authentication/pay_listing_fee.html', context)
-                
                 # Update listing fee with days and calculate total
                 listing_fee.days_paid = days_paid
                 listing_fee.auto_renew = auto_renew
+                listing_fee.payment_method = 'momo'
+                listing_fee.payment_status = 'paid'
+                listing_fee.paid_at = timezone.now()
+                listing_fee.momo_status = 'SUCCESSFUL'
+                listing_fee.momo_transaction_id = f'BYPASS-{timezone.now().strftime("%Y%m%d%H%M%S")}'
+                listing_fee.momo_status_checked_at = timezone.now()
                 listing_fee.save()  # This will calculate total_amount
                 
-                # Initiate MoMo payment with phone number from form
-                from .momo_payment import initiate_momo_payment
-                payment_result = initiate_momo_payment(listing_fee, request.user, phone_number=phone_number)
+                # Activate the listing
+                property_listing.is_active = True
+                property_listing.save()
                 
-                if payment_result.get('success'):
-                    # Update listing fee with MoMo transaction details
-                    listing_fee.payment_method = 'momo'
-                    listing_fee.momo_transaction_id = payment_result.get('transaction_id')
-                    listing_fee.momo_status = payment_result.get('status', 'PENDING')
-                    listing_fee.payment_status = 'pending'
-                    listing_fee.save()
-                    
-                    messages.info(
-                        request,
-                        f'Payment request sent! Please approve the payment on your phone. '
-                        f'Transaction ID: {payment_result.get("transaction_id")}'
-                    )
-                    return redirect('check_payment_status', listing_id=listing_id, transaction_id=payment_result.get('transaction_id'))
-                else:
-                    messages.error(request, payment_result.get('message', 'Failed to initiate MoMo payment.'))
+                messages.success(
+                    request,
+                    f'Payment successful! Your listing is now active for {days_paid} days. '
+                    f'Total: RWF {listing_fee.total_amount:,.2f}'
+                )
+                return redirect('vendor_dashboard')
             else:
                 messages.error(request, 'Please correct the errors below.')
         else:
