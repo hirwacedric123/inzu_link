@@ -1,0 +1,200 @@
+# Kinyarwanda translations for InzuLink
+# Copyright (C) 2025 InzuLink
+# This file is distributed under the same license as the InzuLink project.
+msgid ""
+msgstr ""
+"Project-Id-Version: InzuLink 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-25 12:00+0000\n"
+"PO-Revision-Date: 2025-11-25 12:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Kinyarwanda\n"
+"Language: rw\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "InzuLink"
+msgstr "InzuLink"
+
+msgid "Home"
+msgstr "Ahabanza"
+
+msgid "Dashboard"
+msgstr "Ikiganiro"
+
+msgid "Products"
+msgstr "Ibicuruzwa"
+
+msgid "My Listings"
+msgstr "Ibyanditswe byanjye"
+
+msgid "Create Listing"
+msgstr "Ongeramo ikintu"
+
+msgid "Inquiries"
+msgstr "Ibyifuzo"
+
+msgid "Chat"
+msgstr "Kuvugana"
+
+msgid "Settings"
+msgstr "Gucunga"
+
+msgid "Logout"
+msgstr "Sohoka"
+
+msgid "Login"
+msgstr "Injira"
+
+msgid "Register"
+msgstr "Kwiyandikisha"
+
+msgid "Change language"
+msgstr "Guhindura ururimi"
+
+msgid "InzuLink Logo"
+msgstr "Ikirango cya InzuLink"
+
+msgid "Welcome to InzuLink"
+msgstr "Murakaza neza kuri InzuLink"
+
+msgid "Real Estate & Furniture Marketplace"
+msgstr "Isoko ry'Amazu n'Ibikoresho"
+
+msgid "Browse Properties"
+msgstr "Reba Amazu"
+
+msgid "List Your Property"
+msgstr "Ongeramo Amazu yawe"
+
+msgid "Save Changes"
+msgstr "Bika Amahinduka"
+
+msgid "Cancel"
+msgstr "Kureka"
+
+msgid "Submit"
+msgstr "Ohereza"
+
+msgid "Search"
+msgstr "Shakisha"
+
+msgid "Filter"
+msgstr "Suzuma"
+
+msgid "Price"
+msgstr "Igiciro"
+
+msgid "Location"
+msgstr "Aho biherereye"
+
+msgid "Category"
+msgstr "Ubwoko"
+
+msgid "Description"
+msgstr "Ibisobanuro"
+
+msgid "Contact Seller"
+msgstr "Vugana n'Umucuruzi"
+
+msgid "Send Inquiry"
+msgstr "Ohereza Ikibazo"
+
+msgid "View Details"
+msgstr "Reba Ibisobanuro"
+
+msgid "No results found"
+msgstr "Ntacyo wabonye"
+
+msgid "Loading..."
+msgstr "Buri gushaka..."
+
+msgid "Error"
+msgstr "Ikosa"
+
+msgid "Success"
+msgstr "Byagenze neza"
+
+msgid "Please correct the errors below"
+msgstr "Nyamuneka koresha neza ibyanditse hepfo"
+
+msgid "This field is required"
+msgstr "Iki gisimbu ni ngombwa"
+
+msgid "Invalid input"
+msgstr "Ibyanditse ntabwo bikwiye"
+
+msgid "Profile"
+msgstr "Amakuru yanjye"
+
+msgid "Account"
+msgstr "Konti"
+
+msgid "Password"
+msgstr "Ijambobanga"
+
+msgid "Email"
+msgstr "Imeyili"
+
+msgid "Phone Number"
+msgstr "Nomero ya Telefoni"
+
+msgid "First Name"
+msgstr "Izina rya mbere"
+
+msgid "Last Name"
+msgstr "Izina rya nyuma"
+
+msgid "Username"
+msgstr "Izina ry'ukoresha"
+
+msgid "Messages"
+msgstr "Ubutumwa"
+
+msgid "Unread"
+msgstr "Ntibyasomwe"
+
+msgid "Send Message"
+msgstr "Ohereza Ubutumwa"
+
+msgid "Type a message..."
+msgstr "Andika ubutumwa..."
+
+msgid "Connected"
+msgstr "Wiyunze"
+
+msgid "Disconnected"
+msgstr "Wavuye"
+
+msgid "Connecting..."
+msgstr "Buri gushaka kuyunga..."
+
+msgid "View All Products"
+msgstr "Reba Ibicuruzwa Byose"
+
+msgid "Become a Vendor"
+msgstr "Kuba Umucuruzi"
+
+msgid "Create Your Account"
+msgstr "Kwandika Konti yawe"
+
+msgid "Add Your Product"
+msgstr "Ongeramo Ibicuruzwa byawe"
+
+msgid "History"
+msgstr "Amateka"
+
+msgid "Saved"
+msgstr "Byabitswe"
+
+msgid "QR"
+msgstr "QR"
+
+msgid "Scan"
+msgstr "Gukurura"
+
+msgid "Stats"
+msgstr "Imibare"
+

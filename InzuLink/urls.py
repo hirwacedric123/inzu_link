@@ -19,14 +19,22 @@ from django.urls import path, include
 from django.shortcuts import redirect
 from django.conf import settings
 from django.conf.urls.static import static
+from django.conf.urls.i18n import i18n_patterns
+from django.views.i18n import set_language
 from authentication import views
 
+# Language switching URL (must be outside i18n_patterns)
 urlpatterns = [
+    path('i18n/setlang/', set_language, name='set_language'),
     path('admin/', admin.site.urls),
-    path('auth/', include('authentication.urls')),
-    # Home page
-    path('', views.home, name='home'),
 ]
+
+# URLs with language prefix
+urlpatterns += i18n_patterns(
+    path('auth/', include('authentication.urls')),
+    path('', views.home, name='home'),
+    prefix_default_language=False,  # Don't prefix default language (English)
+)
 
 # Serve media files in development
 # Note: On PythonAnywhere, media files should be served through web app configuration
