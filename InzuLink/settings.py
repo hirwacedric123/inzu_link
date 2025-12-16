@@ -187,11 +187,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'  # Fixed: Added leading slash for PythonAnywhere compatibility
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # WhiteNoise configuration for static files in production
+# Note: On PythonAnywhere, static files are served by nginx, so WhiteNoise may not be needed
+# But keeping it for compatibility with other deployment platforms
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (Uploads)
@@ -355,3 +357,13 @@ MOMO_API_KEY = os.environ.get('MOMO_API_KEY', '')
 
 # Callback URL for payment status updates (optional)
 MOMO_CALLBACK_URL = os.environ.get('MOMO_CALLBACK_URL', '')
+
+# ==============================================
+# Paypack Payment Configuration
+# ==============================================
+# Paypack API credentials for payment processing
+# Get these from your Paypack merchant account
+# See: https://docs.paypack.rw/
+
+PAYPACK_CLIENT_ID = os.environ.get('PAYPACK_CLIENT_ID', '')
+PAYPACK_CLIENT_SECRET = os.environ.get('PAYPACK_CLIENT_SECRET', '')
