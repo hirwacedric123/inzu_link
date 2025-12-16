@@ -54,6 +54,15 @@ class ChatWebSocket {
     }
 
     connect() {
+        // Check if we're on PythonAnywhere and skip WebSocket entirely
+        const isPythonAnywhere = window.location.hostname.includes('pythonanywhere.com');
+        
+        if (isPythonAnywhere) {
+            console.log('PythonAnywhere detected - using HTTP polling mode');
+            this.fallbackToPolling();
+            return;
+        }
+
         try {
             this.updateConnectionStatus('connecting', 'Connecting...');
             this.socket = new WebSocket(this.wsUrl);
@@ -62,10 +71,12 @@ class ChatWebSocket {
             const connectionTimeout = setTimeout(() => {
                 if (this.socket && this.socket.readyState !== WebSocket.OPEN) {
                     console.warn('WebSocket connection timeout, falling back to polling');
-                    this.socket.close();
+                    if (this.socket) {
+                        this.socket.close();
+                    }
                     this.fallbackToPolling();
                 }
-            }, 5000); // 5 second timeout
+            }, 3000); // 3 second timeout
 
             this.socket.onopen = () => {
                 clearTimeout(connectionTimeout);
@@ -83,21 +94,27 @@ class ChatWebSocket {
             this.socket.onerror = (error) => {
                 console.error('WebSocket error:', error);
                 clearTimeout(connectionTimeout);
-                // Don't immediately fall back - let onclose handle it
-                this.updateConnectionStatus('disconnected', 'Connection error');
+                // Mark that WebSocket failed
+                this.useWebSocket = false;
             };
 
             this.socket.onclose = (event) => {
                 clearTimeout(connectionTimeout);
                 console.log('WebSocket disconnected', event.code, event.reason);
                 
-                // If connection was never established (code 1006 or 400), fall back to polling
-                if (event.code === 1006 || event.code === 400 || !this.useWebSocket) {
-                    console.log('WebSocket not supported, using HTTP polling fallback');
+                // If connection was never established or failed immediately, fall back to polling
+                // Error codes: 1006 = abnormal closure, 400 = bad request, 1002 = protocol error
+                if (!this.useWebSocket || event.code === 1006 || event.code === 400 || event.code === 1002 || this.reconnectAttempts === 0) {
+                    console.log('WebSocket not supported or failed, using HTTP polling fallback');
                     this.fallbackToPolling();
-                } else {
+                } else if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                    // Only try to reconnect if we had a successful connection before
                     this.updateConnectionStatus('disconnected', 'Disconnected');
                     this.attemptReconnect();
+                } else {
+                    // Max reconnects reached, fall back to polling
+                    console.log('Max reconnection attempts reached, falling back to polling');
+                    this.fallbackToPolling();
                 }
             };
 
@@ -109,8 +126,21 @@ class ChatWebSocket {
     }
 
     fallbackToPolling() {
-        console.log('Switching to HTTP polling mode');
+        // Prevent any further WebSocket attempts
         this.useWebSocket = false;
+        this.reconnectAttempts = this.maxReconnectAttempts + 1; // Prevent reconnection attempts
+        
+        // Close WebSocket if still open
+        if (this.socket) {
+            try {
+                this.socket.close();
+            } catch (e) {
+                // Ignore errors when closing
+            }
+            this.socket = null;
+        }
+        
+        console.log('Switching to HTTP polling mode');
         this.updateConnectionStatus('connected', 'Connected (Polling)');
         
         // Mark messages as loaded (they're already in the template)
