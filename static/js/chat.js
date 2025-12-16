@@ -29,10 +29,43 @@ class ChatWebSocket {
         this.pollingInterval = null;
         this.messagesLoaded = false;
         
+        // Check for PythonAnywhere early - check hostname, URL, or WebSocket URL
+        this.isPythonAnywhere = this.detectPythonAnywhere();
+        
         this.init();
     }
 
+    detectPythonAnywhere() {
+        // Check multiple ways to detect PythonAnywhere
+        const hostname = window.location.hostname.toLowerCase();
+        const wsUrlLower = (this.wsUrl || '').toLowerCase();
+        const href = window.location.href.toLowerCase();
+        
+        // Check hostname
+        if (hostname.includes('pythonanywhere.com')) {
+            console.log('[Chat] PythonAnywhere detected via hostname:', hostname);
+            return true;
+        }
+        
+        // Check WebSocket URL
+        if (wsUrlLower.includes('pythonanywhere.com')) {
+            console.log('[Chat] PythonAnywhere detected via WebSocket URL:', this.wsUrl);
+            return true;
+        }
+        
+        // Check full URL
+        if (href.includes('pythonanywhere.com')) {
+            console.log('[Chat] PythonAnywhere detected via URL:', href);
+            return true;
+        }
+        
+        return false;
+    }
+
     init() {
+        // Log detection status for debugging
+        console.log('[Chat] Initializing... PythonAnywhere:', this.isPythonAnywhere, 'Hostname:', window.location.hostname, 'WS URL:', this.wsUrl);
+        
         this.connect();
         this.setupEventListeners();
         this.setupAutoResize();
@@ -55,10 +88,16 @@ class ChatWebSocket {
 
     connect() {
         // Check if we're on PythonAnywhere and skip WebSocket entirely
-        const isPythonAnywhere = window.location.hostname.includes('pythonanywhere.com');
+        if (this.isPythonAnywhere) {
+            console.log('PythonAnywhere detected - using HTTP polling mode (skipping WebSocket)');
+            this.fallbackToPolling();
+            return;
+        }
         
-        if (isPythonAnywhere) {
-            console.log('PythonAnywhere detected - using HTTP polling mode');
+        // Double-check before attempting WebSocket
+        if (this.detectPythonAnywhere()) {
+            console.log('PythonAnywhere detected during connect - using HTTP polling mode');
+            this.isPythonAnywhere = true;
             this.fallbackToPolling();
             return;
         }
@@ -67,7 +106,7 @@ class ChatWebSocket {
             this.updateConnectionStatus('connecting', 'Connecting...');
             this.socket = new WebSocket(this.wsUrl);
 
-            // Set a timeout to detect if WebSocket fails to connect
+            // Set a timeout to detect if WebSocket fails to connect (shorter for faster fallback)
             const connectionTimeout = setTimeout(() => {
                 if (this.socket && this.socket.readyState !== WebSocket.OPEN) {
                     console.warn('WebSocket connection timeout, falling back to polling');
@@ -76,7 +115,7 @@ class ChatWebSocket {
                     }
                     this.fallbackToPolling();
                 }
-            }, 3000); // 3 second timeout
+            }, 2000); // 2 second timeout for faster fallback
 
             this.socket.onopen = () => {
                 clearTimeout(connectionTimeout);
@@ -96,6 +135,14 @@ class ChatWebSocket {
                 clearTimeout(connectionTimeout);
                 // Mark that WebSocket failed
                 this.useWebSocket = false;
+                // If this is the first attempt and we get an error, fall back immediately
+                if (this.reconnectAttempts === 0) {
+                    console.log('WebSocket error on first attempt, falling back to polling');
+                    if (this.socket) {
+                        this.socket.close();
+                    }
+                    this.fallbackToPolling();
+                }
             };
 
             this.socket.onclose = (event) => {
