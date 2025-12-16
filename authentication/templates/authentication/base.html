@@ -1,11 +1,10 @@
-{% load i18n %}
 <!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% trans "InzuLink" %}{% endblock %}</title>
+    <title>{% block title %}InzuLink{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -119,99 +118,6 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-        }
-
-        /* Language Switcher Styles */
-        .language-switcher {
-            position: relative;
-            display: inline-block;
-        }
-
-        .language-switcher-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid var(--inzu-border);
-            border-radius: 12px;
-            color: var(--inzu-text);
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-
-        .language-switcher-btn:hover {
-            background: var(--inzu-primary);
-            color: white;
-            border-color: var(--inzu-primary);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(107, 144, 128, 0.25);
-        }
-
-        .language-switcher-btn i {
-            font-size: 1rem;
-        }
-
-        .language-dropdown {
-            position: absolute;
-            top: calc(100% + 0.5rem);
-            right: 0;
-            background: white;
-            border: 2px solid var(--inzu-border);
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(107, 144, 128, 0.15);
-            min-width: 180px;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
-            z-index: 1000;
-            overflow: hidden;
-        }
-
-        .language-switcher.active .language-dropdown {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .language-option {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: var(--inzu-text);
-            text-decoration: none;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid var(--inzu-border);
-        }
-
-        .language-option:last-child {
-            border-bottom: none;
-        }
-
-        .language-option:hover {
-            background: var(--inzu-hover-bg);
-            color: var(--inzu-primary);
-        }
-
-        .language-option.active {
-            background: rgba(107, 144, 128, 0.1);
-            color: var(--inzu-primary);
-            font-weight: 600;
-        }
-
-        .language-option.active::after {
-            content: '✓';
-            margin-left: auto;
-            color: var(--inzu-primary);
-        }
-
-        .language-flag {
-            font-size: 1.25rem;
         }
 
         .user-avatar {
@@ -535,42 +441,8 @@
                 <div class="nav-brand-section">
                     <div class="logo">
                         <a href="{% url 'home' %}" style="text-decoration: none; display: inline-block;">
-                            <img src="{% static 'images/logo.png' %}" alt="{% trans 'InzuLink Logo' %}" style="height: 60px; width: auto;">
+                            <img src="{% static 'images/logo.png' %}" alt="InzuLink Logo" style="height: 60px; width: auto;">
                         </a>
-                    </div>
-                </div>
-                <div class="user-section">
-                    <!-- Language Switcher -->
-                    <div class="language-switcher" id="languageSwitcher">
-                        <button type="button" class="language-switcher-btn" onclick="toggleLanguageDropdown()" aria-label="{% trans 'Change language' %}" aria-expanded="false">
-                            <i class="bi bi-globe"></i>
-                            <span>
-                                {% get_current_language as CURRENT_LANGUAGE %}
-                                {% if CURRENT_LANGUAGE == 'en' %}🇬🇧 English
-                                {% elif CURRENT_LANGUAGE == 'rw' %}🇷🇼 Kinyarwanda
-                                {% elif CURRENT_LANGUAGE == 'fr' %}🇫🇷 Français
-                                {% else %}English{% endif %}
-                            </span>
-                            <i class="bi bi-chevron-down"></i>
-                        </button>
-                        <div class="language-dropdown">
-                            <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.path }}">
-                                <a href="#" class="language-option {% if CURRENT_LANGUAGE == 'en' %}active{% endif %}" onclick="setLanguage('en', this); return false;">
-                                    <span class="language-flag">🇬🇧</span>
-                                    <span>English</span>
-                                </a>
-                                <a href="#" class="language-option {% if CURRENT_LANGUAGE == 'rw' %}active{% endif %}" onclick="setLanguage('rw', this); return false;">
-                                    <span class="language-flag">🇷🇼</span>
-                                    <span>Kinyarwanda</span>
-                                </a>
-                                <a href="#" class="language-option {% if CURRENT_LANGUAGE == 'fr' %}active{% endif %}" onclick="setLanguage('fr', this); return false;">
-                                    <span class="language-flag">🇫🇷</span>
-                                    <span>Français</span>
-                                </a>
-                            </form>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -581,36 +453,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Language Switcher JavaScript -->
-    <script>
-        function toggleLanguageDropdown() {
-            const switcher = document.getElementById('languageSwitcher');
-            switcher.classList.toggle('active');
-            const button = switcher.querySelector('.language-switcher-btn');
-            button.setAttribute('aria-expanded', switcher.classList.contains('active'));
-        }
-
-        function setLanguage(langCode, element) {
-            const form = element.closest('form');
-            const langInput = document.createElement('input');
-            langInput.type = 'hidden';
-            langInput.name = 'language';
-            langInput.value = langCode;
-            form.appendChild(langInput);
-            form.submit();
-        }
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const switcher = document.getElementById('languageSwitcher');
-            if (switcher && !switcher.contains(event.target)) {
-                switcher.classList.remove('active');
-                switcher.querySelector('.language-switcher-btn').setAttribute('aria-expanded', 'false');
-            }
-        });
-    </script>
-    
     {% block extra_scripts %}{% endblock %}
     
     {% if user.is_authenticated %}
