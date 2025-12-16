@@ -134,6 +134,9 @@ class PropertyListingForm(forms.ModelForm):
         self.fields['bedrooms'].required = False  # Will validate in clean()
         self.fields['bathrooms'].required = False  # Will validate in clean()
         
+        # Make location_city optional by default (will be required for houses/land via JS)
+        self.fields['location_city'].required = False
+        
         # Update help text for size_sqm
         self.fields['size_sqm'].help_text = "Size in square meters (sqm) - Required for houses and land plots"
         self.fields['bedrooms'].help_text = "Number of bedrooms - Required for houses"
@@ -163,6 +166,13 @@ class PropertyListingForm(forms.ModelForm):
             if not size_sqm or size_sqm <= 0:
                 raise forms.ValidationError({
                     'size_sqm': 'Size in square meters is required for properties. Please enter the property size.'
+                })
+            
+            # Location city is required for houses and land plots
+            location_city = cleaned_data.get('location_city')
+            if not location_city or not location_city.strip():
+                raise forms.ValidationError({
+                    'location_city': 'City is required for property listings. Please enter the city where the property is located.'
                 })
         
         if property_type == 'house':

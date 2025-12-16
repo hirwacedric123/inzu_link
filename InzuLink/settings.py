@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 import dj_database_url
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -364,6 +365,9 @@ MOMO_CALLBACK_URL = os.environ.get('MOMO_CALLBACK_URL', '')
 # Paypack API credentials for payment processing
 # Get these from your Paypack merchant account
 # See: https://docs.paypack.rw/
+#
+# SECURITY NOTE: Credentials are loaded from .env file
+# See .env.example for the required variables
 
-PAYPACK_CLIENT_ID = os.environ.get('PAYPACK_CLIENT_ID', '')
-PAYPACK_CLIENT_SECRET = os.environ.get('PAYPACK_CLIENT_SECRET', '')
+PAYPACK_CLIENT_ID = config('PAYPACK_CLIENT_ID', default='')
+PAYPACK_CLIENT_SECRET = config('PAYPACK_CLIENT_SECRET', default='')

@@ -528,11 +528,11 @@
                         <p class="section-description">Where is this property located?</p>
                         
                         <div class="form-field">
-                            <label for="location_city">City <span class="required-star">*</span></label>
+                            <label for="location_city">City <span class="required-star" id="location_city_required">*</span></label>
                             <input type="text" id="location_city" name="location_city" 
                                    placeholder="e.g., Kigali" 
-                                   value="{{ form.location_city.value|default:'' }}" required>
-                            <span class="field-hint">City where the property is located</span>
+                                   value="{{ form.location_city.value|default:'' }}">
+                            <span class="field-hint">City where the property is located (required for houses and land plots)</span>
                         </div>
 
                         <div class="form-field">
@@ -1352,10 +1352,17 @@
             const landFields = document.getElementById('land-fields');
             const sizeField = document.getElementById('size-field');
             
+            const locationCityField = document.getElementById('location_city');
+            const locationCityRequired = document.getElementById('location_city_required');
+            
             if (propertyType === 'house' || propertyType === 'land') {
                 // Show property details section for houses and land
                 propertyDetailsSection.style.display = 'block';
                 sizeField.style.display = 'block';
+                
+                // Make location_city required for houses and land
+                locationCityField.required = true;
+                if (locationCityRequired) locationCityRequired.style.display = 'inline';
                 
                 // Show/hide house-specific fields
                 if (propertyType === 'house') {
@@ -1379,6 +1386,10 @@
                 document.getElementById('size_sqm').required = false;
                 document.getElementById('bedrooms').required = false;
                 document.getElementById('bathrooms').required = false;
+                
+                // Make location_city optional for furniture
+                locationCityField.required = false;
+                if (locationCityRequired) locationCityRequired.style.display = 'none';
             }
         }
         
@@ -1496,8 +1507,21 @@
                     return false;
                 }
 
-                requiredFields.forEach(field => {
-                    if (field.value.trim() === '') {
+                // Re-query required fields on submit to get current state
+                // This ensures we check the correct fields after property type changes
+                const currentRequiredFields = form.querySelectorAll('[required]');
+                
+                currentRequiredFields.forEach(field => {
+                    let isEmpty = false;
+                    
+                    // Handle file inputs differently
+                    if (field.type === 'file') {
+                        isEmpty = !field.files || field.files.length === 0;
+                    } else {
+                        isEmpty = field.value.trim() === '';
+                    }
+                    
+                    if (isEmpty) {
                         hasErrors = true;
                         field.classList.add('input-error');
                         const parentField = field.closest('.form-field');
