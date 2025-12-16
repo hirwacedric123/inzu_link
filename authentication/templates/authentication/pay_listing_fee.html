@@ -389,8 +389,8 @@
                         <label style="flex: 1; padding: 1rem; border: 2px solid #E5E7EB; border-radius: 10px; cursor: pointer; transition: all 0.2s; background: white;" 
                                onmouseover="this.style.borderColor='#6B9080'" 
                                onmouseout="this.style.borderColor='#E5E7EB'">
-                            <input type="radio" name="payment_method" value="momo" id="payment_momo" checked style="margin-right: 0.5rem;">
-                            <strong>MTN MoMo</strong>
+                            <input type="radio" name="payment_method" value="paypack" id="payment_paypack" checked style="margin-right: 0.5rem;">
+                            <strong>Paypack</strong>
                             <div style="font-size: 0.875rem; color: #6B7280; margin-top: 0.25rem;">
                                 Pay instantly via Mobile Money
                             </div>
@@ -407,22 +407,22 @@
                     </div>
                 </div>
                         
-                <!-- MoMo Phone Number (shown when MoMo is selected) -->
-                <div class="form-group" id="momo_phone_group">
+                <!-- Paypack Phone Number (shown when Paypack is selected) -->
+                <div class="form-group" id="paypack_phone_group">
                     <label for="id_phone_number" class="form-label">
-                        MTN MoMo Phone Number <span class="required">*</span>
+                        Phone Number <span class="required">*</span>
                     </label>
                     <input 
                         type="tel" 
                         name="phone_number" 
                         id="id_phone_number" 
                         class="form-input" 
-                        placeholder="250788123456" 
+                        placeholder="0788123456" 
                         pattern="[0-9]+"
                         maxlength="15"
                     >
                     <span class="form-help">
-                        Enter your MTN MoMo phone number (format: 250788123456). You'll receive a payment prompt on this number.
+                        Enter your phone number (format: 0788123456 or 250788123456). You'll receive a payment prompt on this number.
                     </span>
                 </div>
 
@@ -462,18 +462,18 @@
                     </span>
                         </div>
                 
-                <!-- MoMo Payment Info -->
-                <div id="momo_payment_info" style="background: #EBF8FF; border: 1px solid #BAE6FD; border-radius: 10px; padding: 1rem; margin-bottom: 1rem;">
+                <!-- Paypack Payment Info -->
+                <div id="paypack_payment_info" style="background: #EBF8FF; border: 1px solid #BAE6FD; border-radius: 10px; padding: 1rem; margin-bottom: 1rem;">
                     <div style="display: flex; align-items: start; gap: 0.75rem;">
                         <i class="bi bi-info-circle-fill" style="color: #0369A1; font-size: 1.25rem;"></i>
                         <div>
-                            <strong style="color: #0C4A6E; display: block; margin-bottom: 0.5rem;">How MoMo Payment Works:</strong>
+                            <strong style="color: #0C4A6E; display: block; margin-bottom: 0.5rem;">How Paypack Payment Works:</strong>
                             <ul style="margin: 0; padding-left: 1.25rem; color: #0C4A6E; font-size: 0.875rem;">
-                                <li>Enter your MTN MoMo phone number below</li>
-                                <li>Click "Pay with MoMo" to send a payment request</li>
+                                <li>Enter your phone number below</li>
+                                <li>Click "Pay with Paypack" to send a payment request</li>
                                 <li>You'll receive a prompt on your phone to approve the payment</li>
                                 <li>Once approved, your listing will be activated automatically</li>
-                                <li>Make sure your phone number is registered with MTN MoMo</li>
+                                <li>Make sure your phone number is registered with a mobile money service</li>
                             </ul>
                         </div>
                     </div>
@@ -500,7 +500,7 @@
                 <!-- Submit Button -->
                 <button type="submit" class="btn-submit" id="submitBtn">
                     <i class="bi bi-check-circle"></i>
-                    <span id="submitBtnText">Pay with MoMo</span>
+                    <span id="submitBtnText">Pay with Paypack</span>
                         </button>
 
                 <!-- Security Note -->
@@ -517,10 +517,10 @@
     const dailyFee = {{ listing_fee.daily_fee }};
     const daysInput = document.getElementById('id_days_paid');
     const totalAmount = document.getElementById('totalAmount');
-    const paymentMethodMomo = document.getElementById('payment_momo');
+    const paymentMethodPaypack = document.getElementById('payment_paypack');
     const paymentMethodManual = document.getElementById('payment_manual');
     const manualPaymentGroup = document.getElementById('manual_payment_group');
-    const momoPaymentInfo = document.getElementById('momo_payment_info');
+    const paypackPaymentInfo = document.getElementById('paypack_payment_info');
     const paymentReference = document.getElementById('id_payment_reference');
     const submitBtn = document.getElementById('submitBtn');
     const submitBtnText = document.getElementById('submitBtnText');
@@ -531,23 +531,23 @@
         totalAmount.textContent = total.toLocaleString('en-US') + ' RWF';
     }
 
-    const momoPhoneGroup = document.getElementById('momo_phone_group');
+    const paypackPhoneGroup = document.getElementById('paypack_phone_group');
     const phoneNumberInput = document.getElementById('id_phone_number');
 
     function updatePaymentMethod() {
-        if (paymentMethodMomo.checked) {
-            // MoMo payment selected
+        if (paymentMethodPaypack.checked) {
+            // Paypack payment selected
             manualPaymentGroup.style.display = 'none';
-            momoPaymentInfo.style.display = 'block';
-            momoPhoneGroup.style.display = 'block';
+            paypackPaymentInfo.style.display = 'block';
+            paypackPhoneGroup.style.display = 'block';
             paymentReference.removeAttribute('required');
             phoneNumberInput.setAttribute('required', 'required');
-            submitBtnText.textContent = 'Pay with MoMo';
+            submitBtnText.textContent = 'Pay with Paypack';
         } else {
             // Manual payment selected
             manualPaymentGroup.style.display = 'block';
-            momoPaymentInfo.style.display = 'none';
-            momoPhoneGroup.style.display = 'none';
+            paypackPaymentInfo.style.display = 'none';
+            paypackPhoneGroup.style.display = 'none';
             paymentReference.setAttribute('required', 'required');
             phoneNumberInput.removeAttribute('required');
             submitBtnText.textContent = 'Confirm Payment';
@@ -555,7 +555,7 @@
     }
 
     // Payment method change handler
-    paymentMethodMomo.addEventListener('change', updatePaymentMethod);
+    paymentMethodPaypack.addEventListener('change', updatePaymentMethod);
     paymentMethodManual.addEventListener('change', updatePaymentMethod);
     
     // Initialize
@@ -582,20 +582,20 @@
                 alert('Please enter a valid payment reference');
                 return;
             }
-        } else if (paymentMethod === 'momo') {
-            // Validate phone number for MoMo
+        } else if (paymentMethod === 'paypack') {
+            // Validate phone number for Paypack
             const phone = phoneNumberInput.value.trim();
             if (!phone) {
                 e.preventDefault();
-                alert('Please enter your MTN MoMo phone number');
+                alert('Please enter your phone number');
                 return;
             }
-            // Basic phone validation
+            // Basic phone validation (accepts both 0788123456 and 250788123456)
             const phoneRegex = /^[0-9]{9,15}$/;
             const cleanPhone = phone.replace(/[\s\-+]/g, '');
             if (!phoneRegex.test(cleanPhone)) {
                 e.preventDefault();
-                alert('Please enter a valid phone number (e.g., 250788123456)');
+                alert('Please enter a valid phone number (e.g., 0788123456 or 250788123456)');
                 return;
             }
         }

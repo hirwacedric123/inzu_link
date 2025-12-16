@@ -43,6 +43,9 @@ typing_extensions==4.12.2
 # Environment Variables
 python-decouple==3.8
 
+# Payment Gateway
+paypack-py>=0.1.0  # Paypack Python SDK for mobile money payments
+
 # Optional: Development/Testing Tools (uncomment if needed)
 # pytest
 # pytest-django

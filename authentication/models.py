@@ -202,13 +202,13 @@ class ListingFee(models.Model):
     paid_at = models.DateTimeField(null=True, blank=True)
     payment_reference = models.CharField(max_length=100, blank=True, null=True)
     
-    # MoMo Payment tracking
+    # Paypack Payment tracking (reusing momo fields for backward compatibility)
     payment_method = models.CharField(max_length=20, default='manual', 
-                                      help_text="Payment method: manual, momo")
+                                      help_text="Payment method: manual, paypack")
     momo_transaction_id = models.CharField(max_length=100, blank=True, null=True,
-                                          help_text="MTN MoMo transaction reference ID")
+                                          help_text="Paypack transaction reference ID (reusing field name)")
     momo_status = models.CharField(max_length=50, blank=True, null=True,
-                                   help_text="MoMo payment status: PENDING, SUCCESSFUL, FAILED")
+                                   help_text="Paypack payment status: PENDING, SUCCESSFUL, FAILED (reusing field name)")
     momo_status_checked_at = models.DateTimeField(null=True, blank=True)
     
     # Auto-renewal
@@ -363,7 +363,7 @@ class Purchase(models.Model):
     )
     
     PAYMENT_METHOD_CHOICES = (
-        ('momo', 'Mobile Money'),
+        ('paypack', 'Paypack'),
         ('bank_transfer', 'Bank Transfer'),
         ('cash', 'Cash'),
         ('other', 'Other'),
@@ -380,7 +380,7 @@ class Purchase(models.Model):
     quantity = models.IntegerField(default=1, help_text="Quantity (usually 1 for property)")
     final_price = models.DecimalField(max_digits=12, decimal_places=2, default=0,
                                       help_text="Final agreed price")
-    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='momo')
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='paypack')
     payment_reference = models.CharField(max_length=100, blank=True, null=True, 
                                         help_text="Payment transaction reference")
     

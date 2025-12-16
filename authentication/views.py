@@ -2184,8 +2184,8 @@ def pay_listing_fee(request, listing_id):
     if request.method == 'POST':
         payment_method = request.POST.get('payment_method', 'manual')
         
-        if payment_method == 'momo':
-            # Handle MoMo payment - BYPASSED: Automatically mark as successful
+        if payment_method == 'paypack':
+            # Handle Paypack payment
             form = ListingFeePaymentForm(request.POST, listing=property_listing, user=request.user)
             if form.is_valid():
                 days_paid = form.cleaned_data['days_paid']
@@ -2195,24 +2195,33 @@ def pay_listing_fee(request, listing_id):
                 # Update listing fee with days and calculate total
                 listing_fee.days_paid = days_paid
                 listing_fee.auto_renew = auto_renew
-                listing_fee.payment_method = 'momo'
-                listing_fee.payment_status = 'paid'
-                listing_fee.paid_at = timezone.now()
-                listing_fee.momo_status = 'SUCCESSFUL'
-                listing_fee.momo_transaction_id = f'BYPASS-{timezone.now().strftime("%Y%m%d%H%M%S")}'
-                listing_fee.momo_status_checked_at = timezone.now()
                 listing_fee.save()  # This will calculate total_amount
                 
-                # Activate the listing
-                property_listing.is_active = True
-                property_listing.save()
+                # Initiate Paypack payment
+                from .paypack_payment import initiate_paypack_payment
+                payment_result = initiate_paypack_payment(listing_fee, request.user, phone_number)
                 
-                messages.success(
-                    request,
-                    f'Payment successful! Your listing is now active for {days_paid} days. '
-                    f'Total: RWF {listing_fee.total_amount:,.2f}'
-                )
-                return redirect('vendor_dashboard')
+                if payment_result.get('success'):
+                    # Payment request sent successfully
+                    transaction_ref = payment_result.get('ref') or payment_result.get('transaction_id')
+                    listing_fee.payment_method = 'paypack'
+                    listing_fee.payment_status = 'pending'  # Will be updated when payment is confirmed
+                    listing_fee.momo_transaction_id = transaction_ref  # Reusing field for Paypack ref
+                    listing_fee.momo_status = payment_result.get('status', 'PENDING')
+                    listing_fee.momo_status_checked_at = timezone.now()
+                    listing_fee.save()
+                    
+                    # Redirect to payment status page
+                    messages.info(
+                        request,
+                        f'Payment request sent! Please approve the payment on your phone. '
+                        f'Amount: RWF {listing_fee.total_amount:,.2f}'
+                    )
+                    return redirect('check_payment_status', listing_id=listing_id, transaction_id=transaction_ref)
+                else:
+                    # Payment request failed
+                    error_message = payment_result.get('message', 'Failed to initiate payment')
+                    messages.error(request, f'Payment failed: {error_message}')
             else:
                 messages.error(request, 'Please correct the errors below.')
         else:
@@ -2259,7 +2268,7 @@ def pay_listing_fee(request, listing_id):
 
 @login_required
 def check_payment_status(request, listing_id, transaction_id):
-    """Check MoMo payment status and update listing fee"""
+    """Check Paypack payment status and update listing fee"""
     property_listing = get_object_or_404(Post, id=listing_id)
     
     # Check if user owns this listing
@@ -2272,21 +2281,25 @@ def check_payment_status(request, listing_id, transaction_id):
         ListingFee,
         listing=property_listing,
         vendor=request.user,
-        momo_transaction_id=transaction_id
+        momo_transaction_id=transaction_id  # Reusing field for Paypack ref
     )
     
-    # Check payment status with MoMo API
-    from .momo_payment import MTNMoMoPayment
-    momo = MTNMoMoPayment()
-    status_result = momo.check_payment_status(transaction_id)
+    # Check payment status with Paypack API
+    from .paypack_payment import PaypackPayment
+    try:
+        paypack = PaypackPayment()
+        status_result = paypack.check_payment_status(transaction_id)
+    except Exception as e:
+        messages.error(request, f'Error checking payment status: {str(e)}')
+        status_result = {'success': False, 'status': 'UNKNOWN'}
     
     if status_result.get('success'):
-        momo_status = status_result.get('status', 'UNKNOWN')
-        listing_fee.momo_status = momo_status
+        paypack_status = status_result.get('status', 'UNKNOWN')
+        listing_fee.momo_status = paypack_status  # Reusing field for Paypack status
         listing_fee.momo_status_checked_at = timezone.now()
         
         # If payment successful, update listing fee
-        if momo_status == 'SUCCESSFUL':
+        if paypack_status == 'SUCCESSFUL':
             listing_fee.payment_status = 'paid'
             listing_fee.paid_at = timezone.now()
             listing_fee.payment_reference = transaction_id
@@ -2302,14 +2315,14 @@ def check_payment_status(request, listing_id, transaction_id):
             )
             listing_fee.save()
             return redirect('vendor_dashboard')
-        elif momo_status == 'FAILED':
+        elif paypack_status == 'FAILED':
             listing_fee.payment_status = 'cancelled'
             listing_fee.save()
             messages.error(request, 'Payment failed. Please try again.')
         else:
             # Still pending
             listing_fee.save()
-            messages.info(request, f'Payment status: {momo_status}. Please wait for confirmation.')
+            messages.info(request, f'Payment status: {paypack_status}. Please wait for confirmation.')
     else:
         messages.warning(request, 'Could not check payment status. Please try again later.')
     
@@ -2482,7 +2495,7 @@ def create_purchase_from_inquiry(request, inquiry_id):
     
     if request.method == 'POST':
         final_price = request.POST.get('final_price')
-        payment_method = request.POST.get('payment_method', 'momo')
+        payment_method = request.POST.get('payment_method', 'paypack')
         payment_reference = request.POST.get('payment_reference', '')
         transaction_notes = request.POST.get('transaction_notes', '')
         

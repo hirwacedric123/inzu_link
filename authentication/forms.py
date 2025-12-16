@@ -221,16 +221,16 @@ class PropertyInquiryForm(forms.ModelForm):
 class ListingFeePaymentForm(forms.ModelForm):
     """Form for vendors to pay listing fees"""
     
-    # Add phone number field for MoMo payments
+    # Add phone number field for Paypack payments
     phone_number = forms.CharField(
         required=False,
         max_length=15,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': '250788123456',
+            'placeholder': '0788123456',
             'pattern': '[0-9]+',
         }),
-        help_text='Enter your MTN MoMo phone number (format: 250788123456)'
+        help_text='Enter your phone number (format: 0788123456 or 250788123456)'
     )
     
     class Meta:
@@ -257,7 +257,7 @@ class ListingFeePaymentForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
-        # Make payment_reference optional (not required for MoMo payments)
+        # Make payment_reference optional (not required for Paypack payments)
         self.fields['payment_reference'].required = False
         
         # Pre-fill phone number from user profile if available
@@ -290,15 +290,21 @@ class ListingFeePaymentForm(forms.ModelForm):
         # Remove any spaces, dashes, or plus signs
         phone = phone.replace(' ', '').replace('-', '').replace('+', '')
         
-        # If starts with 0, replace with 250 (Rwanda)
-        if phone.startswith('0'):
-            phone = '250' + phone[1:]
-        # If doesn't start with 250, add it
-        elif not phone.startswith('250'):
-            phone = '250' + phone
-        
-        # Validate length (should be 12 digits: 250 + 9 digits)
-        if len(phone) != 12 or not phone.isdigit():
-            raise forms.ValidationError('Please enter a valid phone number (e.g., 250788123456)')
+        # Accept both formats: 0788123456 or 250788123456
+        # Paypack accepts local format (0788123456), but we'll normalize
+        if phone.startswith('250'):
+            # Keep as is (international format)
+            if len(phone) != 12 or not phone.isdigit():
+                raise forms.ValidationError('Please enter a valid phone number (e.g., 250788123456 or 0788123456)')
+        elif phone.startswith('0'):
+            # Local format - validate length (should be 10 digits: 0 + 9 digits)
+            if len(phone) != 10 or not phone.isdigit():
+                raise forms.ValidationError('Please enter a valid phone number (e.g., 0788123456 or 250788123456)')
+        else:
+            # Try to add 0 prefix if it's 9 digits
+            if len(phone) == 9 and phone.isdigit():
+                phone = '0' + phone
+            else:
+                raise forms.ValidationError('Please enter a valid phone number (e.g., 0788123456 or 250788123456)')
         
         return phone
