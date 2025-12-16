@@ -94,8 +94,21 @@ def chat_room(request, conversation_id):
     other_user = conversation.get_other_participant(user)
     
     # Determine WebSocket URL
-    ws_scheme = 'wss' if request.is_secure() else 'ws'
-    ws_url = f"{ws_scheme}://{request.get_host()}/ws/chat/{conversation.id}/"
+    # PythonAnywhere requires wss:// for secure connections
+    host = request.get_host()
+    is_pythonanywhere = '.pythonanywhere.com' in host
+    
+    if request.is_secure() or is_pythonanywhere:
+        ws_scheme = 'wss'
+    else:
+        ws_scheme = 'ws'
+    
+    # For PythonAnywhere, ensure we use the correct host
+    if is_pythonanywhere and not host.startswith('http'):
+        # PythonAnywhere WebSocket proxy
+        ws_url = f"{ws_scheme}://{host}/ws/chat/{conversation.id}/"
+    else:
+        ws_url = f"{ws_scheme}://{host}/ws/chat/{conversation.id}/"
     
     context = {
         'conversation': conversation,

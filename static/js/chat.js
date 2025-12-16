@@ -25,6 +25,9 @@ class ChatWebSocket {
         this.loadMoreBtn = document.getElementById('loadMoreBtn');
         this.loadMoreContainer = document.getElementById('loadMoreContainer');
         this.oldestMessageId = null;
+        this.useWebSocket = false;
+        this.pollingInterval = null;
+        this.messagesLoaded = false;
         
         this.init();
     }
@@ -34,6 +37,20 @@ class ChatWebSocket {
         this.setupEventListeners();
         this.setupAutoResize();
         this.scrollToBottom();
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            this.cleanup();
+        });
+    }
+
+    cleanup() {
+        // Close WebSocket if open
+        if (this.socket) {
+            this.socket.close();
+        }
+        // Stop polling
+        this.stopPolling();
     }
 
     connect() {
@@ -41,11 +58,22 @@ class ChatWebSocket {
             this.updateConnectionStatus('connecting', 'Connecting...');
             this.socket = new WebSocket(this.wsUrl);
 
+            // Set a timeout to detect if WebSocket fails to connect
+            const connectionTimeout = setTimeout(() => {
+                if (this.socket && this.socket.readyState !== WebSocket.OPEN) {
+                    console.warn('WebSocket connection timeout, falling back to polling');
+                    this.socket.close();
+                    this.fallbackToPolling();
+                }
+            }, 5000); // 5 second timeout
+
             this.socket.onopen = () => {
+                clearTimeout(connectionTimeout);
                 console.log('WebSocket connected');
                 this.reconnectAttempts = 0;
                 this.updateConnectionStatus('connected', 'Connected');
                 this.sendPing();
+                this.useWebSocket = true;
             };
 
             this.socket.onmessage = (event) => {
@@ -54,30 +82,150 @@ class ChatWebSocket {
 
             this.socket.onerror = (error) => {
                 console.error('WebSocket error:', error);
+                clearTimeout(connectionTimeout);
+                // Don't immediately fall back - let onclose handle it
                 this.updateConnectionStatus('disconnected', 'Connection error');
             };
 
-            this.socket.onclose = () => {
-                console.log('WebSocket disconnected');
-                this.updateConnectionStatus('disconnected', 'Disconnected');
-                this.attemptReconnect();
+            this.socket.onclose = (event) => {
+                clearTimeout(connectionTimeout);
+                console.log('WebSocket disconnected', event.code, event.reason);
+                
+                // If connection was never established (code 1006 or 400), fall back to polling
+                if (event.code === 1006 || event.code === 400 || !this.useWebSocket) {
+                    console.log('WebSocket not supported, using HTTP polling fallback');
+                    this.fallbackToPolling();
+                } else {
+                    this.updateConnectionStatus('disconnected', 'Disconnected');
+                    this.attemptReconnect();
+                }
             };
 
         } catch (error) {
             console.error('Failed to connect WebSocket:', error);
             this.updateConnectionStatus('disconnected', 'Connection failed');
+            this.fallbackToPolling();
+        }
+    }
+
+    fallbackToPolling() {
+        console.log('Switching to HTTP polling mode');
+        this.useWebSocket = false;
+        this.updateConnectionStatus('connected', 'Connected (Polling)');
+        
+        // Mark messages as loaded (they're already in the template)
+        this.messagesLoaded = true;
+        
+        // Initialize oldestMessageId from existing messages
+        const existingMessages = this.messagesArea.querySelectorAll('[data-message-id]');
+        if (existingMessages.length > 0) {
+            const ids = Array.from(existingMessages).map(el => {
+                const id = parseInt(el.dataset.messageId);
+                return isNaN(id) ? 0 : id;
+            });
+            this.oldestMessageId = Math.min(...ids);
+        }
+        
+        // Start polling for new messages
+        this.startPolling();
+    }
+
+    startPolling() {
+        // Poll for new messages every 2 seconds
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+        }
+        
+        this.pollingInterval = setInterval(() => {
+            this.pollForNewMessages();
+        }, 2000);
+    }
+
+    stopPolling() {
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
+        }
+    }
+
+    async pollForNewMessages() {
+        try {
+            // Get the newest message ID we already have
+            const existingMessages = this.messagesArea.querySelectorAll('[data-message-id]');
+            let newestId = null;
+            if (existingMessages.length > 0) {
+                const ids = Array.from(existingMessages).map(el => {
+                    const id = parseInt(el.dataset.messageId);
+                    return isNaN(id) ? 0 : id;
+                });
+                newestId = Math.max(...ids);
+            }
+            
+            // Fetch recent messages (last 20 to catch any new ones)
+            const url = `/api/chat/${this.conversationId}/messages/?limit=20`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.success && data.messages && data.messages.length > 0) {
+                // Display only new messages (those with ID greater than newestId)
+                let hasNewMessages = false;
+                data.messages.forEach(message => {
+                    if (!newestId || message.id > newestId) {
+                        // Check if message doesn't already exist
+                        const existing = this.messagesArea.querySelector(`[data-message-id="${message.id}"]`);
+                        if (!existing) {
+                            this.displayMessage(message);
+                            hasNewMessages = true;
+                        }
+                    }
+                });
+                
+                // Update newestId if we got new messages
+                if (hasNewMessages) {
+                    const allIds = Array.from(this.messagesArea.querySelectorAll('[data-message-id]')).map(el => {
+                        const id = parseInt(el.dataset.messageId);
+                        return isNaN(id) ? 0 : id;
+                    });
+                    if (allIds.length > 0) {
+                        this.oldestMessageId = Math.min(...allIds);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error polling for messages:', error);
+        }
+    }
+
+    async loadInitialMessages() {
+        try {
+            const url = `/api/chat/${this.conversationId}/messages/`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.success && data.messages) {
+                data.messages.forEach(message => {
+                    this.displayMessage(message);
+                });
+                this.messagesLoaded = true;
+            }
+        } catch (error) {
+            console.error('Error loading initial messages:', error);
         }
     }
 
     attemptReconnect() {
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+        if (this.useWebSocket && this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
             this.updateConnectionStatus('connecting', `Reconnecting... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
             setTimeout(() => {
                 this.connect();
             }, this.reconnectDelay);
+        } else if (!this.useWebSocket) {
+            // If using polling, just restart polling
+            this.startPolling();
         } else {
-            this.updateConnectionStatus('disconnected', 'Connection lost. Please refresh.');
+            // WebSocket failed, fall back to polling
+            this.fallbackToPolling();
         }
     }
 
@@ -153,17 +301,45 @@ class ChatWebSocket {
         }
     }
 
-    sendMessage() {
+    async sendMessage() {
         const message = this.messageInput.value.trim();
-        if (!message || !this.isConnected()) {
+        if (!message) {
             return;
         }
 
-        // Send via WebSocket
-        this.socket.send(JSON.stringify({
-            type: 'chat_message',
-            message: message
-        }));
+        if (this.useWebSocket && this.isConnected()) {
+            // Send via WebSocket
+            this.socket.send(JSON.stringify({
+                type: 'chat_message',
+                message: message
+            }));
+        } else {
+            // Send via HTTP API (fallback for non-WebSocket environments)
+            try {
+                const response = await fetch(`/api/chat/${this.conversationId}/send/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.getCsrfToken(),
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                if (data.success && data.message) {
+                    // Message sent successfully, it will appear in next poll
+                    // Or we can display it immediately
+                    this.displayMessage(data.message);
+                } else {
+                    console.error('Failed to send message:', data.error);
+                    this.showError('Failed to send message. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                this.showError('Failed to send message. Please try again.');
+                return;
+            }
+        }
 
         // Clear input
         this.messageInput.value = '';
@@ -177,6 +353,23 @@ class ChatWebSocket {
             this.sendTyping(false);
             this.isTyping = false;
         }
+    }
+
+    getCsrfToken() {
+        // Get CSRF token from cookie or meta tag
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 
     handleMessage(data) {
@@ -407,7 +600,12 @@ class ChatWebSocket {
     }
 
     isConnected() {
-        return this.socket && this.socket.readyState === WebSocket.OPEN;
+        if (this.useWebSocket) {
+            return this.socket && this.socket.readyState === WebSocket.OPEN;
+        } else {
+            // In polling mode, we're always "connected" (polling is active)
+            return this.pollingInterval !== null;
+        }
     }
 
     getCurrentUserId() {
