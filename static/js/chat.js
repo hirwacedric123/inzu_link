@@ -370,12 +370,16 @@ class ChatWebSocket {
     }
 
     sendTyping(isTyping) {
-        if (this.isConnected()) {
+        // Typing indicators only work with WebSocket
+        // In polling mode, we skip typing indicators
+        if (this.useWebSocket && this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify({
                 type: 'typing',
                 is_typing: isTyping
             }));
         }
+        // In polling mode, typing indicators are not supported
+        // This is fine - the feature still works, just without real-time typing indicators
     }
 
     async sendMessage() {
