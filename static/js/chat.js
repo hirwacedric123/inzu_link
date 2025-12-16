@@ -239,7 +239,7 @@ class ChatWebSocket {
             }
             
             // Fetch recent messages (last 20 to catch any new ones)
-            const url = `/api/chat/${this.conversationId}/messages/?limit=20`;
+            const url = `/auth/api/chat/${this.conversationId}/messages/?limit=20`;
             const response = await fetch(url);
             const data = await response.json();
             
@@ -275,7 +275,7 @@ class ChatWebSocket {
 
     async loadInitialMessages() {
         try {
-            const url = `/api/chat/${this.conversationId}/messages/`;
+            const url = `/auth/api/chat/${this.conversationId}/messages/`;
             const response = await fetch(url);
             const data = await response.json();
             
@@ -393,7 +393,7 @@ class ChatWebSocket {
         } else {
             // Send via HTTP API (fallback for non-WebSocket environments)
             try {
-                const response = await fetch(`/api/chat/${this.conversationId}/send/`, {
+                const response = await fetch(`/auth/api/chat/${this.conversationId}/send/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -606,7 +606,7 @@ class ChatWebSocket {
     loadOlderMessages() {
         if (!this.oldestMessageId) return;
 
-        const url = `/api/chat/${this.conversationId}/messages/?before=${this.oldestMessageId}`;
+        const url = `/auth/api/chat/${this.conversationId}/messages/?before=${this.oldestMessageId}`;
         
         fetch(url)
             .then(response => response.json())
