@@ -37,7 +37,7 @@ certifi==2024.8.30
 charset-normalizer==3.4.0
 idna==3.10
 requests~=2.26.0  # Compatible with paypack-py requirement (requires requests 2.26.x)
-urllib3==2.2.3
+urllib3>=1.21.1,<1.27  # Compatible with requests 2.26.0
 typing_extensions==4.12.2
 
 # Environment Variables
