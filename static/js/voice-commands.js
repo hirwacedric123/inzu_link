@@ -3,6 +3,7 @@
  * 
  * Phase 1: Basic Voice Recognition & Navigation Commands ✅
  * Phase 2: Advanced Navigation & Search Commands ✅
+ * Phase 3: Form Interaction Commands ✅
  * 
  * Features:
  * - Web Speech API integration
@@ -12,6 +13,8 @@
  * - Search functionality with parameters
  * - Category filtering
  * - Command history
+ * - Form field navigation and filling
+ * - Form submission via voice
  */
 
 (function() {
@@ -64,6 +67,9 @@
             
             // Register Phase 2 commands (search, filter)
             this.registerPhase2Commands();
+            
+            // Register Phase 3 commands (form interaction)
+            this.registerPhase3Commands();
             
             // Create feedback element
             this.createFeedbackElement();
@@ -119,6 +125,48 @@
                 this.updateButtonState(false);
                 this.updateFeedback('Click to activate voice commands', 'idle');
             };
+        }
+
+        /**
+         * Register Phase 3 commands (form interaction)
+         */
+        registerPhase3Commands() {
+            // Form navigation commands
+            this.registerCommand(['next field', 'go to next field', 'next input', 'next'], () => {
+                this.navigateToNextField();
+            });
+
+            this.registerCommand(['previous field', 'go to previous field', 'previous input', 'previous', 'back'], () => {
+                this.navigateToPreviousField();
+            });
+
+            this.registerCommand(['first field', 'go to first field', 'start of form'], () => {
+                this.navigateToFirstField();
+            });
+
+            this.registerCommand(['last field', 'go to last field', 'end of form'], () => {
+                this.navigateToLastField();
+            });
+
+            // Form submission
+            this.registerCommand(['submit form', 'submit', 'send form', 'send'], () => {
+                this.submitCurrentForm();
+            });
+
+            // Clear field
+            this.registerCommand(['clear field', 'clear', 'clear input', 'erase'], () => {
+                this.clearCurrentField();
+            });
+
+            // Field information
+            this.registerCommand(['what field', 'what is this field', 'field name', 'current field'], () => {
+                this.announceCurrentField();
+            });
+
+            // Form validation
+            this.registerCommand(['check form', 'validate form', 'check fields'], () => {
+                this.validateCurrentForm();
+            });
         }
 
         /**
@@ -270,10 +318,51 @@
         }
 
         /**
-         * Process commands with parameters (Phase 2)
+         * Process commands with parameters (Phase 2 & 3)
          */
         processParameterCommand(transcript) {
-            // Search commands
+            // Phase 3: Form interaction commands (check these first when on a form page)
+            const formFillPatterns = [
+                /fill (.+?) with (.+)/i,
+                /enter (.+?) as (.+)/i,
+                /set (.+?) to (.+)/i,
+                /type (.+?) in (.+)/i,
+                /put (.+?) in (.+)/i
+            ];
+
+            for (const pattern of formFillPatterns) {
+                const match = transcript.match(pattern);
+                if (match) {
+                    const fieldName = match[1].trim();
+                    const value = match[2].trim();
+                    this.fillFormField(fieldName, value);
+                    return true;
+                }
+            }
+
+            // Fill current field (simpler pattern)
+            const fillCurrentPatterns = [
+                /fill (.+)/i,
+                /enter (.+)/i,
+                /type (.+)/i
+            ];
+
+            for (const pattern of fillCurrentPatterns) {
+                const match = transcript.match(pattern);
+                if (match) {
+                    const value = match[1].trim();
+                    // Only if we're in a form field
+                    const activeElement = document.activeElement;
+                    if (activeElement && (activeElement.tagName === 'INPUT' || 
+                        activeElement.tagName === 'TEXTAREA' || 
+                        activeElement.tagName === 'SELECT')) {
+                        this.fillCurrentField(value);
+                        return true;
+                    }
+                }
+            }
+
+            // Phase 2: Search commands
             const searchPatterns = [
                 /search for (.+)/i,
                 /find (.+)/i,
@@ -286,12 +375,15 @@
                 const match = transcript.match(pattern);
                 if (match) {
                     const query = match[1].trim();
-                    this.executeSearch(query);
-                    return true;
+                    // Don't match if it's a form fill command
+                    if (!formFillPatterns.some(p => p.test(transcript))) {
+                        this.executeSearch(query);
+                        return true;
+                    }
                 }
             }
 
-            // Filter by category commands
+            // Phase 2: Filter by category commands
             const filterPatterns = [
                 /filter by (.+)/i,
                 /show (.+) category/i,
@@ -309,7 +401,7 @@
                 }
             }
 
-            // More navigation commands with context
+            // Phase 2: More navigation commands with context
             const navPatterns = [
                 /go to my (.+)/i,
                 /show my (.+)/i,
@@ -452,6 +544,338 @@
                 // Get base URL
                 const baseUrl = window.location.origin;
                 window.location.href = baseUrl + url;
+            }
+        }
+
+        /**
+         * Phase 3: Form Interaction Methods
+         */
+
+        /**
+         * Get all form fields on the page
+         */
+        getFormFields() {
+            const forms = document.querySelectorAll('form');
+            const fields = [];
+            
+            forms.forEach(form => {
+                const formFields = form.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]), textarea, select');
+                formFields.forEach(field => {
+                    if (!field.disabled && !field.readOnly) {
+                        fields.push(field);
+                    }
+                });
+            });
+            
+            return fields;
+        }
+
+        /**
+         * Navigate to next form field
+         */
+        navigateToNextField() {
+            const fields = this.getFormFields();
+            const currentField = document.activeElement;
+            
+            if (fields.length === 0) {
+                this.updateFeedback('No form fields found on this page', 'error');
+                this.announceToScreenReader('No form fields found on this page');
+                return;
+            }
+
+            let currentIndex = -1;
+            if (currentField && (currentField.tagName === 'INPUT' || currentField.tagName === 'TEXTAREA' || currentField.tagName === 'SELECT')) {
+                currentIndex = fields.indexOf(currentField);
+            }
+
+            const nextIndex = currentIndex < fields.length - 1 ? currentIndex + 1 : 0;
+            const nextField = fields[nextIndex];
+            
+            nextField.focus();
+            nextField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            const fieldLabel = this.getFieldLabel(nextField);
+            const fieldName = fieldLabel || nextField.name || nextField.id || 'field';
+            this.updateFeedback(`Moved to: ${fieldName}`, 'success');
+            this.announceToScreenReader(`Moved to ${fieldName} field`);
+        }
+
+        /**
+         * Navigate to previous form field
+         */
+        navigateToPreviousField() {
+            const fields = this.getFormFields();
+            const currentField = document.activeElement;
+            
+            if (fields.length === 0) {
+                this.updateFeedback('No form fields found on this page', 'error');
+                this.announceToScreenReader('No form fields found on this page');
+                return;
+            }
+
+            let currentIndex = -1;
+            if (currentField && (currentField.tagName === 'INPUT' || currentField.tagName === 'TEXTAREA' || currentField.tagName === 'SELECT')) {
+                currentIndex = fields.indexOf(currentField);
+            }
+
+            const prevIndex = currentIndex > 0 ? currentIndex - 1 : fields.length - 1;
+            const prevField = fields[prevIndex];
+            
+            prevField.focus();
+            prevField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            const fieldLabel = this.getFieldLabel(prevField);
+            const fieldName = fieldLabel || prevField.name || prevField.id || 'field';
+            this.updateFeedback(`Moved to: ${fieldName}`, 'success');
+            this.announceToScreenReader(`Moved to ${fieldName} field`);
+        }
+
+        /**
+         * Navigate to first form field
+         */
+        navigateToFirstField() {
+            const fields = this.getFormFields();
+            
+            if (fields.length === 0) {
+                this.updateFeedback('No form fields found on this page', 'error');
+                this.announceToScreenReader('No form fields found on this page');
+                return;
+            }
+
+            const firstField = fields[0];
+            firstField.focus();
+            firstField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            const fieldLabel = this.getFieldLabel(firstField);
+            const fieldName = fieldLabel || firstField.name || firstField.id || 'field';
+            this.updateFeedback(`Moved to first field: ${fieldName}`, 'success');
+            this.announceToScreenReader(`Moved to first field: ${fieldName}`);
+        }
+
+        /**
+         * Navigate to last form field
+         */
+        navigateToLastField() {
+            const fields = this.getFormFields();
+            
+            if (fields.length === 0) {
+                this.updateFeedback('No form fields found on this page', 'error');
+                this.announceToScreenReader('No form fields found on this page');
+                return;
+            }
+
+            const lastField = fields[fields.length - 1];
+            lastField.focus();
+            lastField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            const fieldLabel = this.getFieldLabel(lastField);
+            const fieldName = fieldLabel || lastField.name || lastField.id || 'field';
+            this.updateFeedback(`Moved to last field: ${fieldName}`, 'success');
+            this.announceToScreenReader(`Moved to last field: ${fieldName}`);
+        }
+
+        /**
+         * Get label for a form field
+         */
+        getFieldLabel(field) {
+            // Try to find associated label
+            if (field.id) {
+                const label = document.querySelector(`label[for="${field.id}"]`);
+                if (label) {
+                    return label.textContent.trim();
+                }
+            }
+
+            // Try to find label in parent
+            const parent = field.closest('.form-group, .mb-3, .mb-4, .form-field');
+            if (parent) {
+                const label = parent.querySelector('label');
+                if (label) {
+                    return label.textContent.trim();
+                }
+            }
+
+            // Use placeholder, name, or id
+            return field.placeholder || field.name || field.id || 'field';
+        }
+
+        /**
+         * Fill a specific form field by name
+         */
+        fillFormField(fieldName, value) {
+            const fields = this.getFormFields();
+            const normalizedFieldName = fieldName.toLowerCase();
+            
+            // Try to find field by label, name, id, or placeholder
+            let targetField = null;
+            
+            for (const field of fields) {
+                const label = this.getFieldLabel(field).toLowerCase();
+                const name = (field.name || '').toLowerCase();
+                const id = (field.id || '').toLowerCase();
+                const placeholder = (field.placeholder || '').toLowerCase();
+                
+                if (label.includes(normalizedFieldName) || 
+                    name.includes(normalizedFieldName) || 
+                    id.includes(normalizedFieldName) ||
+                    placeholder.includes(normalizedFieldName)) {
+                    targetField = field;
+                    break;
+                }
+            }
+
+            if (!targetField) {
+                this.updateFeedback(`Field "${fieldName}" not found`, 'error');
+                this.announceToScreenReader(`Field ${fieldName} not found`);
+                return;
+            }
+
+            // Fill the field
+            targetField.value = value;
+            targetField.focus();
+            
+            // Trigger input event for validation
+            targetField.dispatchEvent(new Event('input', { bubbles: true }));
+            targetField.dispatchEvent(new Event('change', { bubbles: true }));
+
+            const fieldLabel = this.getFieldLabel(targetField);
+            this.updateFeedback(`Filled ${fieldLabel} with: ${value}`, 'success');
+            this.announceToScreenReader(`Filled ${fieldLabel} with ${value}`);
+        }
+
+        /**
+         * Fill current focused field
+         */
+        fillCurrentField(value) {
+            const currentField = document.activeElement;
+            
+            if (!currentField || (currentField.tagName !== 'INPUT' && 
+                currentField.tagName !== 'TEXTAREA' && 
+                currentField.tagName !== 'SELECT')) {
+                this.updateFeedback('No field is currently focused', 'error');
+                this.announceToScreenReader('No field is currently focused. Please click on a field first.');
+                return;
+            }
+
+            currentField.value = value;
+            
+            // Trigger input event for validation
+            currentField.dispatchEvent(new Event('input', { bubbles: true }));
+            currentField.dispatchEvent(new Event('change', { bubbles: true }));
+
+            const fieldLabel = this.getFieldLabel(currentField);
+            this.updateFeedback(`Filled ${fieldLabel} with: ${value}`, 'success');
+            this.announceToScreenReader(`Filled ${fieldLabel} with ${value}`);
+        }
+
+        /**
+         * Clear current field
+         */
+        clearCurrentField() {
+            const currentField = document.activeElement;
+            
+            if (!currentField || (currentField.tagName !== 'INPUT' && 
+                currentField.tagName !== 'TEXTAREA' && 
+                currentField.tagName !== 'SELECT')) {
+                this.updateFeedback('No field is currently focused', 'error');
+                this.announceToScreenReader('No field is currently focused');
+                return;
+            }
+
+            currentField.value = '';
+            currentField.focus();
+            
+            // Trigger input event
+            currentField.dispatchEvent(new Event('input', { bubbles: true }));
+
+            const fieldLabel = this.getFieldLabel(currentField);
+            this.updateFeedback(`Cleared ${fieldLabel}`, 'success');
+            this.announceToScreenReader(`Cleared ${fieldLabel}`);
+        }
+
+        /**
+         * Submit current form
+         */
+        submitCurrentForm() {
+            const currentField = document.activeElement;
+            let form = null;
+
+            if (currentField && currentField.tagName === 'FORM') {
+                form = currentField;
+            } else if (currentField && currentField.form) {
+                form = currentField.form;
+            } else {
+                // Find first form on page
+                form = document.querySelector('form');
+            }
+
+            if (!form) {
+                this.updateFeedback('No form found on this page', 'error');
+                this.announceToScreenReader('No form found on this page');
+                return;
+            }
+
+            this.updateFeedback('Submitting form...', 'processing');
+            this.announceToScreenReader('Submitting form');
+            
+            // Submit the form
+            form.submit();
+        }
+
+        /**
+         * Announce current field information
+         */
+        announceCurrentField() {
+            const currentField = document.activeElement;
+            
+            if (!currentField || (currentField.tagName !== 'INPUT' && 
+                currentField.tagName !== 'TEXTAREA' && 
+                currentField.tagName !== 'SELECT')) {
+                this.updateFeedback('No field is currently focused', 'error');
+                this.announceToScreenReader('No field is currently focused');
+                return;
+            }
+
+            const fieldLabel = this.getFieldLabel(currentField);
+            const fieldType = currentField.type || currentField.tagName.toLowerCase();
+            const isRequired = currentField.hasAttribute('required') || currentField.getAttribute('aria-required') === 'true';
+            const currentValue = currentField.value || '(empty)';
+            
+            const info = `${fieldLabel}, ${fieldType} field${isRequired ? ', required' : ''}, current value: ${currentValue}`;
+            this.updateFeedback(info, 'help');
+            this.announceToScreenReader(info);
+        }
+
+        /**
+         * Validate current form
+         */
+        validateCurrentForm() {
+            const currentField = document.activeElement;
+            let form = null;
+
+            if (currentField && currentField.form) {
+                form = currentField.form;
+            } else {
+                form = document.querySelector('form');
+            }
+
+            if (!form) {
+                this.updateFeedback('No form found on this page', 'error');
+                this.announceToScreenReader('No form found on this page');
+                return;
+            }
+
+            const fields = Array.from(form.querySelectorAll('input, textarea, select'));
+            const requiredFields = fields.filter(f => f.hasAttribute('required') || f.getAttribute('aria-required') === 'true');
+            const emptyRequired = requiredFields.filter(f => !f.value || f.value.trim() === '');
+
+            if (emptyRequired.length === 0) {
+                this.updateFeedback('All required fields are filled', 'success');
+                this.announceToScreenReader('All required fields are filled');
+            } else {
+                const fieldNames = emptyRequired.map(f => this.getFieldLabel(f)).join(', ');
+                this.updateFeedback(`Missing required fields: ${fieldNames}`, 'error');
+                this.announceToScreenReader(`Missing required fields: ${fieldNames}`);
             }
         }
 

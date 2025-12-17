@@ -82,6 +82,36 @@ InzuLink now supports voice commands for navigation and interaction! You can con
 **Available Categories:**
 - Electronics, Furniture, Clothing, Vehicles, Property, House, Land, Apartment, Villa, Food, Art, Photography, Design, Technology
 
+### **Phase 3: Form Interaction Commands** 🆕
+
+| Command | What It Does |
+|---------|-------------|
+| "Next field" / "Go to next field" | Moves to next form field |
+| "Previous field" / "Go to previous field" | Moves to previous form field |
+| "First field" / "Go to first field" | Moves to first form field |
+| "Last field" / "Go to last field" | Moves to last form field |
+| "Fill [field name] with [value]" | Fills specific field with value |
+| "Fill [value]" | Fills current focused field |
+| "Enter [value]" | Fills current focused field |
+| "Type [value]" | Fills current focused field |
+| "Submit form" / "Submit" | Submits the current form |
+| "Clear field" / "Clear" | Clears current field value |
+| "What field" / "What is this field" | Announces current field information |
+| "Check form" / "Validate form" | Checks if all required fields are filled |
+
+**Form Fill Examples:**
+- "Fill username with john_doe"
+- "Fill email with john@example.com"
+- "Fill password with mypassword123"
+- "Enter john@example.com" (fills current field)
+- "Type my name" (fills current field)
+
+**Form Navigation Examples:**
+- "Next field" → moves to next input
+- "Previous field" → moves to previous input
+- "First field" → jumps to first field
+- "Last field" → jumps to last field
+
 ### **Utility Commands**
 
 | Command | What It Does |
@@ -199,9 +229,17 @@ Voice commands work on mobile devices, but:
 - ✅ **Enhanced Help** - Improved help dialog with examples
 - ✅ **Contextual Navigation** - "Go to my [target]" commands
 
+## 🆕 **Phase 3 Features** 🎉
+
+- ✅ **Form Field Navigation** - Navigate between form fields
+- ✅ **Form Field Filling** - Fill form fields with voice
+- ✅ **Form Submission** - Submit forms via voice
+- ✅ **Field Information** - Get current field details
+- ✅ **Form Validation** - Check if form is complete
+- ✅ **Clear Fields** - Clear current field value
+
 ## 🚀 **Upcoming Features (Future Phases)**
 
-- **Phase 3:** Form interaction via voice
 - **Phase 4:** E-commerce actions (add to cart, checkout)
 - **Phase 5:** Custom commands and personalization
 
@@ -257,7 +295,34 @@ System: "Filtering by category: electronics"
 [Page navigates to dashboard with filtered results]
 ```
 
-**Scenario 5: Multiple Ways to Say Same Thing**
+**Scenario 5: Form Interaction**
+```
+You: [Press V while on a form]
+System: "Listening..."
+You: "Next field"
+System: "Moved to: Email field"
+You: "Fill john@example.com"
+System: "Filled Email with john@example.com"
+You: "Next field"
+System: "Moved to: Password field"
+You: "Fill mypassword123"
+System: "Filled Password with mypassword123"
+You: "Submit form"
+System: "Submitting form..."
+[Form submits]
+```
+
+**Scenario 6: Fill Specific Field**
+```
+You: [Press V]
+System: "Listening..."
+You: "Fill username with john_doe"
+System: "Filled Username with: john_doe"
+You: "Fill email with john@example.com"
+System: "Filled Email with: john@example.com"
+```
+
+**Scenario 7: Multiple Ways to Say Same Thing**
 ```
 "Go to home" ✅
 "Navigate to home" ✅
@@ -267,6 +332,10 @@ System: "Filtering by category: electronics"
 "Search for iPhone" ✅
 "Find iPhone" ✅
 "Look for iPhone" ✅
+
+"Next field" ✅
+"Go to next field" ✅
+"Next input" ✅
 ```
 
 ---
