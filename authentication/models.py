@@ -387,6 +387,58 @@ class Purchase(models.Model):
     # Status tracking
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending_payment')
     
+    # Delivery tracking (for furniture items)
+    DELIVERY_STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('shipped', 'Shipped'),
+        ('in_transit', 'In Transit'),
+        ('out_for_delivery', 'Out for Delivery'),
+        ('delivered', 'Delivered'),
+        ('delivery_failed', 'Delivery Failed'),
+    )
+    
+    delivery_status = models.CharField(
+        max_length=30, 
+        choices=DELIVERY_STATUS_CHOICES, 
+        null=True, 
+        blank=True,
+        help_text="Delivery status (for furniture items)"
+    )
+    delivery_address = models.CharField(
+        max_length=500, 
+        blank=True, 
+        null=True, 
+        help_text="Delivery address for furniture items"
+    )
+    delivery_phone = models.CharField(
+        max_length=15, 
+        blank=True, 
+        null=True, 
+        help_text="Contact phone for delivery"
+    )
+    tracking_number = models.CharField(
+        max_length=100, 
+        blank=True, 
+        null=True, 
+        help_text="Tracking number for shipment"
+    )
+    shipped_at = models.DateTimeField(
+        null=True, 
+        blank=True, 
+        help_text="When item was shipped"
+    )
+    delivered_at = models.DateTimeField(
+        null=True, 
+        blank=True, 
+        help_text="When item was delivered"
+    )
+    delivery_notes = models.TextField(
+        blank=True, 
+        null=True, 
+        help_text="Notes about delivery"
+    )
+    
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -402,14 +454,34 @@ class Purchase(models.Model):
             # Generate a unique order ID
             self.order_id = f"ORD-{uuid.uuid4().hex[:8].upper()}"
         
-        # Mark property as sold when purchase is completed
+        # For furniture items, initialize delivery status
+        if self.property and self.property.is_furniture() and not self.delivery_status:
+            if self.status == 'payment_confirmed':
+                self.delivery_status = 'pending'
+            elif self.status == 'completed':
+                self.delivery_status = 'delivered'
+        
+        # Mark property as sold when purchase is completed (for non-furniture)
         if self.status == 'completed' and not self.completed_at:
             self.completed_at = timezone.now()
-            self.property.is_sold = True
-            self.property.is_active = False
-            self.property.save()
+            # For furniture, inventory is already updated during checkout/creation
+            # Only mark as sold if inventory reaches 0, but don't deduct again
+            if self.property.is_furniture():
+                # Check if inventory is already 0 or less, then mark as sold
+                if self.property.inventory <= 0:
+                    self.property.is_sold = True
+                    self.property.save()
+            else:
+                # For non-furniture items, mark as sold and inactive
+                self.property.is_sold = True
+                self.property.is_active = False
+                self.property.save()
         
         super().save(*args, **kwargs)
+    
+    def is_furniture_purchase(self):
+        """Check if this purchase is for a furniture item"""
+        return self.property and self.property.is_furniture()
     
     def __str__(self):
         return f"{self.buyer.username} - {self.property.title} - {self.order_id}"
@@ -428,6 +500,66 @@ class Bookmark(models.Model):
     class Meta:
         ordering = ['-created_at']
         unique_together = ['user', 'post']
+
+class Cart(models.Model):
+    """
+    Shopping cart model for users.
+    Each user has one cart that holds multiple cart items.
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cart')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Cart for {self.user.username}"
+    
+    def get_total_price(self):
+        """Calculate total price of all items in cart"""
+        return sum(item.get_total_price() for item in self.items.all())
+    
+    def get_total_items(self):
+        """Get total number of items in cart"""
+        return sum(item.quantity for item in self.items.all())
+    
+    def clear(self):
+        """Remove all items from cart"""
+        self.items.all().delete()
+    
+    class Meta:
+        ordering = ['-updated_at']
+
+class CartItem(models.Model):
+    """
+    Individual item in a shopping cart.
+    Only furniture items can be added to cart.
+    """
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='cart_items')
+    quantity = models.IntegerField(default=1, validators=[MinValueValidator(1)])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.quantity}x {self.product.title} in {self.cart.user.username}'s cart"
+    
+    def get_total_price(self):
+        """Calculate total price for this cart item"""
+        return self.product.price * self.quantity
+    
+    def save(self, *args, **kwargs):
+        # Ensure only furniture items can be added to cart
+        if not self.product.is_furniture():
+            raise ValueError("Only furniture items can be added to cart")
+        
+        # Check inventory
+        if self.quantity > self.product.inventory:
+            raise ValueError(f"Quantity exceeds available inventory ({self.product.inventory})")
+        
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ['cart', 'product']
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='auxiliary_images')

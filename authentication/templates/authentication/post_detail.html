@@ -268,30 +268,58 @@
                         <div class="purchase-actions">
                             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                                 {% if user.is_authenticated %}
-                                <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#inquiryModal">
-                                    <i class="bi bi-envelope"></i>
-                                    Send Inquiry
-                                </button>
-                                <a href="{% url 'start_chat_property' post.id %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                                    <i class="bi bi-chat-dots"></i>
-                                    Start Chat
-                                </a>
+                                    {% if post.is_furniture %}
+                                        <!-- Furniture items: Add to Cart -->
+                                        <form method="post" action="{% url 'add_to_cart' post.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="quantity" value="1">
+                                            <input type="hidden" name="redirect" value="cart">
+                                            <button type="submit" class="btn-primary">
+                                                <i class="bi bi-cart-plus"></i>
+                                                Add to Cart
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#inquiryModal">
+                                            <i class="bi bi-envelope"></i>
+                                            Send Inquiry
+                                        </button>
+                                    {% else %}
+                                        <!-- Houses/Land: Inquiry only -->
+                                        <button type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#inquiryModal">
+                                            <i class="bi bi-envelope"></i>
+                                            Send Inquiry
+                                        </button>
+                                    {% endif %}
+                                    <a href="{% url 'start_chat_property' post.id %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                        <i class="bi bi-chat-dots"></i>
+                                        Start Chat
+                                    </a>
                                 {% else %}
-                                <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                                    <i class="bi bi-envelope"></i>
-                                    Send Inquiry
-                                </a>
-                                <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                                    <i class="bi bi-chat-dots"></i>
-                                    Start Chat
-                                </a>
+                                    {% if post.is_furniture %}
+                                        <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                            <i class="bi bi-cart-plus"></i>
+                                            Add to Cart
+                                        </a>
+                                    {% endif %}
+                                    <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                        <i class="bi bi-envelope"></i>
+                                        Send Inquiry
+                                    </a>
+                                    <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                        <i class="bi bi-chat-dots"></i>
+                                        Start Chat
+                                    </a>
                                 {% endif %}
                             </div>
                             <p class="security-note">
                                 <i class="bi bi-shield-check"></i>
-                                Contact seller directly • Schedule viewing • Real-time chat available
+                                {% if post.is_furniture %}
+                                    Add to cart for quick checkout • Contact seller directly • Real-time chat available
+                                {% else %}
+                                    Contact seller directly • Schedule viewing • Real-time chat available
+                                {% endif %}
                                 {% if not user.is_authenticated %}
-                                <br><small style="color: #6b7280;">Please <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" style="color: #6B9080; text-decoration: underline;">login</a> to contact the seller</small>
+                                <br><small style="color: #6b7280;">Please <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" style="color: #6B9080; text-decoration: underline;">login</a> to {% if post.is_furniture %}add items to cart or {% endif %}contact the seller</small>
                                 {% endif %}
                             </p>
                         </div>
