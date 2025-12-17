@@ -1034,16 +1034,70 @@ def vendor_dashboard(request):
         delivery_status__in=['delivered', 'delivery_failed']
     ).order_by('-created_at')
     
+    # Get purchases with pending payment status
+    pending_payments = purchases.filter(
+        status='pending_payment'
+    ).order_by('-created_at')
+    
     context = {
         'products': products,
         'purchases': purchases,
         'total_sales': total_sales,
         'total_revenue': total_revenue,
         'recent_purchases': recent_purchases,
-        'awaiting_delivery': awaiting_delivery
+        'awaiting_delivery': awaiting_delivery,
+        'pending_payments': pending_payments
     }
     
     return render(request, 'authentication/vendor_dashboard.html', context)
+
+@login_required
+def confirm_payment(request, purchase_id):
+    """Allow vendor to confirm payment received directly from buyer"""
+    purchase = get_object_or_404(Purchase, id=purchase_id)
+    
+    # Ensure user is the vendor for this purchase
+    if purchase.property.user != request.user:
+        messages.error(request, 'You do not have permission to confirm this payment.')
+        return redirect('vendor_dashboard')
+    
+    # Only allow confirmation if payment is pending
+    if purchase.status != 'pending_payment':
+        messages.warning(request, f'Payment status is already {purchase.get_status_display()}.')
+        return redirect('vendor_dashboard')
+    
+    if request.method == 'POST':
+        payment_reference = request.POST.get('payment_reference', '').strip()
+        transaction_notes = request.POST.get('transaction_notes', '').strip()
+        
+        # Update purchase status to payment_confirmed
+        purchase.status = 'payment_confirmed'
+        purchase.payment_confirmed_at = timezone.now()
+        
+        if payment_reference:
+            purchase.payment_reference = payment_reference
+        
+        if transaction_notes:
+            purchase.transaction_notes = transaction_notes
+        
+        purchase.save()
+        
+        # For furniture items, initialize delivery status
+        if purchase.property and purchase.property.is_furniture():
+            if not purchase.delivery_status:
+                purchase.delivery_status = 'pending'
+                purchase.save()
+        
+        messages.success(
+            request,
+            f'Payment confirmed successfully! Order {purchase.order_id} is now marked as paid.'
+        )
+        return redirect('vendor_dashboard')
+    
+    context = {
+        'purchase': purchase
+    }
+    return render(request, 'authentication/confirm_payment.html', context)
 
 @login_required
 def user_settings(request):

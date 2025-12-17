@@ -330,6 +330,10 @@
                 <i class="bi bi-house-door" aria-hidden="true"></i>
                 <span class="sr-only">My listings</span>
             </a>
+            <a href="{% url 'vendor_dashboard' %}#pending-payments" class="nav-tab {% if request.resolver_match.url_name == 'vendor_dashboard' %}active{% endif %}" aria-label="Pending payments" title="Pending payments">
+                <i class="bi bi-credit-card" aria-hidden="true"></i>
+                <span class="sr-only">Pending payments</span>
+            </a>
             <a href="{% url 'vendor_dashboard' %}#awaiting-delivery" class="nav-tab {% if request.resolver_match.url_name == 'vendor_dashboard' %}active{% endif %}" aria-label="Orders awaiting delivery" title="Orders awaiting delivery">
                 <i class="bi bi-truck" aria-hidden="true"></i>
                 <span class="sr-only">Orders awaiting delivery</span>
@@ -387,6 +391,10 @@
             <a href="{% url 'vendor_dashboard' %}" class="mobile-nav-tab {% if request.resolver_match.url_name == 'vendor_dashboard' %}active{% endif %}" {% if request.resolver_match.url_name == 'vendor_dashboard' %}aria-current="page"{% endif %}>
                 <i class="bi bi-house-door" aria-hidden="true"></i>
                 <span>Listings</span>
+            </a>
+            <a href="{% url 'vendor_dashboard' %}#pending-payments" class="mobile-nav-tab {% if request.resolver_match.url_name == 'vendor_dashboard' %}active{% endif %}" title="Pending payments">
+                <i class="bi bi-credit-card" aria-hidden="true"></i>
+                <span>Payments</span>
             </a>
             <a href="{% url 'vendor_dashboard' %}#awaiting-delivery" class="mobile-nav-tab {% if request.resolver_match.url_name == 'vendor_dashboard' %}active{% endif %}" title="Orders awaiting delivery">
                 <i class="bi bi-truck" aria-hidden="true"></i>

@@ -39,10 +39,26 @@ urlpatterns = [
     
     # User dashboards
     path('vendor-dashboard/', views.vendor_dashboard, name='vendor_dashboard'),
+    path('purchase/<int:purchase_id>/confirm-payment/', views.confirm_payment, name='confirm_payment'),
     
     # User history and saved items
     path('purchases/', views.purchase_history, name='purchase_history'),
+    path('purchase/<int:purchase_id>/', views.purchase_detail, name='purchase_detail'),
     path('bookmarks/', views.bookmarks, name='bookmarks'),
+    
+    # Cart functionality
+    path('cart/', views.view_cart, name='view_cart'),
+    path('cart/add/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
+    path('cart/update/<int:item_id>/', views.update_cart_item, name='update_cart_item'),
+    path('cart/remove/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),
+    path('cart/clear/', views.clear_cart, name='clear_cart'),
+    
+    # Checkout
+    path('checkout/', views.checkout, name='checkout'),
+    path('checkout/process/', views.process_checkout, name='process_checkout'),
+    
+    # Delivery tracking
+    path('purchase/<int:purchase_id>/update-delivery/', views.update_delivery_status, name='update_delivery_status'),
     
     # Legacy paths (kept for compatibility)
     path('become-vendor/', views.become_vendor, name='become_vendor'),

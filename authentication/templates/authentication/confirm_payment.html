@@ -1,0 +1,275 @@
+{% extends "authentication/base.html" %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Confirm Payment - InzuLink{% endblock %}
+
+{% block content %}
+<style>
+    .confirm-payment-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+    
+    .payment-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #E5E7EB;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .payment-header {
+        border-bottom: 2px solid #E5E7EB;
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .payment-header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .payment-header h1 i {
+        color: #6B9080;
+    }
+    
+    .order-info {
+        background: #F9FAFB;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #E5E7EB;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #6B7280;
+    }
+    
+    .info-value {
+        color: #1a1a1a;
+        font-weight: 500;
+    }
+    
+    .amount-highlight {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #6B9080;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #D1D5DB;
+        border-radius: 8px;
+        font-size: 0.938rem;
+        transition: border-color 0.2s;
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #6B9080;
+        box-shadow: 0 0 0 3px rgba(107, 144, 128, 0.1);
+    }
+    
+    .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    .form-group small {
+        display: block;
+        margin-top: 0.5rem;
+        color: #6B7280;
+        font-size: 0.813rem;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .btn-confirm {
+        flex: 1;
+        padding: 0.875rem 1.5rem;
+        background: #6B9080;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-confirm:hover {
+        background: #4A7C59;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(107, 144, 128, 0.3);
+    }
+    
+    .btn-cancel {
+        padding: 0.875rem 1.5rem;
+        background: #F3F4F6;
+        color: #374151;
+        border: 1px solid #E5E7EB;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    
+    .btn-cancel:hover {
+        background: #E5E7EB;
+        color: #1a1a1a;
+    }
+    
+    .warning-box {
+        background: #FEF3C7;
+        border: 1px solid #FCD34D;
+        border-left: 4px solid #F59E0B;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: start;
+        gap: 0.75rem;
+    }
+    
+    .warning-box i {
+        color: #D97706;
+        font-size: 1.25rem;
+        margin-top: 0.125rem;
+    }
+    
+    .warning-box p {
+        margin: 0;
+        color: #92400E;
+        font-size: 0.938rem;
+    }
+</style>
+
+<div class="confirm-payment-container">
+    <div class="payment-card">
+        <div class="payment-header">
+            <h1><i class="bi bi-check-circle"></i> Confirm Payment Received</h1>
+        </div>
+        
+        <div class="warning-box">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <p>
+                <strong>Important:</strong> Only confirm payment if you have actually received the money directly from the buyer. 
+                This action will mark the order as paid and may trigger delivery processes.
+            </p>
+        </div>
+        
+        <div class="order-info">
+            <div class="info-row">
+                <span class="info-label">Order ID:</span>
+                <span class="info-value" style="font-family: 'Courier New', monospace;">{{ purchase.order_id }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Product:</span>
+                <span class="info-value">{{ purchase.property.title }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Buyer:</span>
+                <span class="info-value">{{ purchase.buyer.username }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Quantity:</span>
+                <span class="info-value">{{ purchase.quantity }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Payment Method:</span>
+                <span class="info-value">{{ purchase.get_payment_method_display }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Amount:</span>
+                <span class="info-value amount-highlight">{{ purchase.final_price|currency }}</span>
+            </div>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="payment_reference">
+                    Payment Reference / Transaction ID <span style="color: #6B7280; font-weight: normal;">(Optional)</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="payment_reference" 
+                    name="payment_reference" 
+                    placeholder="e.g., MTN-1234567890, Bank transfer reference, etc."
+                    value="{{ purchase.payment_reference|default:'' }}"
+                >
+                <small>Enter the transaction reference number if available</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="transaction_notes">
+                    Notes <span style="color: #6B7280; font-weight: normal;">(Optional)</span>
+                </label>
+                <textarea 
+                    id="transaction_notes" 
+                    name="transaction_notes" 
+                    placeholder="Add any additional notes about this payment..."
+                >{{ purchase.transaction_notes|default:'' }}</textarea>
+                <small>Any additional information about this payment</small>
+            </div>
+            
+            <div class="button-group">
+                <a href="{% url 'vendor_dashboard' %}" class="btn-cancel">
+                    <i class="bi bi-x-circle"></i>
+                    Cancel
+                </a>
+                <button type="submit" class="btn-confirm">
+                    <i class="bi bi-check-circle-fill"></i>
+                    Confirm Payment Received
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
