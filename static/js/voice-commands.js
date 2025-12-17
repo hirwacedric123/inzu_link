@@ -5,6 +5,7 @@
  * Phase 2: Advanced Navigation & Search Commands ✅
  * Phase 3: Form Interaction Commands ✅
  * Phase 4: E-commerce Actions ✅
+ * Phase 5: Advanced Features & Personalization ✅
  * 
  * Features:
  * - Web Speech API integration
@@ -19,6 +20,10 @@
  * - Cart management (add, remove, clear)
  * - Checkout commands
  * - Order tracking
+ * - Browser control (back, refresh, scroll)
+ * - Custom user-defined commands
+ * - Command suggestions
+ * - Repeat last command
  */
 
 (function() {
@@ -34,8 +39,11 @@
             this.isSupported = false;
             this.commands = new Map();
             this.parameterCommands = new Map(); // Commands that accept parameters
+            this.customCommands = new Map(); // User-defined custom commands
             this.commandHistory = [];
+            this.commandUsage = new Map(); // Track command usage frequency
             this.currentCommand = null;
+            this.lastCommand = null; // For repeat functionality
             this.feedbackElement = null;
             this.maxHistorySize = 10;
             this.init();
@@ -77,6 +85,15 @@
             
             // Register Phase 4 commands (e-commerce actions)
             this.registerPhase4Commands();
+            
+            // Register Phase 5 commands (advanced features)
+            this.registerPhase5Commands();
+            
+            // Load custom commands from localStorage
+            this.loadCustomCommands();
+            
+            // Load command usage statistics
+            this.loadCommandUsage();
             
             // Create feedback element
             this.createFeedbackElement();
@@ -132,6 +149,54 @@
                 this.updateButtonState(false);
                 this.updateFeedback('Click to activate voice commands', 'idle');
             };
+        }
+
+        /**
+         * Register Phase 5 commands (advanced features)
+         */
+        registerPhase5Commands() {
+            // Browser control commands
+            this.registerCommand(['go back', 'back', 'previous page', 'browser back'], () => {
+                this.goBack();
+            });
+
+            this.registerCommand(['go forward', 'forward', 'next page'], () => {
+                this.goForward();
+            });
+
+            this.registerCommand(['refresh page', 'reload page', 'refresh', 'reload'], () => {
+                this.refreshPage();
+            });
+
+            this.registerCommand(['scroll up', 'scroll to top', 'go to top'], () => {
+                this.scrollToTop();
+            });
+
+            this.registerCommand(['scroll down', 'scroll to bottom', 'go to bottom'], () => {
+                this.scrollToBottom();
+            });
+
+            this.registerCommand(['scroll down a bit', 'scroll down little'], () => {
+                this.scrollDown(300);
+            });
+
+            this.registerCommand(['scroll up a bit', 'scroll up little'], () => {
+                this.scrollUp(300);
+            });
+
+            // Custom command management
+            this.registerCommand(['create custom command', 'add custom command', 'define command'], () => {
+                this.showCustomCommandDialog();
+            });
+
+            this.registerCommand(['show custom commands', 'list custom commands', 'my commands'], () => {
+                this.showCustomCommandsList();
+            });
+
+            // Command suggestions
+            this.registerCommand(['suggest commands', 'command suggestions', 'what should I say'], () => {
+                this.showCommandSuggestions();
+            });
         }
 
         /**
@@ -294,6 +359,19 @@
         processCommand(transcript) {
             // Save to history
             this.addToHistory(transcript);
+            
+            // Check for repeat command first
+            if (transcript.match(/^(repeat|again|do that again|say that again)$/i)) {
+                this.repeatLastCommand();
+                return;
+            }
+            
+            // Check custom commands first (user-defined)
+            if (this.customCommands.has(transcript)) {
+                const customCommand = this.customCommands.get(transcript);
+                this.executeCustomCommand(customCommand);
+                return;
+            }
             
             // Try exact match first
             if (this.commands.has(transcript)) {
@@ -524,8 +602,12 @@
             const handler = this.commands.get(command);
             if (handler) {
                 this.currentCommand = command;
+                this.lastCommand = command; // Save for repeat
                 this.updateFeedback(`Executing: ${command}`, 'success');
                 this.announceToScreenReader(`Executing command: ${command}`);
+                
+                // Track command usage
+                this.trackCommandUsage(command);
                 
                 try {
                     handler();
@@ -1331,6 +1413,321 @@
         }
 
         /**
+         * Phase 5: Advanced Features Methods
+         */
+
+        /**
+         * Browser control: Go back
+         */
+        goBack() {
+            if (window.history.length > 1) {
+                this.updateFeedback('Going back...', 'processing');
+                this.announceToScreenReader('Going back to previous page');
+                window.history.back();
+            } else {
+                this.updateFeedback('Cannot go back', 'error');
+                this.announceToScreenReader('Cannot go back. No previous page in history.');
+            }
+        }
+
+        /**
+         * Browser control: Go forward
+         */
+        goForward() {
+            if (window.history.length > 1) {
+                this.updateFeedback('Going forward...', 'processing');
+                this.announceToScreenReader('Going forward to next page');
+                window.history.forward();
+            } else {
+                this.updateFeedback('Cannot go forward', 'error');
+                this.announceToScreenReader('Cannot go forward. No next page in history.');
+            }
+        }
+
+        /**
+         * Browser control: Refresh page
+         */
+        refreshPage() {
+            this.updateFeedback('Refreshing page...', 'processing');
+            this.announceToScreenReader('Refreshing page');
+            window.location.reload();
+        }
+
+        /**
+         * Scroll to top of page
+         */
+        scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            this.updateFeedback('Scrolled to top', 'success');
+            this.announceToScreenReader('Scrolled to top of page');
+        }
+
+        /**
+         * Scroll to bottom of page
+         */
+        scrollToBottom() {
+            window.scrollTo({
+                top: document.documentElement.scrollHeight,
+                behavior: 'smooth'
+            });
+            this.updateFeedback('Scrolled to bottom', 'success');
+            this.announceToScreenReader('Scrolled to bottom of page');
+        }
+
+        /**
+         * Scroll down by amount
+         */
+        scrollDown(amount = 300) {
+            window.scrollBy({
+                top: amount,
+                behavior: 'smooth'
+            });
+            this.updateFeedback('Scrolled down', 'success');
+            this.announceToScreenReader('Scrolled down');
+        }
+
+        /**
+         * Scroll up by amount
+         */
+        scrollUp(amount = 300) {
+            window.scrollBy({
+                top: -amount,
+                behavior: 'smooth'
+            });
+            this.updateFeedback('Scrolled up', 'success');
+            this.announceToScreenReader('Scrolled up');
+        }
+
+        /**
+         * Repeat last command
+         */
+        repeatLastCommand() {
+            if (!this.lastCommand) {
+                this.updateFeedback('No previous command to repeat', 'error');
+                this.announceToScreenReader('No previous command to repeat');
+                return;
+            }
+
+            this.updateFeedback(`Repeating: ${this.lastCommand}`, 'processing');
+            this.announceToScreenReader(`Repeating last command: ${this.lastCommand}`);
+            
+            // Execute the last command
+            if (this.commands.has(this.lastCommand)) {
+                this.executeCommand(this.lastCommand);
+            } else if (this.customCommands.has(this.lastCommand)) {
+                const customCommand = this.customCommands.get(this.lastCommand);
+                this.executeCustomCommand(customCommand);
+            } else {
+                // Try to process as parameter command
+                this.processParameterCommand(this.lastCommand);
+            }
+        }
+
+        /**
+         * Track command usage for suggestions
+         */
+        trackCommandUsage(command) {
+            const currentCount = this.commandUsage.get(command) || 0;
+            this.commandUsage.set(command, currentCount + 1);
+            this.saveCommandUsage();
+        }
+
+        /**
+         * Save command usage statistics
+         */
+        saveCommandUsage() {
+            try {
+                const usageData = Object.fromEntries(this.commandUsage);
+                localStorage.setItem('voiceCommandUsage', JSON.stringify(usageData));
+            } catch (e) {
+                console.warn('Could not save command usage:', e);
+            }
+        }
+
+        /**
+         * Load command usage statistics
+         */
+        loadCommandUsage() {
+            try {
+                const saved = localStorage.getItem('voiceCommandUsage');
+                if (saved) {
+                    const usageData = JSON.parse(saved);
+                    this.commandUsage = new Map(Object.entries(usageData));
+                }
+            } catch (e) {
+                console.warn('Could not load command usage:', e);
+                this.commandUsage = new Map();
+            }
+        }
+
+        /**
+         * Get most used commands for suggestions
+         */
+        getMostUsedCommands(limit = 5) {
+            const sorted = Array.from(this.commandUsage.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, limit)
+                .map(([command]) => command);
+            return sorted;
+        }
+
+        /**
+         * Show command suggestions
+         */
+        showCommandSuggestions() {
+            const mostUsed = this.getMostUsedCommands(5);
+            const recent = this.getRecentCommands(5);
+            const allCommands = Array.from(this.commands.keys()).slice(0, 10);
+
+            let suggestions = 'Command suggestions: ';
+            
+            if (mostUsed.length > 0) {
+                suggestions += `Most used: ${mostUsed.join(', ')}. `;
+            }
+            
+            if (recent.length > 0) {
+                suggestions += `Recent: ${recent.join(', ')}. `;
+            }
+            
+            suggestions += `Popular: ${allCommands.join(', ')}.`;
+
+            this.updateFeedback(suggestions, 'help');
+            this.announceToScreenReader(suggestions);
+        }
+
+        /**
+         * Add custom command
+         */
+        addCustomCommand(phrase, action, actionType = 'navigate') {
+            this.customCommands.set(phrase.toLowerCase(), {
+                phrase: phrase,
+                action: action,
+                type: actionType,
+                createdAt: new Date().toISOString()
+            });
+            this.saveCustomCommands();
+            this.updateFeedback(`Custom command "${phrase}" added`, 'success');
+            this.announceToScreenReader(`Custom command ${phrase} has been added`);
+        }
+
+        /**
+         * Remove custom command
+         */
+        removeCustomCommand(phrase) {
+            if (this.customCommands.delete(phrase.toLowerCase())) {
+                this.saveCustomCommands();
+                this.updateFeedback(`Custom command "${phrase}" removed`, 'success');
+                this.announceToScreenReader(`Custom command ${phrase} has been removed`);
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Execute custom command
+         */
+        executeCustomCommand(customCommand) {
+            this.lastCommand = customCommand.phrase;
+            this.trackCommandUsage(customCommand.phrase);
+            
+            try {
+                switch(customCommand.type) {
+                    case 'navigate':
+                        this.navigateTo(customCommand.action);
+                        break;
+                    case 'search':
+                        this.executeSearch(customCommand.action);
+                        break;
+                    case 'function':
+                        // Execute as JavaScript function (if safe)
+                        if (typeof window[customCommand.action] === 'function') {
+                            window[customCommand.action]();
+                        }
+                        break;
+                    default:
+                        this.navigateTo(customCommand.action);
+                }
+                this.updateFeedback(`Executing custom command: ${customCommand.phrase}`, 'success');
+                this.announceToScreenReader(`Executing custom command: ${customCommand.phrase}`);
+            } catch (error) {
+                console.error('Error executing custom command:', error);
+                this.updateFeedback('Error executing custom command', 'error');
+                this.announceToScreenReader('Error executing custom command');
+            }
+        }
+
+        /**
+         * Save custom commands to localStorage
+         */
+        saveCustomCommands() {
+            try {
+                const commandsData = Array.from(this.customCommands.entries()).map(([phrase, cmd]) => ({
+                    phrase: cmd.phrase,
+                    action: cmd.action,
+                    type: cmd.type,
+                    createdAt: cmd.createdAt
+                }));
+                localStorage.setItem('voiceCustomCommands', JSON.stringify(commandsData));
+            } catch (e) {
+                console.warn('Could not save custom commands:', e);
+            }
+        }
+
+        /**
+         * Load custom commands from localStorage
+         */
+        loadCustomCommands() {
+            try {
+                const saved = localStorage.getItem('voiceCustomCommands');
+                if (saved) {
+                    const commandsData = JSON.parse(saved);
+                    commandsData.forEach(cmd => {
+                        this.customCommands.set(cmd.phrase.toLowerCase(), cmd);
+                    });
+                }
+            } catch (e) {
+                console.warn('Could not load custom commands:', e);
+                this.customCommands = new Map();
+            }
+        }
+
+        /**
+         * Show custom command creation dialog
+         */
+        showCustomCommandDialog() {
+            const phrase = prompt('Enter the voice command phrase (e.g., "my shortcut"):');
+            if (!phrase) return;
+
+            const action = prompt('Enter the action (URL or search term):');
+            if (!action) return;
+
+            const type = prompt('Command type (navigate/search):', 'navigate');
+            
+            this.addCustomCommand(phrase, action, type || 'navigate');
+        }
+
+        /**
+         * Show list of custom commands
+         */
+        showCustomCommandsList() {
+            if (this.customCommands.size === 0) {
+                this.updateFeedback('No custom commands defined', 'help');
+                this.announceToScreenReader('No custom commands defined. Say "create custom command" to add one.');
+                return;
+            }
+
+            const commandsList = Array.from(this.customCommands.values())
+                .map(cmd => `${cmd.phrase} → ${cmd.action}`)
+                .join(', ');
+
+            this.updateFeedback(`Custom commands: ${commandsList}`, 'help');
+            this.announceToScreenReader(`Custom commands: ${commandsList}`);
+        }
+
+        /**
          * Start listening
          */
         startListening() {
@@ -1452,6 +1849,18 @@
                 'Track order 123',
                 'Order history'
             ];
+            const browserExamples = [
+                'Go back',
+                'Refresh page',
+                'Scroll to top',
+                'Scroll down'
+            ];
+            const customExamples = [
+                'Repeat',
+                'Create custom command',
+                'Show custom commands',
+                'Suggest commands'
+            ];
 
             const modal = document.createElement('div');
             modal.id = 'voice-help-modal';
@@ -1501,6 +1910,20 @@
                             <h3>Order Commands</h3>
                             <ul class="voice-commands-list">
                                 ${orderExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="voice-help-section">
+                            <h3>Browser Control</h3>
+                            <ul class="voice-commands-list">
+                                ${browserExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="voice-help-section">
+                            <h3>Advanced Features</h3>
+                            <ul class="voice-commands-list">
+                                ${customExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
                             </ul>
                         </div>
                         

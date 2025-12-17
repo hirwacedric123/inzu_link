@@ -141,6 +141,37 @@ InzuLink now supports voice commands for navigation and interaction! You can con
 - Remove/update quantity works when on cart page
 - Products are identified by their title/name
 
+### **Phase 5: Browser Control & Advanced Features** ⚡
+
+| Command | What It Does |
+|---------|-------------|
+| "Go back" / "Back" | Navigates to previous page |
+| "Go forward" / "Forward" | Navigates to next page |
+| "Refresh page" / "Reload" | Refreshes current page |
+| "Scroll to top" | Scrolls to top of page |
+| "Scroll to bottom" | Scrolls to bottom of page |
+| "Scroll down" / "Scroll up" | Scrolls page up or down |
+| "Repeat" / "Again" | Repeats last command |
+| "Create custom command" | Creates user-defined shortcut |
+| "Show custom commands" | Lists your custom commands |
+| "Suggest commands" | Shows command suggestions |
+
+**Browser Control Examples:**
+- "Go back" → returns to previous page
+- "Refresh page" → reloads current page
+- "Scroll to top" → smooth scroll to top
+- "Scroll down a bit" → scrolls down 300px
+
+**Custom Commands:**
+- "Create custom command" → opens dialog to create shortcut
+- Example: Create "my shop" → navigates to your favorite page
+- "Show custom commands" → lists all your custom commands
+
+**Repeat Feature:**
+- "Repeat" → executes last command again
+- "Again" → same as repeat
+- Useful for repeating searches or navigation
+
 ### **Utility Commands**
 
 | Command | What It Does |
@@ -275,9 +306,16 @@ Voice commands work on mobile devices, but:
 - ✅ **Checkout** - Navigate to checkout
 - ✅ **Order Tracking** - View orders and track by ID
 
-## 🚀 **Upcoming Features (Future Phases)**
+## 🆕 **Phase 5 Features** ⚡
 
-- **Phase 5:** Custom commands and personalization
+- ✅ **Browser Control** - Go back, refresh, scroll
+- ✅ **Custom Commands** - User-defined voice shortcuts
+- ✅ **Command Suggestions** - Based on usage patterns
+- ✅ **Repeat Command** - Repeat last command easily
+
+## ✅ **All Phases Complete!**
+
+The voice command system is now fully implemented with all planned features!
 
 ---
 
@@ -385,7 +423,43 @@ System: "Finding order 123..."
 System: [Opens order details]
 ```
 
-**Scenario 9: Multiple Ways to Say Same Thing**
+**Scenario 9: Browser Control**
+```
+You: [Press V]
+System: "Listening..."
+You: "Scroll to top"
+System: "Scrolled to top of page"
+You: "Go back"
+System: "Going back to previous page"
+[Browser navigates back]
+You: "Refresh page"
+System: "Refreshing page"
+[Page reloads]
+```
+
+**Scenario 10: Custom Commands**
+```
+You: [Press V]
+System: "Listening..."
+You: "Create custom command"
+System: [Opens dialog]
+You: [Enters "my shop" → "/auth/dashboard/"]
+System: "Custom command 'my shop' added"
+You: [Later...]
+You: "My shop"
+System: [Navigates to dashboard]
+```
+
+**Scenario 11: Repeat Command**
+```
+You: "Search for iPhone"
+System: [Searches for iPhone]
+You: "Repeat"
+System: "Repeating: search for iPhone"
+System: [Searches again]
+```
+
+**Scenario 12: Multiple Ways to Say Same Thing**
 ```
 "Go to home" ✅
 "Navigate to home" ✅
