@@ -1,0 +1,817 @@
+{% extends 'authentication/base.html' %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Order Details - InzuLink{% endblock %}
+
+{% block content %}
+<style>
+    .purchase-detail-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+        animation: fadeIn 0.6s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Header Section */
+    .page-header {
+        background: linear-gradient(135deg, #6B9080 0%, #4A7C59 100%);
+        color: white;
+        padding: 2.5rem 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(107, 144, 128, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+        animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
+
+    .header-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .header-title h1 {
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header-title i {
+        font-size: 2.5rem;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Main Content Grid */
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1200px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Order Info Card */
+    .order-info-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #E5E7EB;
+        margin-bottom: 2rem;
+    }
+
+    .card-header-modern {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid #F3F4F6;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header-modern i {
+        font-size: 1.5rem;
+        color: #6B9080;
+    }
+
+    .card-header-modern h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .info-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6B7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .info-value {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+    .status-badge-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        width: fit-content;
+    }
+
+    .status-badge-modern.completed {
+        background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+        color: #065F46;
+        border: 1px solid rgba(6, 95, 70, 0.2);
+    }
+
+    .status-badge-modern.pending {
+        background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+        color: #92400E;
+        border: 1px solid rgba(146, 64, 14, 0.2);
+    }
+
+    .status-badge-modern.cancelled {
+        background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+        color: #991B1B;
+        border: 1px solid rgba(153, 27, 27, 0.2);
+    }
+
+    /* Product Display */
+    .product-display {
+        background: linear-gradient(135deg, #FAFAFA 0%, #F5F5F5 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-top: 2rem;
+        border: 1px solid #E5E7EB;
+    }
+
+    .product-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .product-image-wrapper {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .product-image {
+        width: 180px;
+        height: 180px;
+        border-radius: 16px;
+        object-fit: cover;
+        border: 3px solid white;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        transition: transform 0.3s ease;
+    }
+
+    .product-image:hover {
+        transform: scale(1.05);
+    }
+
+    .product-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .product-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .product-category {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+        color: #1E40AF;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        width: fit-content;
+    }
+
+    .product-specs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .spec-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.938rem;
+        color: #6B7280;
+    }
+
+    .product-price-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1.5rem;
+        border-top: 2px solid #E5E7EB;
+        margin-top: 1.5rem;
+    }
+
+    .price-label {
+        font-size: 1rem;
+        color: #6B7280;
+        font-weight: 600;
+    }
+
+    .price-value {
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #6B9080 0%, #4A7C59 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Delivery Section */
+    .delivery-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #E5E7EB;
+        margin-bottom: 2rem;
+    }
+
+    .form-group-modern {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label-modern {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .form-control-modern {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #E5E7EB;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #FAFAFA;
+    }
+
+    .form-control-modern:focus {
+        outline: none;
+        border-color: #6B9080;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(107, 144, 128, 0.1);
+    }
+
+    .btn-update {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 2rem;
+        background: linear-gradient(135deg, #6B9080 0%, #4A7C59 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(107, 144, 128, 0.3);
+    }
+
+    .btn-update:hover {
+        background: linear-gradient(135deg, #4A7C59 0%, #3A6B4A 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(107, 144, 128, 0.4);
+    }
+
+    /* Sidebar */
+    .sidebar-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #E5E7EB;
+        position: sticky;
+        top: 100px;
+        height: fit-content;
+    }
+
+    .contact-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 2px solid #F3F4F6;
+    }
+
+    .contact-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .contact-header i {
+        font-size: 1.5rem;
+        color: #6B9080;
+    }
+
+    .contact-header h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .contact-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .contact-label {
+        font-size: 0.813rem;
+        font-weight: 600;
+        color: #6B7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .contact-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+    .summary-section {
+        margin-top: 2rem;
+    }
+
+    .summary-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .summary-header i {
+        font-size: 1.5rem;
+        color: #6B9080;
+    }
+
+    .summary-header h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #F3F4F6;
+    }
+
+    .summary-row:last-child {
+        border-bottom: none;
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+        border-top: 2px solid #E5E7EB;
+    }
+
+    .summary-label {
+        font-size: 0.938rem;
+        color: #6B7280;
+        font-weight: 500;
+    }
+
+    .summary-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+    .summary-row:last-child .summary-label,
+    .summary-row:last-child .summary-value {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #6B9080;
+    }
+
+    /* Delivery Info Display */
+    .delivery-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .delivery-info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .purchase-detail-container {
+            padding: 1rem;
+        }
+
+        .page-header {
+            padding: 1.5rem 1rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+        }
+
+        .content-grid {
+            gap: 1.5rem;
+        }
+
+        .order-info-card,
+        .delivery-card,
+        .sidebar-card {
+            padding: 1.5rem;
+        }
+
+        .product-header {
+            flex-direction: column;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 250px;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="purchase-detail-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-title">
+                <i class="bi bi-receipt"></i>
+                <h1>Order Details</h1>
+            </div>
+            <a href="{% if is_vendor %}{% url 'vendor_dashboard' %}{% else %}{% url 'purchase_history' %}{% endif %}" class="btn-back">
+                <i class="bi bi-arrow-left"></i>
+                Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+        <!-- Left Column: Main Content -->
+        <div>
+            <!-- Order Information Card -->
+            <div class="order-info-card">
+                <div class="card-header-modern">
+                    <i class="bi bi-box-seam"></i>
+                    <h2>Order Information</h2>
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Order ID</span>
+                        <span class="info-value" style="font-family: 'Courier New', monospace;">{{ purchase.order_id }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Order Date</span>
+                        <span class="info-value">{{ purchase.created_at|date:"F d, Y H:i" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Status</span>
+                        <span class="status-badge-modern 
+                            {% if purchase.status == 'completed' %}completed
+                            {% elif purchase.status == 'cancelled' %}cancelled
+                            {% else %}pending{% endif %}">
+                            <i class="bi bi-{% if purchase.status == 'completed' %}check-circle{% elif purchase.status == 'cancelled' %}x-circle{% else %}clock{% endif %}"></i>
+                            {{ purchase.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Payment Method</span>
+                        <span class="info-value">{{ purchase.get_payment_method_display }}</span>
+                    </div>
+                </div>
+
+                <!-- Product Display -->
+                <div class="product-display">
+                    <div class="product-header">
+                        <div class="product-image-wrapper">
+                            {% if purchase.property.image %}
+                            <img src="{{ purchase.property.image.url }}" 
+                                 alt="{{ purchase.property.title }}" 
+                                 class="product-image">
+                            {% else %}
+                            <div class="product-image" style="background: #F3F4F6; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-image" style="font-size: 3rem; color: #9CA3AF;"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="product-details">
+                            <h3 class="product-title">{{ purchase.property.title }}</h3>
+                            <span class="product-category">
+                                <i class="bi bi-tag"></i>
+                                {{ purchase.property.get_category_display }}
+                            </span>
+                            <div class="product-specs">
+                                <div class="spec-item">
+                                    <i class="bi bi-box"></i>
+                                    <span>Quantity: <strong>{{ purchase.quantity }}</strong></span>
+                                </div>
+                                <div class="spec-item">
+                                    <i class="bi bi-currency-dollar"></i>
+                                    <span>Price per item: <strong>{{ purchase.property.price|currency }}</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-price-section">
+                        <span class="price-label">Total Amount</span>
+                        <span class="price-value">{{ purchase.final_price|currency }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Information Card -->
+            {% if purchase.is_furniture_purchase %}
+            <div class="delivery-card">
+                <div class="card-header-modern">
+                    <i class="bi bi-truck"></i>
+                    <h2>Delivery Information</h2>
+                </div>
+
+                {% if is_vendor %}
+                    <!-- Vendor view: Update delivery status -->
+                    <form method="post" action="{% url 'update_delivery_status' purchase.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="form-group-modern">
+                            <label for="delivery_status" class="form-label-modern">Delivery Status</label>
+                            <select class="form-control-modern" id="delivery_status" name="delivery_status" required>
+                                {% for status, label in purchase.DELIVERY_STATUS_CHOICES %}
+                                <option value="{{ status }}" {% if purchase.delivery_status == status %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group-modern">
+                            <label for="tracking_number" class="form-label-modern">Tracking Number</label>
+                            <input type="text" 
+                                   class="form-control-modern" 
+                                   id="tracking_number" 
+                                   name="tracking_number" 
+                                   value="{{ purchase.tracking_number|default:'' }}"
+                                   placeholder="Enter tracking number">
+                        </div>
+                        
+                        <div class="form-group-modern">
+                            <label for="delivery_notes" class="form-label-modern">Delivery Notes</label>
+                            <textarea class="form-control-modern" 
+                                      id="delivery_notes" 
+                                      name="delivery_notes" 
+                                      rows="4"
+                                      placeholder="Add notes about delivery">{{ purchase.delivery_notes|default:'' }}</textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn-update">
+                            <i class="bi bi-check-circle"></i>
+                            Update Delivery Status
+                        </button>
+                    </form>
+                {% else %}
+                    <!-- Buyer view: View delivery status -->
+                    <div class="delivery-info-grid">
+                        <div class="delivery-info-item">
+                            <span class="info-label">Delivery Status</span>
+                            <span class="status-badge-modern 
+                                {% if purchase.delivery_status == 'delivered' %}completed
+                                {% elif purchase.delivery_status == 'delivery_failed' %}cancelled
+                                {% else %}pending{% endif %}">
+                                <i class="bi bi-truck"></i>
+                                {% if purchase.delivery_status %}
+                                    {{ purchase.get_delivery_status_display }}
+                                {% else %}
+                                    Pending
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% if purchase.tracking_number %}
+                        <div class="delivery-info-item">
+                            <span class="info-label">Tracking Number</span>
+                            <span class="info-value" style="font-family: 'Courier New', monospace;">{{ purchase.tracking_number }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if purchase.delivery_address %}
+                    <div class="delivery-info-item" style="margin-top: 1.5rem;">
+                        <span class="info-label">Delivery Address</span>
+                        <span class="info-value">
+                            <i class="bi bi-geo-alt"></i>
+                            {{ purchase.delivery_address }}
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if purchase.delivery_phone %}
+                    <div class="delivery-info-item" style="margin-top: 1rem;">
+                        <span class="info-label">Contact Phone</span>
+                        <span class="info-value">
+                            <i class="bi bi-telephone"></i>
+                            {{ purchase.delivery_phone }}
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if purchase.delivery_notes %}
+                    <div class="delivery-info-item" style="margin-top: 1rem;">
+                        <span class="info-label">Delivery Notes</span>
+                        <p style="margin: 0.5rem 0 0 0; color: #6B7280; line-height: 1.6;">{{ purchase.delivery_notes }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if purchase.shipped_at %}
+                    <div class="delivery-info-item" style="margin-top: 1rem;">
+                        <span class="info-label">Shipped At</span>
+                        <span class="info-value">{{ purchase.shipped_at|date:"F d, Y H:i" }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if purchase.delivered_at %}
+                    <div class="delivery-info-item" style="margin-top: 1rem;">
+                        <span class="info-label">Delivered At</span>
+                        <span class="info-value">{{ purchase.delivered_at|date:"F d, Y H:i" }}</span>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Sidebar -->
+        <div>
+            <div class="sidebar-card">
+                <!-- Contact Information -->
+                <div class="contact-section">
+                    <div class="contact-header">
+                        <i class="bi bi-person"></i>
+                        <h3>{% if is_vendor %}Buyer{% else %}Vendor{% endif %} Information</h3>
+                    </div>
+                    <div class="contact-info">
+                        {% if is_vendor %}
+                            <div class="contact-item">
+                                <span class="contact-label">Name</span>
+                                <span class="contact-value">{{ purchase.buyer.get_full_name|default:purchase.buyer.username }}</span>
+                            </div>
+                            <div class="contact-item">
+                                <span class="contact-label">Email</span>
+                                <span class="contact-value">{{ purchase.buyer.email }}</span>
+                            </div>
+                            {% if purchase.buyer.phone_number %}
+                            <div class="contact-item">
+                                <span class="contact-label">Phone</span>
+                                <span class="contact-value">{{ purchase.buyer.phone_number }}</span>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="contact-item">
+                                <span class="contact-label">Name</span>
+                                <span class="contact-value">{{ purchase.property.user.get_full_name|default:purchase.property.user.username }}</span>
+                            </div>
+                            <div class="contact-item">
+                                <span class="contact-label">Email</span>
+                                <span class="contact-value">{{ purchase.property.user.email }}</span>
+                            </div>
+                            {% if purchase.property.user.phone_number %}
+                            <div class="contact-item">
+                                <span class="contact-label">Phone</span>
+                                <span class="contact-value">{{ purchase.property.user.phone_number }}</span>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="summary-section">
+                    <div class="summary-header">
+                        <i class="bi bi-receipt-cutoff"></i>
+                        <h3>Order Summary</h3>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Subtotal</span>
+                        <span class="summary-value">{{ purchase.final_price|currency }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Delivery</span>
+                        <span class="summary-value">RWF 0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Total</span>
+                        <span class="summary-value">{{ purchase.final_price|currency }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
