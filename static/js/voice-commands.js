@@ -1,13 +1,17 @@
 /**
  * Voice Command System for InzuLink
  * 
- * Phase 1: Basic Voice Recognition & Navigation Commands
+ * Phase 1: Basic Voice Recognition & Navigation Commands ✅
+ * Phase 2: Advanced Navigation & Search Commands ✅
  * 
  * Features:
  * - Web Speech API integration
  * - Basic command recognition
  * - Simple navigation commands
  * - Voice activation button
+ * - Search functionality with parameters
+ * - Category filtering
+ * - Command history
  */
 
 (function() {
@@ -22,8 +26,11 @@
             this.isListening = false;
             this.isSupported = false;
             this.commands = new Map();
+            this.parameterCommands = new Map(); // Commands that accept parameters
+            this.commandHistory = [];
             this.currentCommand = null;
             this.feedbackElement = null;
+            this.maxHistorySize = 10;
             this.init();
         }
 
@@ -55,8 +62,14 @@
             // Register default commands
             this.registerDefaultCommands();
             
+            // Register Phase 2 commands (search, filter)
+            this.registerPhase2Commands();
+            
             // Create feedback element
             this.createFeedbackElement();
+            
+            // Load command history from localStorage
+            this.loadCommandHistory();
         }
 
         /**
@@ -106,6 +119,36 @@
                 this.updateButtonState(false);
                 this.updateFeedback('Click to activate voice commands', 'idle');
             };
+        }
+
+        /**
+         * Register Phase 2 commands (search, filter, advanced navigation)
+         */
+        registerPhase2Commands() {
+            // Additional navigation commands
+            this.registerCommand(['go to purchases', 'my purchases', 'purchase history', 'show purchases'], () => {
+                this.navigateTo('/purchases/');
+            });
+
+            this.registerCommand(['go to bookmarks', 'my bookmarks', 'show bookmarks', 'saved items'], () => {
+                this.navigateTo('/bookmarks/');
+            });
+
+            this.registerCommand(['go to chat', 'messages', 'my messages', 'show messages'], () => {
+                this.navigateTo('/chat/');
+            });
+
+            this.registerCommand(['vendor dashboard', 'go to vendor dashboard', 'my vendor dashboard'], () => {
+                this.navigateTo('/vendor-dashboard/');
+            });
+
+            this.registerCommand(['create product', 'add product', 'new product', 'list product'], () => {
+                this.navigateTo('/create-product/');
+            });
+
+            this.registerCommand(['create post', 'add post', 'new post'], () => {
+                this.navigateTo('/create-post/');
+            });
         }
 
         /**
@@ -170,9 +213,18 @@
          * Process recognized command
          */
         processCommand(transcript) {
+            // Save to history
+            this.addToHistory(transcript);
+            
             // Try exact match first
             if (this.commands.has(transcript)) {
                 this.executeCommand(transcript);
+                return;
+            }
+
+            // Try parameter commands (search, filter, etc.)
+            const parameterResult = this.processParameterCommand(transcript);
+            if (parameterResult) {
                 return;
             }
 
@@ -187,6 +239,65 @@
             // No match found
             this.updateFeedback(`Command not recognized: "${transcript}"`, 'error');
             this.announceToScreenReader(`Command not recognized. Say "help" for available commands.`);
+        }
+
+        /**
+         * Process commands with parameters (Phase 2)
+         */
+        processParameterCommand(transcript) {
+            // Search commands
+            const searchPatterns = [
+                /search for (.+)/i,
+                /find (.+)/i,
+                /look for (.+)/i,
+                /show (.+)/i,
+                /search (.+)/i
+            ];
+
+            for (const pattern of searchPatterns) {
+                const match = transcript.match(pattern);
+                if (match) {
+                    const query = match[1].trim();
+                    this.executeSearch(query);
+                    return true;
+                }
+            }
+
+            // Filter by category commands
+            const filterPatterns = [
+                /filter by (.+)/i,
+                /show (.+) category/i,
+                /show (.+) products/i,
+                /category (.+)/i,
+                /filter (.+)/i
+            ];
+
+            for (const pattern of filterPatterns) {
+                const match = transcript.match(pattern);
+                if (match) {
+                    const category = match[1].trim();
+                    this.executeCategoryFilter(category);
+                    return true;
+                }
+            }
+
+            // More navigation commands with context
+            const navPatterns = [
+                /go to my (.+)/i,
+                /show my (.+)/i,
+                /open my (.+)/i
+            ];
+
+            for (const pattern of navPatterns) {
+                const match = transcript.match(pattern);
+                if (match) {
+                    const target = match[1].trim();
+                    this.executeContextualNavigation(target);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /**
@@ -206,6 +317,98 @@
                     this.updateFeedback('Error executing command', 'error');
                     this.announceToScreenReader('Error executing command. Please try again.');
                 }
+            }
+        }
+
+        /**
+         * Execute search command
+         */
+        executeSearch(query) {
+            if (!query || query.trim() === '') {
+                this.updateFeedback('Please specify what to search for', 'error');
+                this.announceToScreenReader('Please specify what to search for');
+                return;
+            }
+
+            // Navigate to dashboard with search query
+            const searchUrl = `/dashboard/?q=${encodeURIComponent(query)}`;
+            this.updateFeedback(`Searching for: ${query}`, 'processing');
+            this.announceToScreenReader(`Searching for ${query}`);
+            
+            setTimeout(() => {
+                this.navigateTo(searchUrl);
+            }, 500);
+        }
+
+        /**
+         * Execute category filter command
+         */
+        executeCategoryFilter(category) {
+            // Map common category names to actual category values
+            const categoryMap = {
+                'electronics': 'electronics',
+                'electronic': 'electronics',
+                'furniture': 'furniture',
+                'clothing': 'clothing',
+                'clothes': 'clothing',
+                'vehicles': 'vehicles',
+                'vehicle': 'vehicles',
+                'property': 'property',
+                'properties': 'property',
+                'house': 'house',
+                'houses': 'house',
+                'land': 'land',
+                'apartment': 'apartment',
+                'villa': 'villa',
+                'food': 'food',
+                'art': 'art',
+                'photography': 'photography',
+                'design': 'design',
+                'technology': 'technology',
+                'tech': 'technology'
+            };
+
+            const normalizedCategory = category.toLowerCase().trim();
+            const mappedCategory = categoryMap[normalizedCategory] || normalizedCategory;
+
+            const filterUrl = `/dashboard/?category=${encodeURIComponent(mappedCategory)}`;
+            this.updateFeedback(`Filtering by category: ${category}`, 'processing');
+            this.announceToScreenReader(`Filtering by ${category} category`);
+            
+            setTimeout(() => {
+                this.navigateTo(filterUrl);
+            }, 500);
+        }
+
+        /**
+         * Execute contextual navigation
+         */
+        executeContextualNavigation(target) {
+            const targetMap = {
+                'profile': '/settings/',
+                'settings': '/settings/',
+                'dashboard': '/dashboard/',
+                'cart': '/cart/',
+                'purchases': '/purchases/',
+                'bookmarks': '/bookmarks/',
+                'messages': '/chat/',
+                'chat': '/chat/',
+                'orders': '/purchases/',
+                'products': '/dashboard/'
+            };
+
+            const normalizedTarget = target.toLowerCase().trim();
+            const url = targetMap[normalizedTarget];
+
+            if (url) {
+                this.updateFeedback(`Navigating to my ${target}`, 'processing');
+                this.announceToScreenReader(`Navigating to my ${target}`);
+                setTimeout(() => {
+                    this.navigateTo(url);
+                }, 500);
+            } else {
+                this.updateFeedback(`Unknown target: ${target}`, 'error');
+                this.announceToScreenReader(`Unknown target: ${target}`);
             }
         }
 
@@ -256,6 +459,50 @@
         }
 
         /**
+         * Add command to history
+         */
+        addToHistory(command) {
+            this.commandHistory.unshift(command);
+            if (this.commandHistory.length > this.maxHistorySize) {
+                this.commandHistory.pop();
+            }
+            this.saveCommandHistory();
+        }
+
+        /**
+         * Save command history to localStorage
+         */
+        saveCommandHistory() {
+            try {
+                localStorage.setItem('voiceCommandHistory', JSON.stringify(this.commandHistory));
+            } catch (e) {
+                console.warn('Could not save command history:', e);
+            }
+        }
+
+        /**
+         * Load command history from localStorage
+         */
+        loadCommandHistory() {
+            try {
+                const saved = localStorage.getItem('voiceCommandHistory');
+                if (saved) {
+                    this.commandHistory = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.warn('Could not load command history:', e);
+                this.commandHistory = [];
+            }
+        }
+
+        /**
+         * Get recent commands
+         */
+        getRecentCommands(limit = 5) {
+            return this.commandHistory.slice(0, limit);
+        }
+
+        /**
          * Show help dialog
          */
         showHelp() {
@@ -265,7 +512,7 @@
             this.updateFeedback(helpText, 'help');
             this.announceToScreenReader(helpText);
             
-            // Create help modal (optional enhancement)
+            // Create help modal with Phase 2 features
             this.showHelpModal(commands);
         }
 
@@ -278,6 +525,18 @@
             if (existingModal) {
                 existingModal.remove();
             }
+
+            const recentCommands = this.getRecentCommands(5);
+            const searchExamples = [
+                'Search for iPhone',
+                'Find properties in Kigali',
+                'Look for furniture'
+            ];
+            const filterExamples = [
+                'Filter by electronics',
+                'Show furniture category',
+                'Category vehicles'
+            ];
 
             const modal = document.createElement('div');
             modal.id = 'voice-help-modal';
@@ -295,10 +554,35 @@
                         </button>
                     </div>
                     <div class="voice-help-body">
-                        <p>Say any of these commands:</p>
-                        <ul class="voice-commands-list">
-                            ${commands.map(cmd => `<li>"${cmd}"</li>`).join('')}
-                        </ul>
+                        <div class="voice-help-section">
+                            <h3>Navigation Commands</h3>
+                            <ul class="voice-commands-list">
+                                ${commands.slice(0, 8).map(cmd => `<li>"${cmd}"</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="voice-help-section">
+                            <h3>Search Commands</h3>
+                            <ul class="voice-commands-list">
+                                ${searchExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="voice-help-section">
+                            <h3>Filter Commands</h3>
+                            <ul class="voice-commands-list">
+                                ${filterExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        ${recentCommands.length > 0 ? `
+                        <div class="voice-help-section">
+                            <h3>Recent Commands</h3>
+                            <ul class="voice-commands-list">
+                                ${recentCommands.map(cmd => `<li>"${cmd}"</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -625,6 +909,23 @@
 
             .voice-help-body {
                 padding: 20px;
+                max-height: 60vh;
+                overflow-y: auto;
+            }
+
+            .voice-help-section {
+                margin-bottom: 24px;
+            }
+
+            .voice-help-section:last-child {
+                margin-bottom: 0;
+            }
+
+            .voice-help-section h3 {
+                margin: 0 0 12px 0;
+                font-size: 18px;
+                color: #6B9080;
+                font-weight: 600;
             }
 
             .voice-commands-list {
@@ -636,6 +937,7 @@
             .voice-commands-list li {
                 padding: 8px 0;
                 border-bottom: 1px solid #f0f0f0;
+                color: #333;
             }
 
             .voice-commands-list li:last-child {

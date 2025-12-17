@@ -23,9 +23,9 @@ InzuLink now supports voice commands for navigation and interaction! You can con
 
 ---
 
-## 📋 **Available Commands (Phase 1)**
+## 📋 **Available Commands**
 
-### **Navigation Commands**
+### **Phase 1: Basic Navigation Commands**
 
 | Command | What It Does |
 |---------|-------------|
@@ -37,6 +37,50 @@ InzuLink now supports voice commands for navigation and interaction! You can con
 | "Show cart" / "Cart" | Opens shopping cart |
 | "Go to profile" / "Profile" | Opens user profile |
 | "Go to settings" / "Settings" | Opens settings page |
+
+### **Phase 2: Advanced Navigation Commands**
+
+| Command | What It Does |
+|---------|-------------|
+| "Go to purchases" / "My purchases" | Opens purchase history |
+| "Go to bookmarks" / "My bookmarks" | Opens saved bookmarks |
+| "Go to chat" / "Messages" | Opens chat/messages |
+| "Vendor dashboard" | Opens vendor dashboard |
+| "Create product" / "Add product" | Opens product creation page |
+| "Create post" / "Add post" | Opens post creation page |
+
+### **Phase 2: Search Commands** 🆕
+
+| Command | What It Does |
+|---------|-------------|
+| "Search for [product name]" | Searches for products |
+| "Find [product name]" | Searches for products |
+| "Look for [product name]" | Searches for products |
+| "Show [product name]" | Searches for products |
+
+**Examples:**
+- "Search for iPhone"
+- "Find furniture"
+- "Look for properties in Kigali"
+- "Show electronics"
+
+### **Phase 2: Filter Commands** 🆕
+
+| Command | What It Does |
+|---------|-------------|
+| "Filter by [category]" | Filters products by category |
+| "Show [category] category" | Shows products in category |
+| "Show [category] products" | Shows products in category |
+| "Category [category]" | Filters by category |
+
+**Examples:**
+- "Filter by electronics"
+- "Show furniture category"
+- "Category vehicles"
+- "Show property products"
+
+**Available Categories:**
+- Electronics, Furniture, Clothing, Vehicles, Property, House, Land, Apartment, Villa, Food, Art, Photography, Design, Technology
 
 ### **Utility Commands**
 
@@ -147,9 +191,16 @@ Voice commands work on mobile devices, but:
 
 ---
 
+## 🆕 **Phase 2 Features**
+
+- ✅ **Search Commands** - Search for products using voice
+- ✅ **Category Filtering** - Filter products by category
+- ✅ **Command History** - Recent commands saved and displayed
+- ✅ **Enhanced Help** - Improved help dialog with examples
+- ✅ **Contextual Navigation** - "Go to my [target]" commands
+
 ## 🚀 **Upcoming Features (Future Phases)**
 
-- **Phase 2:** Advanced navigation and search commands
 - **Phase 3:** Form interaction via voice
 - **Phase 4:** E-commerce actions (add to cart, checkout)
 - **Phase 5:** Custom commands and personalization
@@ -186,12 +237,36 @@ You: "Help"
 System: [Shows list of available commands]
 ```
 
-**Scenario 3: Multiple Ways to Say Same Thing**
+**Scenario 3: Search Command**
+```
+You: [Press V]
+System: "Listening..."
+You: "Search for iPhone"
+System: "Heard: search for iPhone"
+System: "Searching for: iPhone"
+[Page navigates to dashboard with search results]
+```
+
+**Scenario 4: Filter Command**
+```
+You: [Press V]
+System: "Listening..."
+You: "Filter by electronics"
+System: "Heard: filter by electronics"
+System: "Filtering by category: electronics"
+[Page navigates to dashboard with filtered results]
+```
+
+**Scenario 5: Multiple Ways to Say Same Thing**
 ```
 "Go to home" ✅
 "Navigate to home" ✅
 "Home" ✅
 "Go home" ✅
+
+"Search for iPhone" ✅
+"Find iPhone" ✅
+"Look for iPhone" ✅
 ```
 
 ---
