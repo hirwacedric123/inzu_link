@@ -125,29 +125,29 @@
          * Register Phase 2 commands (search, filter, advanced navigation)
          */
         registerPhase2Commands() {
-            // Additional navigation commands
+            // Additional navigation commands - using correct URLs with /auth/ prefix
             this.registerCommand(['go to purchases', 'my purchases', 'purchase history', 'show purchases'], () => {
-                this.navigateTo('/purchases/');
+                this.navigateTo('/auth/purchases/');
             });
 
             this.registerCommand(['go to bookmarks', 'my bookmarks', 'show bookmarks', 'saved items'], () => {
-                this.navigateTo('/bookmarks/');
+                this.navigateTo('/auth/bookmarks/');
             });
 
             this.registerCommand(['go to chat', 'messages', 'my messages', 'show messages'], () => {
-                this.navigateTo('/chat/');
+                this.navigateTo('/auth/chat/');
             });
 
             this.registerCommand(['vendor dashboard', 'go to vendor dashboard', 'my vendor dashboard'], () => {
-                this.navigateTo('/vendor-dashboard/');
+                this.navigateTo('/auth/vendor-dashboard/');
             });
 
             this.registerCommand(['create product', 'add product', 'new product', 'list product'], () => {
-                this.navigateTo('/create-product/');
+                this.navigateTo('/auth/create-product/');
             });
 
             this.registerCommand(['create post', 'add post', 'new post'], () => {
-                this.navigateTo('/create-post/');
+                this.navigateTo('/auth/create-post/');
             });
         }
 
@@ -155,37 +155,37 @@
          * Register default navigation commands
          */
         registerDefaultCommands() {
-            // Navigation commands
+            // Navigation commands - using correct URLs with /auth/ prefix
             this.registerCommand(['go to home', 'navigate to home', 'home', 'go home'], () => {
                 this.navigateTo('/');
             });
 
             this.registerCommand(['go to dashboard', 'navigate to dashboard', 'dashboard', 'go dashboard', 'my dashboard'], () => {
-                this.navigateTo('/dashboard/');
+                this.navigateTo('/auth/dashboard/');
             });
 
             this.registerCommand(['go to login', 'navigate to login', 'login', 'go login', 'sign in'], () => {
-                this.navigateTo('/login/');
+                this.navigateTo('/auth/login/');
             });
 
             this.registerCommand(['go to register', 'navigate to register', 'register', 'go register', 'sign up', 'create account'], () => {
-                this.navigateTo('/register/');
+                this.navigateTo('/auth/register/');
             });
 
             this.registerCommand(['show products', 'go to products', 'products', 'browse products', 'view products'], () => {
-                this.navigateTo('/dashboard/');
+                this.navigateTo('/auth/dashboard/');
             });
 
             this.registerCommand(['show cart', 'go to cart', 'cart', 'my cart', 'view cart'], () => {
-                this.navigateTo('/cart/');
+                this.navigateTo('/auth/cart/');
             });
 
             this.registerCommand(['go to profile', 'navigate to profile', 'profile', 'my profile', 'view profile'], () => {
-                this.navigateTo('/settings/');
+                this.navigateTo('/auth/settings/');
             });
 
             this.registerCommand(['go to settings', 'navigate to settings', 'settings', 'my settings'], () => {
-                this.navigateTo('/settings/');
+                this.navigateTo('/auth/settings/');
             });
 
             // Help command
@@ -222,15 +222,30 @@
                 return;
             }
 
-            // Try parameter commands (search, filter, etc.)
+            // Try parameter commands (search, filter, etc.) - check these FIRST before partial matching
             const parameterResult = this.processParameterCommand(transcript);
             if (parameterResult) {
                 return;
             }
 
-            // Try partial match
+            // Try partial match - but be more strict
+            // Only match if the command is a significant part of the transcript
             for (const [command, handler] of this.commands.entries()) {
-                if (transcript.includes(command) || command.includes(transcript)) {
+                // Check if transcript starts with command or command is a complete word in transcript
+                const words = transcript.split(/\s+/);
+                const commandWords = command.split(/\s+/);
+                
+                // Match if:
+                // 1. Transcript starts with the command
+                // 2. Command is at least 2 words and transcript contains all command words in order
+                // 3. Command is a single word and it's a complete word in transcript (not part of another word)
+                const transcriptStartsWithCommand = transcript.startsWith(command);
+                const commandIsCompleteWord = commandWords.length === 1 && 
+                    new RegExp(`\\b${command}\\b`, 'i').test(transcript);
+                const commandWordsInOrder = commandWords.length >= 2 && 
+                    this.wordsInOrder(commandWords, words);
+                
+                if (transcriptStartsWithCommand || commandIsCompleteWord || commandWordsInOrder) {
                     this.executeCommand(command);
                     return;
                 }
@@ -239,6 +254,19 @@
             // No match found
             this.updateFeedback(`Command not recognized: "${transcript}"`, 'error');
             this.announceToScreenReader(`Command not recognized. Say "help" for available commands.`);
+        }
+
+        /**
+         * Check if command words appear in order in transcript words
+         */
+        wordsInOrder(commandWords, transcriptWords) {
+            let commandIndex = 0;
+            for (let i = 0; i < transcriptWords.length && commandIndex < commandWords.length; i++) {
+                if (transcriptWords[i].toLowerCase() === commandWords[commandIndex].toLowerCase()) {
+                    commandIndex++;
+                }
+            }
+            return commandIndex === commandWords.length;
         }
 
         /**
@@ -330,8 +358,8 @@
                 return;
             }
 
-            // Navigate to dashboard with search query
-            const searchUrl = `/dashboard/?q=${encodeURIComponent(query)}`;
+            // Navigate to dashboard with search query - using correct URL with /auth/ prefix
+            const searchUrl = `/auth/dashboard/?q=${encodeURIComponent(query)}`;
             this.updateFeedback(`Searching for: ${query}`, 'processing');
             this.announceToScreenReader(`Searching for ${query}`);
             
@@ -371,7 +399,8 @@
             const normalizedCategory = category.toLowerCase().trim();
             const mappedCategory = categoryMap[normalizedCategory] || normalizedCategory;
 
-            const filterUrl = `/dashboard/?category=${encodeURIComponent(mappedCategory)}`;
+            // Using correct URL with /auth/ prefix
+            const filterUrl = `/auth/dashboard/?category=${encodeURIComponent(mappedCategory)}`;
             this.updateFeedback(`Filtering by category: ${category}`, 'processing');
             this.announceToScreenReader(`Filtering by ${category} category`);
             
@@ -385,16 +414,16 @@
          */
         executeContextualNavigation(target) {
             const targetMap = {
-                'profile': '/settings/',
-                'settings': '/settings/',
-                'dashboard': '/dashboard/',
-                'cart': '/cart/',
-                'purchases': '/purchases/',
-                'bookmarks': '/bookmarks/',
-                'messages': '/chat/',
-                'chat': '/chat/',
-                'orders': '/purchases/',
-                'products': '/dashboard/'
+                'profile': '/auth/settings/',
+                'settings': '/auth/settings/',
+                'dashboard': '/auth/dashboard/',
+                'cart': '/auth/cart/',
+                'purchases': '/auth/purchases/',
+                'bookmarks': '/auth/bookmarks/',
+                'messages': '/auth/chat/',
+                'chat': '/auth/chat/',
+                'orders': '/auth/purchases/',
+                'products': '/auth/dashboard/'
             };
 
             const normalizedTarget = target.toLowerCase().trim();
