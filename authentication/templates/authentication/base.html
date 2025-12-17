@@ -330,6 +330,10 @@
                 <i class="bi bi-house-door" aria-hidden="true"></i>
                 <span class="sr-only">My listings</span>
             </a>
+            <a href="{% url 'vendor_dashboard' %}#awaiting-delivery" class="nav-tab {% if request.resolver_match.url_name == 'vendor_dashboard' %}active{% endif %}" aria-label="Orders awaiting delivery" title="Orders awaiting delivery">
+                <i class="bi bi-truck" aria-hidden="true"></i>
+                <span class="sr-only">Orders awaiting delivery</span>
+            </a>
             <a href="{% url 'create_product' %}" class="nav-tab {% if request.resolver_match.url_name == 'create_product' %}active{% endif %}" aria-label="Create new product" {% if request.resolver_match.url_name == 'create_product' %}aria-current="page"{% endif %}>
                 <i class="bi bi-plus-circle" aria-hidden="true"></i>
                 <span class="sr-only">Create new product</span>
@@ -343,6 +347,10 @@
                 <i class="bi bi-clock-history" aria-hidden="true"></i>
                 <span class="sr-only">Purchase history</span>
             </a>
+            <a href="{% url 'view_cart' %}" class="nav-tab {% if request.resolver_match.url_name == 'view_cart' or request.resolver_match.url_name == 'checkout' %}active{% endif %}" aria-label="Shopping cart" {% if request.resolver_match.url_name == 'view_cart' or request.resolver_match.url_name == 'checkout' %}aria-current="page"{% endif %}>
+                <i class="bi bi-cart3" aria-hidden="true"></i>
+                <span class="sr-only">Shopping cart</span>
+            </a>
             <a href="{% url 'bookmarks' %}" class="nav-tab {% if request.resolver_match.url_name == 'bookmarks' %}active{% endif %}" aria-label="Saved items" {% if request.resolver_match.url_name == 'bookmarks' %}aria-current="page"{% endif %}>
                 <i class="bi bi-bookmark" aria-hidden="true"></i>
                 <span class="sr-only">Saved items</span>
@@ -351,16 +359,7 @@
                 <i class="bi bi-chat-dots" aria-hidden="true"></i>
                 <span class="sr-only">Messages</span>
             </a>
-            {% if not user.is_koraquest %}
-            <a href="{% url 'user_qr_code' %}" class="nav-tab {% if request.resolver_match.url_name == 'user_qr_code' %}active{% endif %}" aria-label="View my QR code" {% if request.resolver_match.url_name == 'user_qr_code' %}aria-current="page"{% endif %}>
-                <i class="bi bi-qr-code" aria-hidden="true"></i>
-                <span class="sr-only">View my QR code</span>
-            </a>
-            {% else %}
-            <a href="{% url 'scan_qr_code' %}" class="nav-tab {% if request.resolver_match.url_name == 'scan_qr_code' %}active{% endif %}" aria-label="Scan QR code" {% if request.resolver_match.url_name == 'scan_qr_code' %}aria-current="page"{% endif %}>
-                <i class="bi bi-qr-code-scan" aria-hidden="true"></i>
-                <span class="sr-only">Scan QR code</span>
-            </a>
+            {% if user.is_koraquest %}
             <a href="{% url 'sales_statistics' %}" class="nav-tab {% if request.resolver_match.url_name == 'sales_statistics' %}active{% endif %}" aria-label="View all sales statistics" {% if request.resolver_match.url_name == 'sales_statistics' %}aria-current="page"{% endif %}>
                 <i class="bi bi-graph-up" aria-hidden="true"></i>
                 <span class="sr-only">View all sales statistics</span>
@@ -389,6 +388,10 @@
                 <i class="bi bi-house-door" aria-hidden="true"></i>
                 <span>Listings</span>
             </a>
+            <a href="{% url 'vendor_dashboard' %}#awaiting-delivery" class="mobile-nav-tab {% if request.resolver_match.url_name == 'vendor_dashboard' %}active{% endif %}" title="Orders awaiting delivery">
+                <i class="bi bi-truck" aria-hidden="true"></i>
+                <span>Delivery</span>
+            </a>
             <a href="{% url 'create_product' %}" class="mobile-nav-tab {% if request.resolver_match.url_name == 'create_product' %}active{% endif %}" {% if request.resolver_match.url_name == 'create_product' %}aria-current="page"{% endif %}>
                 <i class="bi bi-plus-circle" aria-hidden="true"></i>
                 <span>Add</span>
@@ -398,6 +401,10 @@
                 <span>Stats</span>
             </a>
             {% endif %}
+            <a href="{% url 'view_cart' %}" class="mobile-nav-tab {% if request.resolver_match.url_name == 'view_cart' or request.resolver_match.url_name == 'checkout' %}active{% endif %}" {% if request.resolver_match.url_name == 'view_cart' or request.resolver_match.url_name == 'checkout' %}aria-current="page"{% endif %}>
+                <i class="bi bi-cart3" aria-hidden="true"></i>
+                <span>Cart</span>
+            </a>
             <a href="{% url 'purchase_history' %}" class="mobile-nav-tab {% if request.resolver_match.url_name == 'purchase_history' %}active{% endif %}" {% if request.resolver_match.url_name == 'purchase_history' %}aria-current="page"{% endif %}>
                 <i class="bi bi-clock-history" aria-hidden="true"></i>
                 <span>History</span>
@@ -410,16 +417,7 @@
                 <i class="bi bi-chat-dots" aria-hidden="true"></i>
                 <span>Chat</span>
             </a>
-            {% if not user.is_koraquest %}
-            <a href="{% url 'user_qr_code' %}" class="mobile-nav-tab {% if request.resolver_match.url_name == 'user_qr_code' %}active{% endif %}" {% if request.resolver_match.url_name == 'user_qr_code' %}aria-current="page"{% endif %}>
-                <i class="bi bi-qr-code" aria-hidden="true"></i>
-                <span>QR</span>
-            </a>
-            {% else %}
-            <a href="{% url 'scan_qr_code' %}" class="mobile-nav-tab {% if request.resolver_match.url_name == 'scan_qr_code' %}active{% endif %}" {% if request.resolver_match.url_name == 'scan_qr_code' %}aria-current="page"{% endif %}>
-                <i class="bi bi-qr-code-scan" aria-hidden="true"></i>
-                <span>Scan</span>
-            </a>
+            {% if user.is_koraquest %}
             <a href="{% url 'sales_statistics' %}" class="mobile-nav-tab {% if request.resolver_match.url_name == 'sales_statistics' %}active{% endif %}" {% if request.resolver_match.url_name == 'sales_statistics' %}aria-current="page"{% endif %}>
                 <i class="bi bi-graph-up" aria-hidden="true"></i>
                 <span>Stats</span>

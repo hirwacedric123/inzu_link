@@ -1103,6 +1103,110 @@
         {% endif %}
     </div>
     
+    <!-- Awaiting Delivery Section -->
+    {% if awaiting_delivery %}
+    <div class="section-card" id="awaiting-delivery">
+        <div class="section-header">
+            <h2><i class="bi bi-truck"></i> Orders Awaiting Delivery</h2>
+            <div class="section-actions">
+                <span class="btn-section" style="background: #FEF3C7; color: #92400E; border-color: #FCD34D;">
+                    <i class="bi bi-clock-history"></i>
+                    {{ awaiting_delivery|length }} pending
+                </span>
+            </div>
+        </div>
+        
+        <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+            <table class="properties-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Product</th>
+                        <th>Buyer</th>
+                        <th>Quantity</th>
+                        <th style="text-align: right;">Amount</th>
+                        <th>Delivery Status</th>
+                        <th>Delivery Address</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for purchase in awaiting_delivery %}
+                    <tr>
+                        <td>
+                            <span style="font-family: 'Courier New', monospace; font-weight: 600; font-size: 0.875rem;">
+                                {{ purchase.order_id }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="property-cell">
+                                {% if purchase.property.image %}
+                                <img src="{{ purchase.property.image.url }}" alt="{{ purchase.property.title }}" class="property-image">
+                                {% else %}
+                                <div class="property-image" style="background: #F3F4F6; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-image" style="color: #9CA3AF;"></i>
+                                </div>
+                                {% endif %}
+                                <span class="property-name">{{ purchase.property.title|truncatechars:30 }}</span>
+                            </div>
+                        </td>
+                        <td>{{ purchase.buyer.username|truncatechars:20 }}</td>
+                        <td style="text-align: center;">
+                            <span class="status-badge" style="background: #DBEAFE; color: #1E40AF;">
+                                {{ purchase.quantity }}
+                            </span>
+                        </td>
+                        <td class="price-cell" style="text-align: right;">{{ purchase.final_price|currency }}</td>
+                        <td>
+                            <span class="status-badge 
+                                {% if purchase.delivery_status == 'pending' %}inactive
+                                {% elif purchase.delivery_status == 'processing' %}inactive
+                                {% elif purchase.delivery_status == 'shipped' %}active
+                                {% elif purchase.delivery_status == 'in_transit' %}active
+                                {% elif purchase.delivery_status == 'out_for_delivery' %}active
+                                {% else %}inactive{% endif %}">
+                                <i class="bi bi-truck"></i>
+                                {{ purchase.get_delivery_status_display }}
+                            </span>
+                            {% if purchase.tracking_number %}
+                            <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #6B7280;">
+                                <i class="bi bi-upc-scan"></i> {{ purchase.tracking_number }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if purchase.delivery_address %}
+                            <div style="font-size: 0.813rem; color: #6B7280; max-width: 200px;">
+                                <i class="bi bi-geo-alt"></i>
+                                {{ purchase.delivery_address|truncatechars:40 }}
+                            </div>
+                            {% if purchase.delivery_phone %}
+                            <div style="font-size: 0.75rem; color: #9CA3AF; margin-top: 0.25rem;">
+                                <i class="bi bi-telephone"></i> {{ purchase.delivery_phone }}
+                            </div>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted" style="font-size: 0.813rem;">Not provided</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="action-buttons">
+                                <a href="{% url 'purchase_detail' purchase.id %}" class="btn-icon view" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'update_delivery_status' purchase.id %}" class="btn-icon edit" title="Update Delivery Status">
+                                    <i class="bi bi-truck"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+    
     <!-- Recent Activity Section -->
     {% if recent_purchases %}
     <div class="section-card">
@@ -1123,6 +1227,8 @@
                         <th>Buyer</th>
                         <th style="text-align: right;">Amount</th>
                         <th>Status</th>
+                        <th>Delivery</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1147,6 +1253,24 @@
                             <span class="status-badge {% if purchase.status == 'completed' %}active{% else %}inactive{% endif %}">
                                 {{ purchase.get_status_display }}
                             </span>
+                        </td>
+                        <td>
+                            {% if purchase.is_furniture_purchase %}
+                                {% if purchase.delivery_status %}
+                                <span class="status-badge {% if purchase.delivery_status == 'delivered' %}active{% elif purchase.delivery_status == 'delivery_failed' %}inactive{% else %}warning{% endif %}">
+                                    {{ purchase.get_delivery_status_display }}
+                                </span>
+                                {% else %}
+                                <span class="status-badge inactive">Pending</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'purchase_detail' purchase.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}

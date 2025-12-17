@@ -29,7 +29,8 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from .forms import SignUpForm, ProductReviewForm, PropertyListingForm, PropertyInquiryForm, ListingFeePaymentForm
 from .models import (
     User, Post, Purchase, Bookmark, ProductImage, UserQRCode, 
-    OTPVerification, ProductReview, PropertyInquiry, ListingFee
+    OTPVerification, ProductReview, PropertyInquiry, ListingFee,
+    Cart, CartItem
 )
 from .qr_utils import update_user_qr_code, decode_qr_data, get_user_purchases_from_qr
 from .otp_utils import create_otp, verify_otp
@@ -1026,12 +1027,20 @@ def vendor_dashboard(request):
     # Get recent purchases
     recent_purchases = purchases.order_by('-created_at')[:5]
     
+    # Get purchases awaiting delivery (furniture items with delivery status not delivered)
+    awaiting_delivery = purchases.filter(
+        delivery_status__isnull=False
+    ).exclude(
+        delivery_status__in=['delivered', 'delivery_failed']
+    ).order_by('-created_at')
+    
     context = {
         'products': products,
         'purchases': purchases,
         'total_sales': total_sales,
         'total_revenue': total_revenue,
-        'recent_purchases': recent_purchases
+        'recent_purchases': recent_purchases,
+        'awaiting_delivery': awaiting_delivery
     }
     
     return render(request, 'authentication/vendor_dashboard.html', context)
@@ -2561,3 +2570,347 @@ def my_listing_fees(request):
         'active_listings': active_listings,
     }
     return render(request, 'authentication/my_listing_fees.html', context)
+
+# ==============================================
+# CART FUNCTIONALITY - Phase 1
+# ==============================================
+
+@login_required
+def get_or_create_cart(request):
+    """Get or create a cart for the user"""
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    return cart
+
+@login_required
+def view_cart(request):
+    """View shopping cart"""
+    cart = get_or_create_cart(request)
+    cart_items = cart.items.select_related('product').all()
+    
+    # Clean up unavailable items from cart
+    removed_items = []
+    for item in cart_items:
+        # Refresh product to get latest state
+        item.product.refresh_from_db()
+        
+        # Remove if product is no longer available, sold out, or inactive
+        if item.product.is_sold_out() or not item.product.is_active or not item.product.is_furniture():
+            removed_items.append(item.product.title)
+            item.delete()
+        # Adjust quantity if it exceeds available inventory
+        elif item.quantity > item.product.inventory:
+            item.quantity = item.product.inventory
+            item.save()
+            if item.quantity == 0:
+                removed_items.append(item.product.title)
+                item.delete()
+    
+    if removed_items:
+        messages.warning(request, f'Removed unavailable items from cart: {", ".join(removed_items)}')
+    
+    # Refresh cart items after cleanup
+    cart_items = cart.items.select_related('product').all()
+    
+    context = {
+        'cart': cart,
+        'cart_items': cart_items,
+        'total_price': cart.get_total_price(),
+        'total_items': cart.get_total_items(),
+    }
+    return render(request, 'authentication/cart.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def add_to_cart(request, product_id):
+    """Add furniture item to cart"""
+    product = get_object_or_404(Post, id=product_id)
+    
+    # Only furniture items can be added to cart
+    if not product.is_furniture():
+        messages.error(request, 'Only furniture items can be added to cart.')
+        return redirect('post_detail', post_id=product_id)
+    
+    # Check if product is active
+    if not product.is_active:
+        messages.error(request, 'This item is no longer available.')
+        return redirect('post_detail', post_id=product_id)
+    
+    # Check if product is available
+    if product.is_sold_out():
+        messages.error(request, 'This item is out of stock.')
+        return redirect('post_detail', post_id=product_id)
+    
+    cart = get_or_create_cart(request)
+    quantity = int(request.POST.get('quantity', 1))
+    
+    # Validate quantity
+    if quantity < 1:
+        quantity = 1
+    if quantity > product.inventory:
+        messages.error(request, f'Only {product.inventory} items available.')
+        quantity = product.inventory
+    
+    # Get or create cart item
+    cart_item, created = CartItem.objects.get_or_create(
+        cart=cart,
+        product=product,
+        defaults={'quantity': quantity}
+    )
+    
+    if not created:
+        # Update quantity if item already exists
+        new_quantity = cart_item.quantity + quantity
+        if new_quantity > product.inventory:
+            messages.warning(request, f'Only {product.inventory} items available. Updated quantity.')
+            cart_item.quantity = product.inventory
+        else:
+            cart_item.quantity = new_quantity
+        cart_item.save()
+    
+    messages.success(request, f'{product.title} added to cart.')
+    
+    # Redirect based on request
+    if request.POST.get('redirect') == 'cart':
+        return redirect('view_cart')
+    return redirect('post_detail', post_id=product_id)
+
+@login_required
+@require_http_methods(["POST"])
+def update_cart_item(request, item_id):
+    """Update quantity of cart item"""
+    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+    quantity = int(request.POST.get('quantity', 1))
+    
+    # Check if product is still available
+    if cart_item.product.is_sold_out():
+        messages.error(request, f'{cart_item.product.title} is out of stock.')
+        cart_item.delete()
+        return redirect('view_cart')
+    
+    if not cart_item.product.is_active:
+        messages.error(request, f'{cart_item.product.title} is no longer available.')
+        cart_item.delete()
+        return redirect('view_cart')
+    
+    if quantity < 1:
+        messages.error(request, 'Quantity must be at least 1.')
+        return redirect('view_cart')
+    
+    if quantity > cart_item.product.inventory:
+        messages.error(request, f'Only {cart_item.product.inventory} items available.')
+        quantity = cart_item.product.inventory
+    
+    cart_item.quantity = quantity
+    cart_item.save()
+    messages.success(request, 'Cart updated.')
+    return redirect('view_cart')
+
+@login_required
+@require_http_methods(["POST"])
+def remove_from_cart(request, item_id):
+    """Remove item from cart"""
+    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+    product_title = cart_item.product.title
+    cart_item.delete()
+    messages.success(request, f'{product_title} removed from cart.')
+    return redirect('view_cart')
+
+@login_required
+@require_http_methods(["POST"])
+def clear_cart(request):
+    """Clear all items from cart"""
+    cart = get_or_create_cart(request)
+    cart.clear()
+    messages.success(request, 'Cart cleared.')
+    return redirect('view_cart')
+
+# ==============================================
+# CHECKOUT FUNCTIONALITY - Phase 2
+# ==============================================
+
+@login_required
+def checkout(request):
+    """Checkout page - review order before payment"""
+    cart = get_or_create_cart(request)
+    cart_items = cart.items.select_related('product').all()
+    
+    if not cart_items.exists():
+        messages.warning(request, 'Your cart is empty.')
+        return redirect('view_cart')
+    
+    # Check inventory for all items
+    unavailable_items = []
+    for item in cart_items:
+        if item.quantity > item.product.inventory or item.product.is_sold_out():
+            unavailable_items.append(item.product.title)
+    
+    if unavailable_items:
+        messages.error(request, f'Some items are no longer available: {", ".join(unavailable_items)}')
+        return redirect('view_cart')
+    
+    context = {
+        'cart': cart,
+        'cart_items': cart_items,
+        'total_price': cart.get_total_price(),
+        'total_items': cart.get_total_items(),
+    }
+    return render(request, 'authentication/checkout.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def process_checkout(request):
+    """Process checkout and create purchases"""
+    cart = get_or_create_cart(request)
+    cart_items = cart.items.select_related('product').all()
+    
+    if not cart_items.exists():
+        messages.error(request, 'Your cart is empty.')
+        return redirect('view_cart')
+    
+    # Get delivery information
+    delivery_address = request.POST.get('delivery_address', '').strip()
+    delivery_phone = request.POST.get('delivery_phone', '').strip()
+    payment_method = request.POST.get('payment_method', 'paypack')
+    payment_reference = request.POST.get('payment_reference', '').strip()
+    
+    # Validate delivery info for furniture
+    if not delivery_address:
+        messages.error(request, 'Delivery address is required.')
+        return redirect('checkout')
+    
+    if not delivery_phone:
+        messages.error(request, 'Delivery phone number is required.')
+        return redirect('checkout')
+    
+    # Create purchases for each cart item
+    purchases_created = []
+    errors = []
+    
+    for cart_item in cart_items:
+        # Refresh product from database to get latest state
+        cart_item.product.refresh_from_db()
+        
+        # Check if product is still active
+        if not cart_item.product.is_active:
+            errors.append(f'{cart_item.product.title}: Product is no longer available')
+            continue
+        
+        # Check if product is sold out
+        if cart_item.product.is_sold_out():
+            errors.append(f'{cart_item.product.title}: Out of stock')
+            continue
+        
+        # Double-check inventory
+        if cart_item.quantity > cart_item.product.inventory:
+            errors.append(f'{cart_item.product.title}: Only {cart_item.product.inventory} available')
+            continue
+        
+        try:
+            # Create purchase
+            purchase = Purchase.objects.create(
+                buyer=request.user,
+                property=cart_item.product,
+                quantity=cart_item.quantity,
+                final_price=cart_item.get_total_price(),
+                payment_method=payment_method,
+                payment_reference=payment_reference,
+                status='pending_payment',
+                delivery_address=delivery_address,
+                delivery_phone=delivery_phone,
+                delivery_status='pending',
+            )
+            purchases_created.append(purchase)
+            
+            # Update inventory
+            cart_item.product.inventory = max(0, cart_item.product.inventory - cart_item.quantity)
+            if cart_item.product.inventory <= 0:
+                cart_item.product.is_sold = True
+            cart_item.product.save()
+            
+        except Exception as e:
+            errors.append(f'Error creating purchase for {cart_item.product.title}: {str(e)}')
+    
+    if errors:
+        messages.error(request, 'Some items could not be processed: ' + '; '.join(errors))
+        return redirect('checkout')
+    
+    if purchases_created:
+        # Clear cart
+        cart.clear()
+        
+        # If single purchase, redirect to purchase detail
+        if len(purchases_created) == 1:
+            messages.success(request, f'Order {purchases_created[0].order_id} created successfully!')
+            return redirect('purchase_detail', purchase_id=purchases_created[0].id)
+        else:
+            messages.success(request, f'{len(purchases_created)} orders created successfully!')
+            return redirect('purchase_history')
+    else:
+        messages.error(request, 'No purchases were created.')
+        return redirect('checkout')
+
+# ==============================================
+# DELIVERY TRACKING - Phase 3
+# ==============================================
+
+@login_required
+def update_delivery_status(request, purchase_id):
+    """Update delivery status (vendor only)"""
+    purchase = get_object_or_404(Purchase, id=purchase_id)
+    
+    # Only vendor can update delivery status
+    if purchase.property.user != request.user:
+        messages.error(request, 'You do not have permission to update this delivery status.')
+        return redirect('dashboard')
+    
+    # Only furniture purchases have delivery tracking
+    if not purchase.is_furniture_purchase():
+        messages.error(request, 'Delivery tracking is only available for furniture items.')
+        return redirect('vendor_dashboard')
+    
+    if request.method == 'POST':
+        delivery_status = request.POST.get('delivery_status')
+        tracking_number = request.POST.get('tracking_number', '').strip()
+        delivery_notes = request.POST.get('delivery_notes', '').strip()
+        
+        # Validate delivery status - check if it's a valid choice key
+        valid_statuses = [choice[0] for choice in Purchase.DELIVERY_STATUS_CHOICES]
+        if delivery_status in valid_statuses:
+            purchase.delivery_status = delivery_status
+            
+            if tracking_number:
+                purchase.tracking_number = tracking_number
+            
+            if delivery_notes:
+                purchase.delivery_notes = delivery_notes
+            
+            # Update timestamps
+            if delivery_status == 'shipped' and not purchase.shipped_at:
+                purchase.shipped_at = timezone.now()
+            elif delivery_status == 'delivered' and not purchase.delivered_at:
+                purchase.delivered_at = timezone.now()
+                purchase.status = 'completed'
+            
+            purchase.save()
+            messages.success(request, f'Delivery status updated to {dict(Purchase.DELIVERY_STATUS_CHOICES)[delivery_status]}.')
+        else:
+            messages.error(request, 'Invalid delivery status.')
+    
+    return redirect('vendor_dashboard')
+
+@login_required
+def purchase_detail(request, purchase_id):
+    """View purchase details"""
+    purchase = get_object_or_404(Purchase, id=purchase_id)
+    
+    # Check permissions
+    if purchase.buyer != request.user and purchase.property.user != request.user and not request.user.is_koraquest():
+        messages.error(request, 'You do not have permission to view this purchase.')
+        return redirect('dashboard')
+    
+    context = {
+        'purchase': purchase,
+        'is_vendor': purchase.property.user == request.user,
+        'is_buyer': purchase.buyer == request.user,
+    }
+    return render(request, 'authentication/purchase_detail.html', context)
