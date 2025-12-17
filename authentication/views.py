@@ -1052,6 +1052,44 @@ def vendor_dashboard(request):
     return render(request, 'authentication/vendor_dashboard.html', context)
 
 @login_required
+def vendor_pending_payments(request):
+    """Separate page for pending payments"""
+    if not request.user.is_vendor_role:
+        messages.error(request, 'You need to be registered as a vendor to access this page.')
+        return redirect('dashboard')
+    
+    # Get purchases with pending payment status
+    purchases = Purchase.objects.filter(property__user=request.user)
+    pending_payments = purchases.filter(status='pending_payment').order_by('-created_at')
+    
+    context = {
+        'pending_payments': pending_payments,
+    }
+    
+    return render(request, 'authentication/vendor_pending_payments.html', context)
+
+@login_required
+def vendor_awaiting_delivery(request):
+    """Separate page for orders awaiting delivery"""
+    if not request.user.is_vendor_role:
+        messages.error(request, 'You need to be registered as a vendor to access this page.')
+        return redirect('dashboard')
+    
+    # Get purchases awaiting delivery
+    purchases = Purchase.objects.filter(property__user=request.user)
+    awaiting_delivery = purchases.filter(
+        delivery_status__isnull=False
+    ).exclude(
+        delivery_status__in=['delivered', 'delivery_failed']
+    ).order_by('-created_at')
+    
+    context = {
+        'awaiting_delivery': awaiting_delivery,
+    }
+    
+    return render(request, 'authentication/vendor_awaiting_delivery.html', context)
+
+@login_required
 def confirm_payment(request, purchase_id):
     """Allow vendor to confirm payment received directly from buyer"""
     purchase = get_object_or_404(Purchase, id=purchase_id)

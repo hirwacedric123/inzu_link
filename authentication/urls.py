@@ -39,6 +39,8 @@ urlpatterns = [
     
     # User dashboards
     path('vendor-dashboard/', views.vendor_dashboard, name='vendor_dashboard'),
+    path('vendor-pending-payments/', views.vendor_pending_payments, name='vendor_pending_payments'),
+    path('vendor-awaiting-delivery/', views.vendor_awaiting_delivery, name='vendor_awaiting_delivery'),
     path('purchase/<int:purchase_id>/confirm-payment/', views.confirm_payment, name='confirm_payment'),
     
     # User history and saved items
