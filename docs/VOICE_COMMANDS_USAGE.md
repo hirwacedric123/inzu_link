@@ -112,6 +112,35 @@ InzuLink now supports voice commands for navigation and interaction! You can con
 - "First field" → jumps to first field
 - "Last field" → jumps to last field
 
+### **Phase 4: E-commerce Commands** 🛒
+
+| Command | What It Does |
+|---------|-------------|
+| "Add [product] to cart" | Adds product to shopping cart |
+| "Remove [product] from cart" | Removes product from cart |
+| "Update [product] quantity to [number]" | Updates item quantity in cart |
+| "Clear cart" / "Empty cart" | Removes all items from cart |
+| "Checkout" / "Proceed to checkout" | Navigates to checkout page |
+| "Show my orders" / "My orders" | Opens purchase history |
+| "Track order [number]" | Opens specific order details |
+
+**Cart Examples:**
+- "Add iPhone to cart"
+- "Add furniture to cart"
+- "Remove iPhone from cart"
+- "Update furniture quantity to 2"
+- "Clear cart"
+
+**Order Examples:**
+- "Show my orders"
+- "Track order 123"
+- "Order history"
+
+**Note:** 
+- Add to cart works when viewing products on dashboard/product pages
+- Remove/update quantity works when on cart page
+- Products are identified by their title/name
+
 ### **Utility Commands**
 
 | Command | What It Does |
@@ -238,9 +267,16 @@ Voice commands work on mobile devices, but:
 - ✅ **Form Validation** - Check if form is complete
 - ✅ **Clear Fields** - Clear current field value
 
+## 🆕 **Phase 4 Features** 🛒
+
+- ✅ **Add to Cart** - Add products to cart via voice
+- ✅ **Remove from Cart** - Remove items from cart
+- ✅ **Cart Management** - Clear cart, update quantities
+- ✅ **Checkout** - Navigate to checkout
+- ✅ **Order Tracking** - View orders and track by ID
+
 ## 🚀 **Upcoming Features (Future Phases)**
 
-- **Phase 4:** E-commerce actions (add to cart, checkout)
 - **Phase 5:** Custom commands and personalization
 
 ---
@@ -322,7 +358,34 @@ You: "Fill email with john@example.com"
 System: "Filled Email with: john@example.com"
 ```
 
-**Scenario 7: Multiple Ways to Say Same Thing**
+**Scenario 7: Shopping with Voice**
+```
+You: [On product page]
+System: "Listening..."
+You: "Add iPhone to cart"
+System: "Adding iPhone to cart..."
+System: "Added iPhone to cart"
+You: "Show cart"
+System: [Navigates to cart]
+You: "Update iPhone quantity to 2"
+System: "Updating quantity to 2..."
+System: "Updated quantity to 2"
+You: "Checkout"
+System: [Navigates to checkout]
+```
+
+**Scenario 8: Order Tracking**
+```
+You: [Press V]
+System: "Listening..."
+You: "Show my orders"
+System: [Navigates to purchase history]
+You: "Track order 123"
+System: "Finding order 123..."
+System: [Opens order details]
+```
+
+**Scenario 9: Multiple Ways to Say Same Thing**
 ```
 "Go to home" ✅
 "Navigate to home" ✅
@@ -336,6 +399,10 @@ System: "Filled Email with: john@example.com"
 "Next field" ✅
 "Go to next field" ✅
 "Next input" ✅
+
+"Add iPhone to cart" ✅
+"Add iPhone to my cart" ✅
+"Put iPhone in cart" ✅
 ```
 
 ---

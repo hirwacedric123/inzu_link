@@ -4,6 +4,7 @@
  * Phase 1: Basic Voice Recognition & Navigation Commands ✅
  * Phase 2: Advanced Navigation & Search Commands ✅
  * Phase 3: Form Interaction Commands ✅
+ * Phase 4: E-commerce Actions ✅
  * 
  * Features:
  * - Web Speech API integration
@@ -15,6 +16,9 @@
  * - Command history
  * - Form field navigation and filling
  * - Form submission via voice
+ * - Cart management (add, remove, clear)
+ * - Checkout commands
+ * - Order tracking
  */
 
 (function() {
@@ -71,6 +75,9 @@
             // Register Phase 3 commands (form interaction)
             this.registerPhase3Commands();
             
+            // Register Phase 4 commands (e-commerce actions)
+            this.registerPhase4Commands();
+            
             // Create feedback element
             this.createFeedbackElement();
             
@@ -125,6 +132,30 @@
                 this.updateButtonState(false);
                 this.updateFeedback('Click to activate voice commands', 'idle');
             };
+        }
+
+        /**
+         * Register Phase 4 commands (e-commerce actions)
+         */
+        registerPhase4Commands() {
+            // Cart management
+            this.registerCommand(['clear cart', 'empty cart', 'remove all from cart'], () => {
+                this.clearCart();
+            });
+
+            // Checkout
+            this.registerCommand(['checkout', 'proceed to checkout', 'go to checkout', 'buy now'], () => {
+                this.goToCheckout();
+            });
+
+            // Orders
+            this.registerCommand(['show my orders', 'my orders', 'order history', 'purchase history'], () => {
+                this.navigateTo('/auth/purchases/');
+            });
+
+            this.registerCommand(['show orders', 'orders', 'view orders'], () => {
+                this.navigateTo('/auth/purchases/');
+            });
         }
 
         /**
@@ -318,9 +349,75 @@
         }
 
         /**
-         * Process commands with parameters (Phase 2 & 3)
+         * Process commands with parameters (Phase 2, 3 & 4)
          */
         processParameterCommand(transcript) {
+            // Phase 4: E-commerce commands (check these first)
+            const addToCartPatterns = [
+                /add (.+?) to cart/i,
+                /add (.+?) to my cart/i,
+                /put (.+?) in cart/i,
+                /add (.+?) in cart/i
+            ];
+
+            for (const pattern of addToCartPatterns) {
+                const match = transcript.match(pattern);
+                if (match) {
+                    const productName = match[1].trim();
+                    this.addToCart(productName);
+                    return true;
+                }
+            }
+
+            const removeFromCartPatterns = [
+                /remove (.+?) from cart/i,
+                /remove (.+?) from my cart/i,
+                /delete (.+?) from cart/i,
+                /take (.+?) out of cart/i
+            ];
+
+            for (const pattern of removeFromCartPatterns) {
+                const match = transcript.match(pattern);
+                if (match) {
+                    const productName = match[1].trim();
+                    this.removeFromCart(productName);
+                    return true;
+                }
+            }
+
+            const updateQuantityPatterns = [
+                /update (.+?) quantity to (\d+)/i,
+                /set (.+?) quantity to (\d+)/i,
+                /change (.+?) quantity to (\d+)/i,
+                /update (.+?) to (\d+)/i
+            ];
+
+            for (const pattern of updateQuantityPatterns) {
+                const match = transcript.match(pattern);
+                if (match) {
+                    const productName = match[1].trim();
+                    const quantity = parseInt(match[2].trim());
+                    this.updateCartQuantity(productName, quantity);
+                    return true;
+                }
+            }
+
+            const trackOrderPatterns = [
+                /track order (\d+)/i,
+                /show order (\d+)/i,
+                /order (\d+)/i,
+                /order number (\d+)/i
+            ];
+
+            for (const pattern of trackOrderPatterns) {
+                const match = transcript.match(pattern);
+                if (match) {
+                    const orderId = match[1].trim();
+                    this.trackOrder(orderId);
+                    return true;
+                }
+            }
+
             // Phase 3: Form interaction commands (check these first when on a form page)
             const formFillPatterns = [
                 /fill (.+?) with (.+)/i,
@@ -880,6 +977,360 @@
         }
 
         /**
+         * Phase 4: E-commerce Action Methods
+         */
+
+        /**
+         * Find product on current page by name
+         */
+        findProductOnPage(productName) {
+            const normalizedName = productName.toLowerCase();
+            
+            // Try to find by data-post attribute (dashboard/products page)
+            const productCards = document.querySelectorAll('[data-post]');
+            for (const card of productCards) {
+                const postId = card.getAttribute('data-post');
+                const titleElement = card.querySelector('[id^="product-title"], .card-title, h3, h4, .product-title');
+                const title = titleElement ? titleElement.textContent.trim().toLowerCase() : '';
+                
+                if (title.includes(normalizedName) || normalizedName.includes(title)) {
+                    return {
+                        id: postId,
+                        element: card,
+                        title: titleElement ? titleElement.textContent.trim() : productName
+                    };
+                }
+            }
+
+            // Try to find by product title in various elements
+            const titleSelectors = [
+                '[id^="product-title"]',
+                '.product-title',
+                '.card-title',
+                'h1.product-title',
+                'h2.product-title',
+                'h3.product-title'
+            ];
+
+            for (const selector of titleSelectors) {
+                const elements = document.querySelectorAll(selector);
+                for (const element of elements) {
+                    const title = element.textContent.trim().toLowerCase();
+                    if (title.includes(normalizedName) || normalizedName.includes(title)) {
+                        // Try to find associated product ID
+                        const card = element.closest('[data-post], .product-card, .pinterest-card');
+                        if (card) {
+                            const postId = card.getAttribute('data-post');
+                            if (postId) {
+                                return {
+                                    id: postId,
+                                    element: card,
+                                    title: element.textContent.trim()
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * Add product to cart
+         */
+        async addToCart(productName) {
+            const product = this.findProductOnPage(productName);
+            
+            if (!product) {
+                this.updateFeedback(`Product "${productName}" not found on this page`, 'error');
+                this.announceToScreenReader(`Product ${productName} not found on this page. Please navigate to the product page first.`);
+                return;
+            }
+
+            this.updateFeedback(`Adding ${product.title} to cart...`, 'processing');
+            this.announceToScreenReader(`Adding ${product.title} to cart`);
+
+            try {
+                // Get CSRF token
+                const csrfToken = this.getCSRFToken();
+                if (!csrfToken) {
+                    throw new Error('CSRF token not found');
+                }
+
+                // Make POST request to add to cart
+                const response = await fetch(`/auth/cart/add/${product.id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok || response.redirected) {
+                    this.updateFeedback(`Added ${product.title} to cart`, 'success');
+                    this.announceToScreenReader(`Successfully added ${product.title} to cart`);
+                    
+                    // Optionally refresh cart count if there's a cart badge
+                    this.updateCartBadge();
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMsg = errorData.message || 'Failed to add to cart';
+                    throw new Error(errorMsg);
+                }
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                this.updateFeedback(`Error: ${error.message}`, 'error');
+                this.announceToScreenReader(`Error adding to cart: ${error.message}`);
+            }
+        }
+
+        /**
+         * Remove product from cart
+         */
+        async removeFromCart(productName) {
+            // First check if we're on the cart page
+            if (!window.location.pathname.includes('/cart/')) {
+                this.updateFeedback('Please navigate to cart page first', 'error');
+                this.announceToScreenReader('Please navigate to cart page first');
+                return;
+            }
+
+            // Find cart item by product name
+            const cartItems = document.querySelectorAll('.cart-item, [data-cart-item], tr[data-item-id]');
+            let cartItem = null;
+            let itemId = null;
+
+            for (const item of cartItems) {
+                const titleElement = item.querySelector('.product-title, .cart-item-title, td:first-child');
+                if (titleElement) {
+                    const title = titleElement.textContent.trim().toLowerCase();
+                    if (title.includes(productName.toLowerCase())) {
+                        cartItem = item;
+                        itemId = item.getAttribute('data-item-id') || 
+                                 item.getAttribute('data-cart-item') ||
+                                 item.querySelector('[data-item-id]')?.getAttribute('data-item-id');
+                        break;
+                    }
+                }
+            }
+
+            if (!cartItem || !itemId) {
+                this.updateFeedback(`Product "${productName}" not found in cart`, 'error');
+                this.announceToScreenReader(`Product ${productName} not found in cart`);
+                return;
+            }
+
+            this.updateFeedback(`Removing ${productName} from cart...`, 'processing');
+            this.announceToScreenReader(`Removing ${productName} from cart`);
+
+            try {
+                const csrfToken = this.getCSRFToken();
+                if (!csrfToken) {
+                    throw new Error('CSRF token not found');
+                }
+
+                const response = await fetch(`/auth/cart/remove/${itemId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok || response.redirected) {
+                    this.updateFeedback(`Removed ${productName} from cart`, 'success');
+                    this.announceToScreenReader(`Successfully removed ${productName} from cart`);
+                    
+                    // Reload page to update cart
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    throw new Error('Failed to remove from cart');
+                }
+            } catch (error) {
+                console.error('Error removing from cart:', error);
+                this.updateFeedback(`Error: ${error.message}`, 'error');
+                this.announceToScreenReader(`Error removing from cart: ${error.message}`);
+            }
+        }
+
+        /**
+         * Update cart item quantity
+         */
+        async updateCartQuantity(productName, quantity) {
+            if (!window.location.pathname.includes('/cart/')) {
+                this.updateFeedback('Please navigate to cart page first', 'error');
+                this.announceToScreenReader('Please navigate to cart page first');
+                return;
+            }
+
+            if (quantity < 1) {
+                this.updateFeedback('Quantity must be at least 1', 'error');
+                this.announceToScreenReader('Quantity must be at least 1');
+                return;
+            }
+
+            // Find cart item
+            const cartItems = document.querySelectorAll('.cart-item, [data-cart-item], tr[data-item-id]');
+            let itemId = null;
+
+            for (const item of cartItems) {
+                const titleElement = item.querySelector('.product-title, .cart-item-title, td:first-child');
+                if (titleElement) {
+                    const title = titleElement.textContent.trim().toLowerCase();
+                    if (title.includes(productName.toLowerCase())) {
+                        itemId = item.getAttribute('data-item-id') || 
+                                 item.getAttribute('data-cart-item') ||
+                                 item.querySelector('[data-item-id]')?.getAttribute('data-item-id');
+                        break;
+                    }
+                }
+            }
+
+            if (!itemId) {
+                this.updateFeedback(`Product "${productName}" not found in cart`, 'error');
+                this.announceToScreenReader(`Product ${productName} not found in cart`);
+                return;
+            }
+
+            this.updateFeedback(`Updating quantity to ${quantity}...`, 'processing');
+            this.announceToScreenReader(`Updating quantity to ${quantity}`);
+
+            try {
+                const csrfToken = this.getCSRFToken();
+                if (!csrfToken) {
+                    throw new Error('CSRF token not found');
+                }
+
+                const response = await fetch(`/auth/cart/update/${itemId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ quantity: quantity })
+                });
+
+                if (response.ok || response.redirected) {
+                    this.updateFeedback(`Updated quantity to ${quantity}`, 'success');
+                    this.announceToScreenReader(`Successfully updated quantity to ${quantity}`);
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    throw new Error('Failed to update quantity');
+                }
+            } catch (error) {
+                console.error('Error updating quantity:', error);
+                this.updateFeedback(`Error: ${error.message}`, 'error');
+                this.announceToScreenReader(`Error updating quantity: ${error.message}`);
+            }
+        }
+
+        /**
+         * Clear entire cart
+         */
+        async clearCart() {
+            this.updateFeedback('Clearing cart...', 'processing');
+            this.announceToScreenReader('Clearing cart. This action cannot be undone.');
+
+            try {
+                const csrfToken = this.getCSRFToken();
+                if (!csrfToken) {
+                    throw new Error('CSRF token not found');
+                }
+
+                const response = await fetch('/auth/cart/clear/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok || response.redirected) {
+                    this.updateFeedback('Cart cleared', 'success');
+                    this.announceToScreenReader('Cart cleared successfully');
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    throw new Error('Failed to clear cart');
+                }
+            } catch (error) {
+                console.error('Error clearing cart:', error);
+                this.updateFeedback(`Error: ${error.message}`, 'error');
+                this.announceToScreenReader(`Error clearing cart: ${error.message}`);
+            }
+        }
+
+        /**
+         * Go to checkout
+         */
+        goToCheckout() {
+            this.updateFeedback('Navigating to checkout...', 'processing');
+            this.announceToScreenReader('Navigating to checkout');
+            this.navigateTo('/auth/checkout/');
+        }
+
+        /**
+         * Track order by ID
+         */
+        trackOrder(orderId) {
+            this.updateFeedback(`Finding order ${orderId}...`, 'processing');
+            this.announceToScreenReader(`Finding order ${orderId}`);
+            this.navigateTo(`/auth/purchase/${orderId}/`);
+        }
+
+        /**
+         * Get CSRF token from page
+         */
+        getCSRFToken() {
+            // Try to get from meta tag
+            const metaToken = document.querySelector('meta[name="csrf-token"]');
+            if (metaToken) {
+                return metaToken.getAttribute('content');
+            }
+
+            // Try to get from cookie
+            const cookies = document.cookie.split(';');
+            for (const cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') {
+                    return decodeURIComponent(value);
+                }
+            }
+
+            // Try to get from form
+            const form = document.querySelector('form');
+            if (form) {
+                const csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+                if (csrfInput) {
+                    return csrfInput.value;
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * Update cart badge count if it exists
+         */
+        updateCartBadge() {
+            // Try to find and update cart badge
+            const cartBadges = document.querySelectorAll('.cart-badge, .cart-count, [data-cart-count]');
+            // Note: This would require an API call to get current cart count
+            // For now, we'll just trigger a visual update if badge exists
+            cartBadges.forEach(badge => {
+                badge.style.animation = 'pulse 0.5s';
+            });
+        }
+
+        /**
          * Start listening
          */
         startListening() {
@@ -990,6 +1441,17 @@
                 'Show furniture category',
                 'Category vehicles'
             ];
+            const cartExamples = [
+                'Add iPhone to cart',
+                'Remove furniture from cart',
+                'Clear cart',
+                'Update quantity to 2'
+            ];
+            const orderExamples = [
+                'Show my orders',
+                'Track order 123',
+                'Order history'
+            ];
 
             const modal = document.createElement('div');
             modal.id = 'voice-help-modal';
@@ -1025,6 +1487,20 @@
                             <h3>Filter Commands</h3>
                             <ul class="voice-commands-list">
                                 ${filterExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="voice-help-section">
+                            <h3>Cart Commands</h3>
+                            <ul class="voice-commands-list">
+                                ${cartExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="voice-help-section">
+                            <h3>Order Commands</h3>
+                            <ul class="voice-commands-list">
+                                ${orderExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
                             </ul>
                         </div>
                         
