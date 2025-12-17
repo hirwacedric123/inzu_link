@@ -14,9 +14,30 @@ class SignUpForm(UserCreationForm):
     
     def __init__(self, *args, **kwargs):
         super(SignUpForm, self).__init__(*args, **kwargs)
-        # Add Bootstrap classes to form fields
+        # Add Bootstrap classes and accessibility attributes to form fields
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
+            
+            # Add ARIA attributes for voice assistants
+            if field.required:
+                field.widget.attrs['aria-required'] = 'true'
+            
+            # Set proper input types for better voice assistant support
+            if field_name == 'email':
+                field.widget.attrs['type'] = 'email'
+                field.widget.attrs['autocomplete'] = 'email'
+            elif field_name == 'phone_number':
+                field.widget.attrs['type'] = 'tel'
+                field.widget.attrs['autocomplete'] = 'tel'
+                field.widget.attrs['inputmode'] = 'tel'
+            elif field_name in ['password1', 'password2']:
+                field.widget.attrs['autocomplete'] = 'new-password' if field_name == 'password1' else 'new-password'
+            elif field_name == 'username':
+                field.widget.attrs['autocomplete'] = 'username'
+            
+            # Add help text IDs for aria-describedby (will be set in template)
+            if field.help_text:
+                field.widget.attrs['aria-describedby'] = f'{field_name}-help'
         
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -33,10 +54,19 @@ class SignUpForm(UserCreationForm):
 class ProductReviewForm(forms.ModelForm):
     rating = forms.ChoiceField(
         choices=[(i, i) for i in range(1, 6)],
-        widget=forms.Select(attrs={'class': 'form-control'})
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+            'aria-required': 'true',
+            'aria-label': 'Product rating from 1 to 5 stars'
+        })
     )
     comment = forms.CharField(
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Write your review...'}),
+        widget=forms.Textarea(attrs={
+            'class': 'form-control', 
+            'rows': 4, 
+            'placeholder': 'Write your review...',
+            'aria-label': 'Review comment (optional)'
+        }),
         required=False
     )
     
@@ -210,11 +240,15 @@ class PropertyInquiryForm(forms.ModelForm):
             }),
             'phone_contact': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Your contact phone number'
+                'placeholder': 'Your contact phone number',
+                'type': 'tel',
+                'autocomplete': 'tel',
+                'inputmode': 'tel'
             }),
             'email_contact': forms.EmailInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Your email address'
+                'placeholder': 'Your email address',
+                'autocomplete': 'email'
             }),
             'preferred_viewing_date': forms.DateTimeInput(attrs={
                 'class': 'form-control',
@@ -239,6 +273,10 @@ class ListingFeePaymentForm(forms.ModelForm):
             'class': 'form-control',
             'placeholder': '0788123456',
             'pattern': '[0-9]+',
+            'type': 'tel',
+            'autocomplete': 'tel',
+            'inputmode': 'tel',
+            'aria-describedby': 'phone_number-help'
         }),
         help_text='Enter your phone number (format: 0788123456 or 250788123456)'
     )

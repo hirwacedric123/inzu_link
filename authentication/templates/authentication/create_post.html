@@ -11,67 +11,95 @@
                 <p class="text-center text-muted mb-0">Share your amazing content with the InzuLink community</p>
             </div>
             <div class="card-body p-4">
-                <form method="POST" enctype="multipart/form-data" id="createPostForm">
+                <form method="POST" enctype="multipart/form-data" id="createPostForm" aria-label="Create new post form">
                     {% csrf_token %}
                     
                     <div class="row">
                         <div class="col-md-6 mb-4">
                     <div class="mb-3">
-                        <label for="title" class="form-label">Title</label>
-                        <input type="text" class="form-control" id="title" name="title" required>
-                                <div class="form-text">Choose a catchy title for your post</div>
+                        <label for="title" class="form-label">Title <span class="required" aria-label="required">*</span></label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="title" 
+                            name="title" 
+                            required
+                            aria-required="true"
+                            aria-describedby="title-help"
+                        >
+                                <div class="form-text" id="title-help">Choose a catchy title for your post</div>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
-                                <div class="form-text">Tell everyone about your post</div>
+                        <label for="description" class="form-label">Description <span class="required" aria-label="required">*</span></label>
+                                <textarea 
+                                    class="form-control" 
+                                    id="description" 
+                                    name="description" 
+                                    rows="5" 
+                                    required
+                                    aria-required="true"
+                                    aria-describedby="description-help"
+                                ></textarea>
+                                <div class="form-text" id="description-help">Tell everyone about your post</div>
                     </div>
                     
                     <div class="mb-3">
-                                <label class="form-label">Categories</label>
-                                <div class="d-flex flex-wrap gap-2">
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="checkbox" id="cat-art" name="categories" value="art">
-                                        <label class="form-check-label" for="cat-art">Art</label>
+                                <fieldset>
+                                    <legend class="form-label">Categories</legend>
+                                    <div class="d-flex flex-wrap gap-2" role="group" aria-label="Post categories">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="cat-art" name="categories" value="art" aria-label="Art category">
+                                            <label class="form-check-label" for="cat-art">Art</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="cat-photography" name="categories" value="photography" aria-label="Photography category">
+                                            <label class="form-check-label" for="cat-photography">Photography</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="cat-design" name="categories" value="design" aria-label="Design category">
+                                            <label class="form-check-label" for="cat-design">Design</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="cat-technology" name="categories" value="technology" aria-label="Technology category">
+                                            <label class="form-check-label" for="cat-technology">Technology</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" id="cat-food" name="categories" value="food" aria-label="Food category">
+                                            <label class="form-check-label" for="cat-food">Food</label>
+                                        </div>
                                     </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="checkbox" id="cat-photography" name="categories" value="photography">
-                                        <label class="form-check-label" for="cat-photography">Photography</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="checkbox" id="cat-design" name="categories" value="design">
-                                        <label class="form-check-label" for="cat-design">Design</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="checkbox" id="cat-technology" name="categories" value="technology">
-                                        <label class="form-check-label" for="cat-technology">Technology</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="checkbox" id="cat-food" name="categories" value="food">
-                                        <label class="form-check-label" for="cat-food">Food</label>
-                                    </div>
-                                </div>
+                                </fieldset>
                             </div>
                         </div>
                         
                         <div class="col-md-6 mb-4">
                             <div class="mb-3">
-                                <label for="image" class="form-label">Upload Image</label>
-                                <div class="image-upload-container border rounded-3 p-3 text-center position-relative">
+                                <label for="image" class="form-label">Upload Image <span class="required" aria-label="required">*</span></label>
+                                <div class="image-upload-container border rounded-3 p-3 text-center position-relative" role="button" tabindex="0" aria-label="Image upload area. Click to browse or drag and drop image file" aria-describedby="image-help">
                                     <div id="preview-container" class="mb-3 d-none">
-                                        <img id="image-preview" class="img-fluid rounded-3 mb-2" style="max-height: 250px;" alt="Preview">
-                                        <button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2" id="remove-image">
-                                            <i class="bi bi-x-lg"></i>
+                                        <img id="image-preview" class="img-fluid rounded-3 mb-2" style="max-height: 250px;" alt="Image preview">
+                                        <button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2" id="remove-image" aria-label="Remove selected image">
+                                            <i class="bi bi-x-lg" aria-hidden="true"></i>
                                         </button>
                                     </div>
                                     <div id="upload-prompt">
-                                        <i class="bi bi-cloud-arrow-up text-primary" style="font-size: 3rem;"></i>
+                                        <i class="bi bi-cloud-arrow-up text-primary" style="font-size: 3rem;" aria-hidden="true"></i>
                                         <p class="mb-2">Drag and drop your image here, or click to browse</p>
                                         <p class="text-muted small">Supports JPG, PNG, GIF (Max 5MB)</p>
                                     </div>
-                                    <input type="file" class="form-control visually-hidden" id="image" name="image" accept="image/*" required>
+                                    <input 
+                                        type="file" 
+                                        class="form-control visually-hidden" 
+                                        id="image" 
+                                        name="image" 
+                                        accept="image/*" 
+                                        required
+                                        aria-required="true"
+                                        aria-describedby="image-help"
+                                    >
                                 </div>
+                                <div class="form-text" id="image-help">Upload an image for your post. Supported formats: JPG, PNG, GIF. Maximum file size: 5MB</div>
                             </div>
                             
                             <div class="bg-light p-3 rounded-3 mt-4">
@@ -167,37 +195,64 @@
             }
         }
         
-        // Form validation with visual feedback
+        // Form validation with visual and accessibility feedback
         const form = document.getElementById('createPostForm');
         const titleInput = document.getElementById('title');
         const descriptionInput = document.getElementById('description');
         
         form.addEventListener('submit', function(e) {
             let isValid = true;
+            const errors = [];
             
             if (!titleInput.value.trim()) {
                 titleInput.classList.add('is-invalid');
+                titleInput.setAttribute('aria-invalid', 'true');
                 isValid = false;
+                errors.push('Title is required');
             } else {
                 titleInput.classList.remove('is-invalid');
+                titleInput.setAttribute('aria-invalid', 'false');
             }
             
             if (!descriptionInput.value.trim()) {
                 descriptionInput.classList.add('is-invalid');
+                descriptionInput.setAttribute('aria-invalid', 'true');
                 isValid = false;
+                errors.push('Description is required');
             } else {
                 descriptionInput.classList.remove('is-invalid');
+                descriptionInput.setAttribute('aria-invalid', 'false');
             }
             
             if (!imageInput.files || !imageInput.files[0]) {
                 uploadContainer.classList.add('border-danger');
+                imageInput.setAttribute('aria-invalid', 'true');
                 isValid = false;
+                errors.push('Image is required');
             } else {
                 uploadContainer.classList.remove('border-danger');
+                imageInput.setAttribute('aria-invalid', 'false');
             }
             
             if (!isValid) {
                 e.preventDefault();
+                // Announce errors to screen reader
+                const errorMsg = 'Form has errors: ' + errors.join(', ');
+                const liveRegion = document.getElementById('form-live-region') || 
+                    document.querySelector('[role="status"][aria-live]');
+                if (liveRegion) {
+                    liveRegion.setAttribute('aria-live', 'assertive');
+                    liveRegion.textContent = errorMsg;
+                    setTimeout(() => { liveRegion.textContent = ''; }, 3000);
+                }
+                // Focus first error
+                if (titleInput.classList.contains('is-invalid')) {
+                    titleInput.focus();
+                } else if (descriptionInput.classList.contains('is-invalid')) {
+                    descriptionInput.focus();
+                } else if (imageInput.getAttribute('aria-invalid') === 'true') {
+                    imageInput.focus();
+                }
             }
         });
     });

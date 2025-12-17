@@ -95,8 +95,13 @@
                     <span class="required" aria-label="required">*</span>
                   </label>
                   <div class="input-group">{{ form.first_name }}</div>
+                  {% if form.first_name.help_text %}
+                  <div class="form-text" id="{{ form.first_name.id_for_label }}-help">
+                    {{ form.first_name.help_text }}
+                  </div>
+                  {% endif %}
                   {% if form.first_name.errors %}
-                  <div class="form-error" role="alert">
+                  <div class="form-error" role="alert" id="{{ form.first_name.id_for_label }}-error" aria-live="polite">
                     {{ form.first_name.errors }}
                   </div>
                   {% endif %}
@@ -110,8 +115,13 @@
                     <span class="required" aria-label="required">*</span>
                   </label>
                   <div class="input-group">{{ form.last_name }}</div>
+                  {% if form.last_name.help_text %}
+                  <div class="form-text" id="{{ form.last_name.id_for_label }}-help">
+                    {{ form.last_name.help_text }}
+                  </div>
+                  {% endif %}
                   {% if form.last_name.errors %}
-                  <div class="form-error" role="alert">
+                  <div class="form-error" role="alert" id="{{ form.last_name.id_for_label }}-error" aria-live="polite">
                     {{ form.last_name.errors }}
                   </div>
                   {% endif %}
@@ -127,8 +137,13 @@
                   <span class="required" aria-label="required">*</span>
                 </label>
                 <div class="input-group">{{ form.username }}</div>
+                {% if form.username.help_text %}
+                <div class="form-text" id="{{ form.username.id_for_label }}-help">
+                  {{ form.username.help_text }}
+                </div>
+                {% endif %}
                 {% if form.username.errors %}
-                <div class="form-error" role="alert">
+                <div class="form-error" role="alert" id="{{ form.username.id_for_label }}-error" aria-live="polite">
                   {{ form.username.errors }}
                 </div>
                 {% endif %}
@@ -140,8 +155,13 @@
                   <span class="required" aria-label="required">*</span>
                 </label>
                 <div class="input-group">{{ form.email }}</div>
+                {% if form.email.help_text %}
+                <div class="form-text" id="{{ form.email.id_for_label }}-help">
+                  {{ form.email.help_text }}
+                </div>
+                {% endif %}
                 {% if form.email.errors %}
-                <div class="form-error" role="alert">
+                <div class="form-error" role="alert" id="{{ form.email.id_for_label }}-error" aria-live="polite">
                   {{ form.email.errors }}
                 </div>
                 {% endif %}
@@ -156,8 +176,13 @@
                   <span class="required" aria-label="required">*</span>
                 </label>
                 <div class="input-group">{{ form.phone_number }}</div>
+                {% if form.phone_number.help_text %}
+                <div class="form-text" id="{{ form.phone_number.id_for_label }}-help">
+                  {{ form.phone_number.help_text }}
+                </div>
+                {% endif %}
                 {% if form.phone_number.errors %}
-                <div class="form-error" role="alert">
+                <div class="form-error" role="alert" id="{{ form.phone_number.id_for_label }}-error" aria-live="polite">
                   {{ form.phone_number.errors }}
                 </div>
                 {% endif %}
@@ -178,6 +203,7 @@
                     class="password-toggle-btn"
                     id="togglePassword1"
                     aria-label="Show password"
+                    aria-pressed="false"
                   >
                     <i
                       class="bi bi-eye"
@@ -189,8 +215,13 @@
                     >
                   </button>
                 </div>
+                {% if form.password1.help_text %}
+                <div class="form-text" id="{{ form.password1.id_for_label }}-help">
+                  {{ form.password1.help_text }}
+                </div>
+                {% endif %}
                 {% if form.password1.errors %}
-                <div class="form-error" role="alert">
+                <div class="form-error" role="alert" id="{{ form.password1.id_for_label }}-error" aria-live="polite">
                   {{ form.password1.errors }}
                 </div>
                 {% endif %}
@@ -211,6 +242,7 @@
                     class="password-toggle-btn"
                     id="togglePassword2"
                     aria-label="Show confirm password"
+                    aria-pressed="false"
                   >
                     <i
                       class="bi bi-eye"
@@ -222,8 +254,13 @@
                     >
                   </button>
                 </div>
+                {% if form.password2.help_text %}
+                <div class="form-text" id="{{ form.password2.id_for_label }}-help">
+                  {{ form.password2.help_text }}
+                </div>
+                {% endif %}
                 {% if form.password2.errors %}
-                <div class="form-error" role="alert">
+                <div class="form-error" role="alert" id="{{ form.password2.id_for_label }}-error" aria-live="polite">
                   {{ form.password2.errors }}
                 </div>
                 {% endif %}
@@ -235,12 +272,17 @@
                   class="form-check-input"
                   id="termsCheck"
                   required
+                  aria-required="true"
+                  aria-describedby="termsCheck-help"
                 />
                 <label class="form-check-label" for="termsCheck">
                   I agree to the
-                  <a href="#" class="text-primary">Terms of Service</a> and
-                  <a href="#" class="text-primary">Privacy Policy</a>
+                  <a href="#" class="text-primary" aria-label="Read Terms of Service">Terms of Service</a> and
+                  <a href="#" class="text-primary" aria-label="Read Privacy Policy">Privacy Policy</a>
                 </label>
+                <div class="form-text sr-only" id="termsCheck-help">
+                  You must agree to the terms and conditions to create an account
+                </div>
               </div>
 
               <div class="d-grid">
@@ -267,6 +309,8 @@
       </div>
     </div>
 
+    {% load static %}
+    <script src="{% static 'js/form-accessibility.js' %}"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         // Add form-control class to all form inputs
@@ -302,17 +346,28 @@
                   : "password";
               passwordField.setAttribute("type", type);
 
+              const isVisible = type === "text";
               // Toggle icon and ARIA labels
-              if (type === "text") {
+              if (isVisible) {
                 toggleIcon.classList.remove("bi-eye");
                 toggleIcon.classList.add("bi-eye-slash");
                 toggleBtn.setAttribute("aria-label", "Hide password");
+                toggleBtn.setAttribute("aria-pressed", "true");
                 if (srText) srText.textContent = "Hide password";
               } else {
                 toggleIcon.classList.remove("bi-eye-slash");
                 toggleIcon.classList.add("bi-eye");
                 toggleBtn.setAttribute("aria-label", "Show password");
+                toggleBtn.setAttribute("aria-pressed", "false");
                 if (srText) srText.textContent = "Show password";
+              }
+              
+              // Announce state change to screen reader
+              const announcement = isVisible ? "Password is now visible" : "Password is now hidden";
+              const liveRegion = document.getElementById('form-live-region');
+              if (liveRegion) {
+                liveRegion.textContent = announcement;
+                setTimeout(() => { liveRegion.textContent = ''; }, 1000);
               }
             });
           }

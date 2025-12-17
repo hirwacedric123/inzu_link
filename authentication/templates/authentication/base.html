@@ -507,6 +507,10 @@
     setInterval(updateUnreadCount, 30000);
     </script>
     {% endif %}
+    
+    {% load static %}
+    <!-- Form Accessibility Module for Voice Assistants -->
+    <script src="{% static 'js/form-accessibility.js' %}"></script>
 </body>
 
 </html>
