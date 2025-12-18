@@ -141,6 +141,39 @@ InzuLink now supports voice commands for navigation and interaction! You can con
 - Remove/update quantity works when on cart page
 - Products are identified by their title/name
 
+### **Phase 6: Product Detail Page Commands** 🎯
+
+**Available only on Product Detail Pages (`/auth/post/<id>/`):**
+
+| Command | What It Does |
+|---------|-------------|
+| "Like this" / "Like it" | Likes the current product |
+| "Unlike this" | Removes like from product |
+| "Bookmark this" / "Save this" | Saves product to bookmarks |
+| "Remove bookmark" / "Unsave" | Removes bookmark |
+| "Add to cart" / "Add this to cart" | Adds current product to cart |
+| "Send inquiry" / "Contact seller" | Opens inquiry form modal |
+| "Start chat" / "Chat with seller" | Opens chat with seller |
+| "Share this" / "Share product" | Copies product link to clipboard |
+| "Next image" / "Next photo" | Shows next product image |
+| "Previous image" | Shows previous product image |
+| "First image" / "Main image" | Shows main product image |
+| "View reviews" / "Show reviews" | Scrolls to reviews section |
+| "Write review" / "Add review" | Scrolls to review form |
+| "Read description" | Announces product description |
+
+**Examples:**
+- "Like this" → likes the product you're viewing
+- "Bookmark this" → saves product to bookmarks
+- "Send inquiry" → opens inquiry form (then use form commands to fill)
+- "Next image" → shows next product photo
+- "View reviews" → scrolls to see what others said
+
+**Note:**
+- These commands only work on product detail pages
+- Some commands require login (like, bookmark, inquiry, chat)
+- Image navigation works if product has multiple images
+
 ### **Phase 5: Browser Control & Advanced Features** ⚡
 
 | Command | What It Does |
@@ -313,9 +346,15 @@ Voice commands work on mobile devices, but:
 - ✅ **Command Suggestions** - Based on usage patterns
 - ✅ **Repeat Command** - Repeat last command easily
 
-## ✅ **All Phases Complete!**
+## 🆕 **Phase 6: Page-Specific Commands** 📄
 
-The voice command system is now fully implemented with all planned features!
+- ✅ **Product Detail Page** - Complete set of commands for product pages
+- 🔄 **Dashboard Page** - In progress
+- ⏳ **Other Pages** - Coming soon
+
+## ✅ **Core Phases Complete!**
+
+The voice command system core functionality is complete. Page-specific enhancements are being added.
 
 ---
 
