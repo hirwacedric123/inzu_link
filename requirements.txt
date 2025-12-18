@@ -34,10 +34,10 @@ reportlab==4.2.5
 
 # Python Utilities
 certifi==2024.8.30
-charset-normalizer~=2.0.0  # Compatible with requests 2.26.0
+charset-normalizer==2.0.12  # Compatible with requests 2.26.0
 idna==3.10
-requests~=2.26.0  # Compatible with paypack-py requirement (requires requests 2.26.x)
-urllib3>=1.21.1,<1.27  # Compatible with requests 2.26.0
+requests==2.26.0  # Compatible with paypack-py requirement (requires requests 2.26.x)
+urllib3==1.26.18  # Compatible with requests 2.26.0 (pinned to avoid version conflicts)
 typing_extensions==4.12.2
 
 # Environment Variables
