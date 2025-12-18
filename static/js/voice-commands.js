@@ -725,6 +725,111 @@
                 }
             }
 
+            // Phase 8: Checkout Page commands (check these when on checkout)
+            const isCheckoutPage = window.location.pathname === '/auth/checkout/' || 
+                                   window.location.pathname.match(/^\/auth\/checkout\/?$/);
+            
+            if (isCheckoutPage) {
+                // Complete purchase / Place order
+                const completePurchasePatterns = [
+                    /^(complete purchase|place order|submit order|confirm order|finish checkout)$/i,
+                    /^(proceed with order|finalize order|checkout now)$/i
+                ];
+                
+                for (const pattern of completePurchasePatterns) {
+                    if (pattern.test(transcript)) {
+                        this.completeCheckout();
+                        return true;
+                    }
+                }
+
+                // Select payment method
+                const paymentMethodPatterns = [
+                    /^(select|choose|use|set) payment method (.+?)$/i,
+                    /^(pay with|payment) (.+?)$/i,
+                    /^(use|select) (.+?)(?: payment| method)?$/i
+                ];
+                
+                for (const pattern of paymentMethodPatterns) {
+                    const match = transcript.match(pattern);
+                    if (match) {
+                        const method = match[2] || match[1];
+                        this.selectPaymentMethod(method.trim());
+                        return true;
+                    }
+                }
+
+                // Review order
+                const reviewOrderPatterns = [
+                    /^(review order|show order summary|view order|order summary)$/i,
+                    /^(show summary|review items|check order)$/i
+                ];
+                
+                for (const pattern of reviewOrderPatterns) {
+                    if (pattern.test(transcript)) {
+                        this.scrollToOrderSummary();
+                        return true;
+                    }
+                }
+
+                // Edit delivery address
+                const editAddressPatterns = [
+                    /^(edit|change|update) (delivery )?address$/i,
+                    /^(focus|go to) (delivery )?address$/i,
+                    /^(enter|fill) (delivery )?address$/i
+                ];
+                
+                for (const pattern of editAddressPatterns) {
+                    if (pattern.test(transcript)) {
+                        this.focusDeliveryAddress();
+                        return true;
+                    }
+                }
+
+                // Apply coupon (if exists)
+                const couponPatterns = [
+                    /^(apply|use|enter) coupon (.+?)$/i,
+                    /^(apply|use|enter) (discount|promo) code (.+?)$/i,
+                    /^(add|enter) coupon$/i
+                ];
+                
+                for (const pattern of couponPatterns) {
+                    const match = transcript.match(pattern);
+                    if (match) {
+                        const couponCode = match[2] || match[3] || '';
+                        this.applyCoupon(couponCode.trim());
+                        return true;
+                    }
+                }
+
+                // Calculate total / Show total
+                const totalPatterns = [
+                    /^(show|calculate|what is|tell me) (the )?total$/i,
+                    /^(how much|what's) (the )?total$/i,
+                    /^(show|display) (order )?summary$/i
+                ];
+                
+                for (const pattern of totalPatterns) {
+                    if (pattern.test(transcript)) {
+                        this.announceCheckoutTotal();
+                        return true;
+                    }
+                }
+
+                // Focus on phone field
+                const phonePatterns = [
+                    /^(edit|change|update|focus|go to) (contact )?phone$/i,
+                    /^(enter|fill) (contact )?phone$/i
+                ];
+                
+                for (const pattern of phonePatterns) {
+                    if (pattern.test(transcript)) {
+                        this.focusDeliveryPhone();
+                        return true;
+                    }
+                }
+            }
+
             // Phase 4: E-commerce commands (check these first)
             const addToCartPatterns = [
                 /add (.+?) to cart/i,
@@ -2909,6 +3014,310 @@
         }
 
         /**
+         * ============================================
+         * CHECKOUT PAGE METHODS
+         * ============================================
+         */
+
+        /**
+         * Complete checkout / Place order
+         */
+        completeCheckout() {
+            const checkoutForm = document.getElementById('checkoutForm');
+            const submitButton = document.querySelector('button[type="submit"][form="checkoutForm"], button[form="checkoutForm"]');
+            
+            if (!checkoutForm) {
+                this.updateFeedback('Checkout form not found', 'error');
+                this.announceToScreenReader('Checkout form not found');
+                return;
+            }
+
+            // Validate form before submitting
+            if (!checkoutForm.checkValidity()) {
+                this.updateFeedback('Please fill in all required fields', 'error');
+                this.announceToScreenReader('Please fill in all required fields before placing order');
+                
+                // Focus on first invalid field
+                const firstInvalid = checkoutForm.querySelector(':invalid');
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+
+            this.updateFeedback('Placing order...', 'processing');
+            this.announceToScreenReader('Placing your order. Please wait.');
+
+            // Submit the form
+            if (submitButton) {
+                submitButton.click();
+            } else {
+                checkoutForm.submit();
+            }
+        }
+
+        /**
+         * Select payment method
+         */
+        selectPaymentMethod(methodName) {
+            const paymentSelect = document.getElementById('payment_method');
+            
+            if (!paymentSelect) {
+                this.updateFeedback('Payment method dropdown not found', 'error');
+                return;
+            }
+
+            // Normalize method name
+            const normalizedMethod = methodName.toLowerCase().trim();
+            
+            // Map common payment method names to values
+            const methodMap = {
+                'paypack': 'paypack',
+                'mobile money': 'paypack',
+                'momo': 'paypack',
+                'mobile': 'paypack',
+                'bank transfer': 'bank_transfer',
+                'bank': 'bank_transfer',
+                'transfer': 'bank_transfer',
+                'cash on delivery': 'cash',
+                'cash': 'cash',
+                'cod': 'cash',
+                'other': 'other'
+            };
+
+            // Try to find matching option
+            const options = Array.from(paymentSelect.options);
+            let selectedValue = null;
+
+            // First try direct mapping
+            if (methodMap[normalizedMethod]) {
+                selectedValue = methodMap[normalizedMethod];
+            } else {
+                // Try to find by text match
+                for (const option of options) {
+                    const optionText = option.text.toLowerCase();
+                    if (optionText.includes(normalizedMethod) || normalizedMethod.includes(optionText.split(' ')[0])) {
+                        selectedValue = option.value;
+                        break;
+                    }
+                }
+            }
+
+            if (!selectedValue) {
+                this.updateFeedback(`Payment method "${methodName}" not found`, 'error');
+                this.announceToScreenReader(`Payment method "${methodName}" not found. Available methods: Paypack, Bank Transfer, Cash on Delivery`);
+                return;
+            }
+
+            paymentSelect.value = selectedValue;
+            
+            // Trigger change event
+            const changeEvent = new Event('change', { bubbles: true });
+            paymentSelect.dispatchEvent(changeEvent);
+
+            const selectedOption = options.find(opt => opt.value === selectedValue);
+            const methodDisplayName = selectedOption ? selectedOption.text : methodName;
+
+            this.updateFeedback(`Payment method set to ${methodDisplayName}`, 'success');
+            this.announceToScreenReader(`Payment method changed to ${methodDisplayName}`);
+        }
+
+        /**
+         * Scroll to order summary
+         */
+        scrollToOrderSummary() {
+            const orderSummary = document.querySelector('.card-header:has-text("Order Summary"), .card:has(.card-header:has-text("Order Summary"))');
+            
+            // Try different selectors
+            const selectors = [
+                '.card-header:has-text("Order Summary")',
+                '[class*="order-summary"]',
+                '.card:has(.card-header)',
+                '.sticky-top.card'
+            ];
+
+            let summaryElement = null;
+            for (const selector of selectors) {
+                try {
+                    const elements = document.querySelectorAll(selector);
+                    for (const elem of elements) {
+                        if (elem.textContent.includes('Order Summary')) {
+                            summaryElement = elem;
+                            break;
+                        }
+                    }
+                    if (summaryElement) break;
+                } catch (e) {
+                    // Invalid selector, continue
+                }
+            }
+
+            // Fallback: find by heading text
+            if (!summaryElement) {
+                const headings = Array.from(document.querySelectorAll('h5, .card-header'));
+                const orderHeading = headings.find(h => 
+                    h.textContent.toLowerCase().includes('order summary') ||
+                    h.textContent.toLowerCase().includes('summary')
+                );
+                if (orderHeading) {
+                    summaryElement = orderHeading.closest('.card') || orderHeading;
+                }
+            }
+
+            if (!summaryElement) {
+                this.updateFeedback('Order summary not found', 'error');
+                this.announceToScreenReader('Order summary section not found');
+                return;
+            }
+
+            summaryElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            this.updateFeedback('Scrolled to order summary', 'success');
+            this.announceToScreenReader('Scrolled to order summary');
+        }
+
+        /**
+         * Focus on delivery address field
+         */
+        focusDeliveryAddress() {
+            const addressField = document.getElementById('delivery_address');
+            
+            if (!addressField) {
+                this.updateFeedback('Delivery address field not found', 'error');
+                return;
+            }
+
+            addressField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            addressField.focus();
+            
+            this.updateFeedback('Focused on delivery address', 'success');
+            this.announceToScreenReader('Delivery address field focused. You can now enter your address.');
+        }
+
+        /**
+         * Focus on delivery phone field
+         */
+        focusDeliveryPhone() {
+            const phoneField = document.getElementById('delivery_phone');
+            
+            if (!phoneField) {
+                this.updateFeedback('Contact phone field not found', 'error');
+                return;
+            }
+
+            phoneField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            phoneField.focus();
+            
+            this.updateFeedback('Focused on contact phone', 'success');
+            this.announceToScreenReader('Contact phone field focused. You can now enter your phone number.');
+        }
+
+        /**
+         * Apply coupon code
+         */
+        applyCoupon(couponCode) {
+            // Check if coupon field exists
+            const couponField = document.querySelector('input[name*="coupon"], input[name*="promo"], input[id*="coupon"], input[id*="promo"]');
+            
+            if (!couponField) {
+                this.updateFeedback('Coupon field not found on this page', 'error');
+                this.announceToScreenReader('Coupon field not available on checkout page');
+                return;
+            }
+
+            if (couponCode) {
+                couponField.value = couponCode;
+                couponField.focus();
+                
+                // Try to trigger apply button if exists
+                const applyButton = document.querySelector('button:has-text("Apply"), button[id*="apply"], button[class*="apply"]');
+                if (applyButton) {
+                    applyButton.click();
+                }
+                
+                this.updateFeedback(`Coupon code "${couponCode}" applied`, 'success');
+                this.announceToScreenReader(`Coupon code ${couponCode} applied`);
+            } else {
+                couponField.focus();
+                this.updateFeedback('Focused on coupon field', 'success');
+                this.announceToScreenReader('Coupon field focused. Please enter your coupon code.');
+            }
+        }
+
+        /**
+         * Announce checkout total
+         */
+        announceCheckoutTotal() {
+            // Try to find total element
+            const totalSelectors = [
+                '.card-body strong.text-primary',
+                '[class*="total"] strong',
+                '.d-flex.justify-content-between:has(strong)',
+                '.card-body:has-text("Total")'
+            ];
+
+            let totalElement = null;
+            let totalText = '';
+
+            for (const selector of totalSelectors) {
+                try {
+                    const elements = document.querySelectorAll(selector);
+                    for (const elem of elements) {
+                        const text = elem.textContent.trim();
+                        if (text.includes('RWF') || text.includes('Total') || /^\d+/.test(text)) {
+                            // Check if parent contains "Total"
+                            const parent = elem.closest('.card-body, .d-flex');
+                            if (parent && parent.textContent.includes('Total')) {
+                                totalElement = elem;
+                                totalText = text;
+                                break;
+                            }
+                        }
+                    }
+                    if (totalElement) break;
+                } catch (e) {
+                    // Invalid selector, continue
+                }
+            }
+
+            // Fallback: find by text content
+            if (!totalElement) {
+                const allElements = document.querySelectorAll('*');
+                for (const elem of allElements) {
+                    const text = elem.textContent.trim();
+                    if (text.includes('Total') && (text.includes('RWF') || elem.querySelector('strong'))) {
+                        const strong = elem.querySelector('strong') || elem;
+                        if (strong.textContent.includes('RWF')) {
+                            totalElement = strong;
+                            totalText = strong.textContent.trim();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (totalElement && totalText) {
+                // Extract just the amount
+                const amountMatch = totalText.match(/RWF\s*([\d,]+)/);
+                const amount = amountMatch ? amountMatch[0] : totalText;
+                
+                this.updateFeedback(`Total: ${amount}`, 'help');
+                this.announceToScreenReader(`Your order total is ${amount}`);
+            } else {
+                // Try to get from cart total
+                const cartTotal = document.querySelector('[class*="total"]');
+                if (cartTotal) {
+                    const totalText = cartTotal.textContent.trim();
+                    this.updateFeedback(`Total: ${totalText}`, 'help');
+                    this.announceToScreenReader(`Your order total is ${totalText}`);
+                } else {
+                    this.updateFeedback('Total not found', 'error');
+                    this.announceToScreenReader('Could not find order total');
+                }
+            }
+        }
+
+        /**
          * Add current product to cart (on product detail page)
          */
         async addCurrentProductToCart() {
@@ -3132,6 +3541,15 @@
                 'Next product',
                 'Clear filters'
             ];
+            const checkoutExamples = [
+                'Place order',
+                'Complete purchase',
+                'Select payment method Paypack',
+                'Review order',
+                'Edit delivery address',
+                'Show total',
+                'Focus on phone'
+            ];
 
             const modal = document.createElement('div');
             modal.id = 'voice-help-modal';
@@ -3209,6 +3627,13 @@
                             <h3>Dashboard Page</h3>
                             <ul class="voice-commands-list">
                                 ${dashboardExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="voice-help-section">
+                            <h3>Checkout Page</h3>
+                            <ul class="voice-commands-list">
+                                ${checkoutExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
                             </ul>
                         </div>
                         

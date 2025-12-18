@@ -196,15 +196,39 @@ InzuLink now supports voice commands for navigation and interaction! You can con
 - "Sort by price" → sorts products from cheapest to most expensive
 - "Filter by electronics" → shows only electronics products
 - "Next product" → scrolls to and focuses the next product card
-- "Bookmark this" → saves product to bookmarks
-- "Send inquiry" → opens inquiry form (then use form commands to fill)
-- "Next image" → shows next product photo
-- "View reviews" → scrolls to see what others said
+
+---
+
+### **Phase 8: Checkout Page Commands** 💳
+
+**Available only on Checkout Page (`/auth/checkout/`):**
+
+| Command | What It Does |
+|---------|-------------|
+| "Place order" / "Complete purchase" | Submits checkout form |
+| "Select payment method [method]" | Changes payment method |
+| "Pay with Paypack" / "Use Paypack" | Selects Paypack payment |
+| "Pay with bank transfer" | Selects bank transfer |
+| "Pay with cash" / "Cash on delivery" | Selects cash on delivery |
+| "Review order" / "Show order summary" | Scrolls to order summary |
+| "Edit delivery address" | Focuses on address field |
+| "Focus on phone" / "Edit phone" | Focuses on phone field |
+| "Apply coupon [code]" | Applies coupon code |
+| "Show total" / "Calculate total" | Announces order total |
+
+**Examples:**
+- "Place order" → completes the checkout process
+- "Select payment method Paypack" → changes payment to Paypack
+- "Review order" → scrolls to see order summary
+- "Edit delivery address" → focuses address field for voice input
+- "Show total" → announces the total amount
 
 **Note:**
-- These commands only work on product detail pages
-- Some commands require login (like, bookmark, inquiry, chat)
-- Image navigation works if product has multiple images
+- These commands only work on checkout page
+- Form validation runs before order placement
+- Payment method names: Paypack, Bank Transfer, Cash on Delivery
+
+---
 
 ### **Phase 5: Browser Control & Advanced Features** ⚡
 
@@ -382,6 +406,7 @@ Voice commands work on mobile devices, but:
 
 - ✅ **Product Detail Page** - Complete set of commands for product pages
 - ✅ **Dashboard Page** - Complete set of commands for dashboard page
+- ✅ **Checkout Page** - Complete set of commands for checkout
 - ⏳ **Other Pages** - Coming soon
 
 ## ✅ **Core Phases Complete!**
