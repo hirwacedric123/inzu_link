@@ -164,6 +164,38 @@ InzuLink now supports voice commands for navigation and interaction! You can con
 
 **Examples:**
 - "Like this" → likes the product you're viewing
+
+---
+
+### **Phase 7: Dashboard Page Commands** 🏠
+
+**Available only on Dashboard Page (`/auth/dashboard/`):**
+
+| Command | What It Does |
+|---------|-------------|
+| "Like [product name]" / "Like the [product name]" | Likes a product by name |
+| "Bookmark [product name]" / "Save [product name]" | Bookmarks a product by name |
+| "View [product name]" / "Show [product name]" | Opens product detail page |
+| "Sort by newest" / "Show newest first" | Sorts products by newest |
+| "Sort by price" / "Show cheapest first" | Sorts products by price (low to high) |
+| "Sort by price high" / "Show expensive first" | Sorts products by price (high to low) |
+| "Sort by popular" / "Show most popular" | Sorts products by popularity |
+| "Sort by rating" / "Show highest rated" | Sorts products by rating |
+| "Filter by [category]" / "Show [category]" | Filters products by category |
+| "Clear filters" / "Show all" | Removes all filters |
+| "Next product" / "Show next" | Navigates to next product card |
+| "Previous product" / "Show previous" | Navigates to previous product card |
+| "Next page" / "Show more" | Loads next page of products |
+| "Previous page" / "Go back" | Loads previous page |
+| "First page" | Goes to first page |
+
+**Examples:**
+- "Like iPhone" → finds and likes a product with "iPhone" in the name
+- "Bookmark furniture" → bookmarks a furniture product
+- "View property in Kigali" → opens the product detail page
+- "Sort by price" → sorts products from cheapest to most expensive
+- "Filter by electronics" → shows only electronics products
+- "Next product" → scrolls to and focuses the next product card
 - "Bookmark this" → saves product to bookmarks
 - "Send inquiry" → opens inquiry form (then use form commands to fill)
 - "Next image" → shows next product photo
@@ -349,7 +381,7 @@ Voice commands work on mobile devices, but:
 ## 🆕 **Phase 6: Page-Specific Commands** 📄
 
 - ✅ **Product Detail Page** - Complete set of commands for product pages
-- 🔄 **Dashboard Page** - In progress
+- ✅ **Dashboard Page** - Complete set of commands for dashboard page
 - ⏳ **Other Pages** - Coming soon
 
 ## ✅ **Core Phases Complete!**

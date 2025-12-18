@@ -562,6 +562,169 @@
                 }
             }
 
+            // Phase 7: Dashboard Page commands (check these when on dashboard)
+            const isDashboardPage = window.location.pathname === '/auth/dashboard/' || 
+                                   window.location.pathname.match(/^\/auth\/dashboard\/?$/);
+            
+            if (isDashboardPage) {
+                // Like product by name
+                const likeProductPatterns = [
+                    /like (.+?)(?: product)?$/i,
+                    /like the (.+?)(?: product)?$/i,
+                    /like (.+?)$/i
+                ];
+                
+                for (const pattern of likeProductPatterns) {
+                    const match = transcript.match(pattern);
+                    if (match) {
+                        const productName = match[1].trim();
+                        this.likeProductOnDashboard(productName);
+                        return true;
+                    }
+                }
+
+                // Bookmark product by name
+                const bookmarkProductPatterns = [
+                    /bookmark (.+?)(?: product)?$/i,
+                    /save (.+?)(?: product)?$/i,
+                    /bookmark the (.+?)(?: product)?$/i,
+                    /save the (.+?)(?: product)?$/i
+                ];
+                
+                for (const pattern of bookmarkProductPatterns) {
+                    const match = transcript.match(pattern);
+                    if (match) {
+                        const productName = match[1].trim();
+                        this.bookmarkProductOnDashboard(productName);
+                        return true;
+                    }
+                }
+
+                // View product by name
+                const viewProductPatterns = [
+                    /view (.+?)(?: product)?$/i,
+                    /show (.+?)(?: product)?$/i,
+                    /open (.+?)(?: product)?$/i,
+                    /go to (.+?)(?: product)?$/i,
+                    /see (.+?)(?: product)?$/i
+                ];
+                
+                for (const pattern of viewProductPatterns) {
+                    const match = transcript.match(pattern);
+                    if (match) {
+                        const productName = match[1].trim();
+                        this.viewProductOnDashboard(productName);
+                        return true;
+                    }
+                }
+
+                // Sort commands
+                const sortPatterns = [
+                    /^(sort by|order by) (newest|new|latest|recent)$/i,
+                    /^(sort by|order by) (price|price low|lowest price|cheapest)$/i,
+                    /^(sort by|order by) (price high|highest price|most expensive|expensive)$/i,
+                    /^(sort by|order by) (popular|most popular|best selling)$/i,
+                    /^(sort by|order by) (rating|highest rated|best rated)$/i,
+                    /^(show|display) (newest|new|latest|recent) (first|products)?$/i,
+                    /^(show|display) (cheapest|lowest|price low) (first|products)?$/i,
+                    /^(show|display) (expensive|highest|price high) (first|products)?$/i,
+                    /^(show|display) (popular|most popular) (first|products)?$/i
+                ];
+                
+                for (const pattern of sortPatterns) {
+                    const match = transcript.match(pattern);
+                    if (match) {
+                        let sortType = match[2] || match[1];
+                        if (sortType.match(/newest|new|latest|recent/i)) {
+                            this.sortDashboard('newest');
+                        } else if (sortType.match(/price low|lowest|cheapest/i)) {
+                            this.sortDashboard('price_low');
+                        } else if (sortType.match(/price high|highest|expensive/i)) {
+                            this.sortDashboard('price_high');
+                        } else if (sortType.match(/popular|best selling/i)) {
+                            this.sortDashboard('popular');
+                        } else if (sortType.match(/rating|best rated/i)) {
+                            this.sortDashboard('rating');
+                        }
+                        return true;
+                    }
+                }
+
+                // Filter by category
+                const filterCategoryPatterns = [
+                    /^(filter by|show|display) (.+?)(?: category|products)?$/i,
+                    /^(show|display) (.+?)(?: only|products)?$/i,
+                    /^category (.+?)$/i
+                ];
+                
+                for (const pattern of filterCategoryPatterns) {
+                    const match = transcript.match(pattern);
+                    if (match) {
+                        const category = match[2] || match[1];
+                        this.filterDashboardByCategory(category.trim());
+                        return true;
+                    }
+                }
+
+                // Clear filters
+                const clearFilterPatterns = [
+                    /^(clear filters|remove filters|reset filters|show all)$/i,
+                    /^(clear category|remove category|show all products)$/i
+                ];
+                
+                for (const pattern of clearFilterPatterns) {
+                    if (pattern.test(transcript)) {
+                        this.clearDashboardFilters();
+                        return true;
+                    }
+                }
+
+                // Product navigation
+                const nextProductPatterns = [
+                    /^(next product|next item|show next)$/i,
+                    /^(go to next|move to next)$/i
+                ];
+                
+                for (const pattern of nextProductPatterns) {
+                    if (pattern.test(transcript)) {
+                        this.navigateToNextProduct();
+                        return true;
+                    }
+                }
+
+                const previousProductPatterns = [
+                    /^(previous product|previous item|show previous|last product)$/i,
+                    /^(go to previous|move to previous)$/i
+                ];
+                
+                for (const pattern of previousProductPatterns) {
+                    if (pattern.test(transcript)) {
+                        this.navigateToPreviousProduct();
+                        return true;
+                    }
+                }
+
+                // Pagination
+                const paginationPatterns = [
+                    /^(next page|show more|load more|more products)$/i,
+                    /^(previous page|go back|last page)$/i,
+                    /^(first page|go to first)$/i
+                ];
+                
+                for (const pattern of paginationPatterns) {
+                    if (pattern.test(transcript)) {
+                        if (transcript.match(/next|more|load more/i)) {
+                            this.goToNextPage();
+                        } else if (transcript.match(/previous|back|last/i)) {
+                            this.goToPreviousPage();
+                        } else if (transcript.match(/first/i)) {
+                            this.goToFirstPage();
+                        }
+                        return true;
+                    }
+                }
+            }
+
             // Phase 4: E-commerce commands (check these first)
             const addToCartPatterns = [
                 /add (.+?) to cart/i,
@@ -2234,6 +2397,518 @@
         }
 
         /**
+         * ============================================
+         * DASHBOARD PAGE METHODS
+         * ============================================
+         */
+
+        /**
+         * Find product on dashboard by name
+         */
+        findProductOnDashboard(productName) {
+            // Get all product cards
+            const productCards = document.querySelectorAll('.pinterest-card[data-post]');
+            
+            if (productCards.length === 0) {
+                return null;
+            }
+
+            // Normalize product name for matching
+            const normalizedName = productName.toLowerCase().trim();
+            
+            // Try to find exact match first
+            for (const card of productCards) {
+                const titleElement = card.querySelector('.card-title, h3[id^="product-title"]');
+                if (titleElement) {
+                    const title = titleElement.textContent.toLowerCase().trim();
+                    if (title === normalizedName || title.includes(normalizedName) || normalizedName.includes(title)) {
+                        return card;
+                    }
+                }
+            }
+
+            // Try partial match
+            for (const card of productCards) {
+                const titleElement = card.querySelector('.card-title, h3[id^="product-title"]');
+                if (titleElement) {
+                    const title = titleElement.textContent.toLowerCase().trim();
+                    const titleWords = title.split(/\s+/);
+                    const nameWords = normalizedName.split(/\s+/);
+                    
+                    // Check if all words in product name appear in title
+                    const allWordsMatch = nameWords.every(word => 
+                        titleWords.some(titleWord => titleWord.includes(word) || word.includes(titleWord))
+                    );
+                    
+                    if (allWordsMatch && nameWords.length > 0) {
+                        return card;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * Like a product on dashboard by name
+         */
+        async likeProductOnDashboard(productName) {
+            const productCard = this.findProductOnDashboard(productName);
+            
+            if (!productCard) {
+                this.updateFeedback(`Product "${productName}" not found`, 'error');
+                this.announceToScreenReader(`Product "${productName}" not found on this page`);
+                return;
+            }
+
+            const postId = productCard.getAttribute('data-post');
+            if (!postId) {
+                this.updateFeedback('Product ID not found', 'error');
+                return;
+            }
+
+            const likeBtn = productCard.querySelector('button[data-like]');
+            if (!likeBtn) {
+                this.updateFeedback('Like button not found', 'error');
+                return;
+            }
+
+            this.updateFeedback(`Liking "${productName}"...`, 'processing');
+            this.announceToScreenReader(`Liking ${productName}`);
+
+            try {
+                // Trigger the existing toggleLike function
+                if (typeof toggleLike === 'function') {
+                    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+                    likeBtn.dispatchEvent(event);
+                    
+                    // Also call directly if available
+                    toggleLike(postId, event);
+                    
+                    this.updateFeedback(`"${productName}" liked`, 'success');
+                    this.announceToScreenReader(`${productName} liked successfully`);
+                } else {
+                    // Fallback: direct API call
+                    const csrfToken = this.getCSRFToken();
+                    if (!csrfToken) {
+                        throw new Error('CSRF token not found');
+                    }
+
+                    const response = await fetch(`/auth/like-post/${postId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const isLiked = data.liked || data.status === 'liked';
+                        this.updateFeedback(isLiked ? `"${productName}" liked` : `"${productName}" unliked`, 'success');
+                        this.announceToScreenReader(isLiked ? `${productName} liked successfully` : `${productName} unliked`);
+                    } else {
+                        throw new Error('Failed to like product');
+                    }
+                }
+            } catch (error) {
+                console.error('Error liking product:', error);
+                this.updateFeedback(`Error: ${error.message}`, 'error');
+                this.announceToScreenReader(`Error liking product: ${error.message}`);
+            }
+        }
+
+        /**
+         * Bookmark a product on dashboard by name
+         */
+        async bookmarkProductOnDashboard(productName) {
+            const productCard = this.findProductOnDashboard(productName);
+            
+            if (!productCard) {
+                this.updateFeedback(`Product "${productName}" not found`, 'error');
+                this.announceToScreenReader(`Product "${productName}" not found on this page`);
+                return;
+            }
+
+            const postId = productCard.getAttribute('data-post');
+            if (!postId) {
+                this.updateFeedback('Product ID not found', 'error');
+                return;
+            }
+
+            const bookmarkBtn = productCard.querySelector('button[data-bookmark]');
+            if (!bookmarkBtn) {
+                this.updateFeedback('Bookmark button not found', 'error');
+                return;
+            }
+
+            this.updateFeedback(`Bookmarking "${productName}"...`, 'processing');
+            this.announceToScreenReader(`Bookmarking ${productName}`);
+
+            try {
+                // Trigger the existing toggleBookmark function
+                if (typeof toggleBookmark === 'function') {
+                    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+                    bookmarkBtn.dispatchEvent(event);
+                    
+                    // Also call directly if available
+                    toggleBookmark(postId, event);
+                    
+                    this.updateFeedback(`"${productName}" bookmarked`, 'success');
+                    this.announceToScreenReader(`${productName} saved to bookmarks`);
+                } else {
+                    // Fallback: direct API call
+                    const csrfToken = this.getCSRFToken();
+                    if (!csrfToken) {
+                        throw new Error('CSRF token not found');
+                    }
+
+                    const response = await fetch(`/auth/bookmark/${postId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const isBookmarked = data.is_bookmarked || data.status === 'added';
+                        this.updateFeedback(isBookmarked ? `"${productName}" bookmarked` : `Bookmark removed`, 'success');
+                        this.announceToScreenReader(isBookmarked ? `${productName} saved to bookmarks` : `Bookmark removed`);
+                    } else {
+                        throw new Error('Failed to bookmark product');
+                    }
+                }
+            } catch (error) {
+                console.error('Error bookmarking product:', error);
+                this.updateFeedback(`Error: ${error.message}`, 'error');
+                this.announceToScreenReader(`Error bookmarking product: ${error.message}`);
+            }
+        }
+
+        /**
+         * View a product on dashboard by name
+         */
+        viewProductOnDashboard(productName) {
+            const productCard = this.findProductOnDashboard(productName);
+            
+            if (!productCard) {
+                this.updateFeedback(`Product "${productName}" not found`, 'error');
+                this.announceToScreenReader(`Product "${productName}" not found on this page`);
+                return;
+            }
+
+            const postId = productCard.getAttribute('data-post');
+            if (!postId) {
+                this.updateFeedback('Product ID not found', 'error');
+                return;
+            }
+
+            this.updateFeedback(`Opening "${productName}"...`, 'processing');
+            this.announceToScreenReader(`Opening ${productName}`);
+
+            // Use the existing navigateToProduct function if available
+            if (typeof navigateToProduct === 'function') {
+                navigateToProduct(postId);
+            } else {
+                // Fallback: navigate directly
+                window.location.href = `/auth/post/${postId}/`;
+            }
+        }
+
+        /**
+         * Sort dashboard products
+         */
+        sortDashboard(sortType) {
+            const sortSelect = document.getElementById('sort');
+            
+            if (!sortSelect) {
+                this.updateFeedback('Sort dropdown not found', 'error');
+                return;
+            }
+
+            // Map sort types
+            const sortValueMap = {
+                'newest': 'newest',
+                'price_low': 'price_low',
+                'price_high': 'price_high',
+                'popular': 'popular',
+                'rating': 'rating'
+            };
+
+            const sortValue = sortValueMap[sortType] || 'newest';
+            
+            if (sortSelect.value === sortValue) {
+                this.updateFeedback(`Already sorted by ${sortType}`, 'idle');
+                return;
+            }
+
+            sortSelect.value = sortValue;
+            
+            // Trigger form submission
+            if (typeof submitForm === 'function') {
+                submitForm();
+            } else {
+                // Fallback: submit the form manually
+                const form = document.getElementById('search-form');
+                if (form) {
+                    form.submit();
+                }
+            }
+
+            const sortLabels = {
+                'newest': 'newest first',
+                'price_low': 'price low to high',
+                'price_high': 'price high to low',
+                'popular': 'most popular',
+                'rating': 'highest rated'
+            };
+
+            this.updateFeedback(`Sorting by ${sortLabels[sortType] || sortType}...`, 'processing');
+            this.announceToScreenReader(`Sorting products by ${sortLabels[sortType] || sortType}`);
+        }
+
+        /**
+         * Filter dashboard by category
+         */
+        filterDashboardByCategory(categoryName) {
+            const categoryInput = document.getElementById('category-input');
+            const categorySelect = document.querySelector('select[name="category"]');
+            
+            // Normalize category name
+            const normalizedCategory = categoryName.toLowerCase().trim();
+            
+            // Try to find matching category option
+            if (categorySelect) {
+                const options = Array.from(categorySelect.options);
+                for (const option of options) {
+                    const optionText = option.text.toLowerCase().trim();
+                    const optionValue = option.value.toLowerCase().trim();
+                    
+                    if (optionText.includes(normalizedCategory) || 
+                        normalizedCategory.includes(optionText) ||
+                        optionValue === normalizedCategory) {
+                        categorySelect.value = option.value;
+                        
+                        // Trigger form submission
+                        if (typeof submitForm === 'function') {
+                            submitForm();
+                        } else {
+                            const form = document.getElementById('search-form');
+                            if (form) {
+                                form.submit();
+                            }
+                        }
+                        
+                        this.updateFeedback(`Filtering by ${option.text}...`, 'processing');
+                        this.announceToScreenReader(`Filtering products by ${option.text}`);
+                        return;
+                    }
+                }
+            }
+
+            // Try setting category input if available
+            if (categoryInput) {
+                categoryInput.value = categoryName;
+                
+                if (typeof submitForm === 'function') {
+                    submitForm();
+                } else {
+                    const form = document.getElementById('search-form');
+                    if (form) {
+                        form.submit();
+                    }
+                }
+                
+                this.updateFeedback(`Filtering by ${categoryName}...`, 'processing');
+                this.announceToScreenReader(`Filtering products by ${categoryName}`);
+                return;
+            }
+
+            this.updateFeedback(`Category "${categoryName}" not found`, 'error');
+            this.announceToScreenReader(`Category "${categoryName}" not found`);
+        }
+
+        /**
+         * Clear dashboard filters
+         */
+        clearDashboardFilters() {
+            // Reset search form
+            const form = document.getElementById('search-form');
+            if (!form) {
+                this.updateFeedback('Search form not found', 'error');
+                return;
+            }
+
+            // Clear all inputs
+            const inputs = form.querySelectorAll('input[type="text"], input[type="number"], select');
+            inputs.forEach(input => {
+                if (input.name === 'sort') {
+                    input.value = 'newest'; // Keep default sort
+                } else {
+                    input.value = '';
+                }
+            });
+
+            // Submit form to show all products
+            if (typeof submitForm === 'function') {
+                submitForm();
+            } else {
+                form.submit();
+            }
+
+            this.updateFeedback('Clearing filters...', 'processing');
+            this.announceToScreenReader('Clearing all filters and showing all products');
+        }
+
+        /**
+         * Navigate to next product on dashboard
+         */
+        navigateToNextProduct() {
+            const productCards = Array.from(document.querySelectorAll('.pinterest-card[data-post]'));
+            
+            if (productCards.length === 0) {
+                this.updateFeedback('No products found', 'error');
+                return;
+            }
+
+            // Find currently focused/visible product
+            const viewportTop = window.scrollY;
+            const viewportBottom = viewportTop + window.innerHeight;
+            
+            let currentIndex = -1;
+            for (let i = 0; i < productCards.length; i++) {
+                const rect = productCards[i].getBoundingClientRect();
+                const cardTop = rect.top + viewportTop;
+                const cardBottom = cardTop + rect.height;
+                
+                // Check if card is in viewport
+                if (cardTop < viewportBottom && cardBottom > viewportTop) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+
+            // If no product in viewport, start from first
+            if (currentIndex === -1) {
+                currentIndex = 0;
+            } else {
+                currentIndex = (currentIndex + 1) % productCards.length;
+            }
+
+            const nextCard = productCards[currentIndex];
+            nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Focus on the card for accessibility
+            nextCard.focus();
+            
+            const titleElement = nextCard.querySelector('.card-title, h3[id^="product-title"]');
+            const productName = titleElement ? titleElement.textContent : 'product';
+            
+            this.updateFeedback(`Navigated to ${productName}`, 'success');
+            this.announceToScreenReader(`Navigated to ${productName}`);
+        }
+
+        /**
+         * Navigate to previous product on dashboard
+         */
+        navigateToPreviousProduct() {
+            const productCards = Array.from(document.querySelectorAll('.pinterest-card[data-post]'));
+            
+            if (productCards.length === 0) {
+                this.updateFeedback('No products found', 'error');
+                return;
+            }
+
+            // Find currently focused/visible product
+            const viewportTop = window.scrollY;
+            const viewportBottom = viewportTop + window.innerHeight;
+            
+            let currentIndex = -1;
+            for (let i = productCards.length - 1; i >= 0; i--) {
+                const rect = productCards[i].getBoundingClientRect();
+                const cardTop = rect.top + viewportTop;
+                const cardBottom = cardTop + rect.height;
+                
+                // Check if card is in viewport
+                if (cardTop < viewportBottom && cardBottom > viewportTop) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+
+            // If no product in viewport, start from last
+            if (currentIndex === -1) {
+                currentIndex = productCards.length - 1;
+            } else {
+                currentIndex = (currentIndex - 1 + productCards.length) % productCards.length;
+            }
+
+            const prevCard = productCards[currentIndex];
+            prevCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Focus on the card for accessibility
+            prevCard.focus();
+            
+            const titleElement = prevCard.querySelector('.card-title, h3[id^="product-title"]');
+            const productName = titleElement ? titleElement.textContent : 'product';
+            
+            this.updateFeedback(`Navigated to ${productName}`, 'success');
+            this.announceToScreenReader(`Navigated to ${productName}`);
+        }
+
+        /**
+         * Go to next page
+         */
+        goToNextPage() {
+            const nextLink = document.querySelector('.pagination a[aria-label*="next"], .pagination a[aria-label*="Next"]');
+            
+            if (!nextLink) {
+                this.updateFeedback('No next page available', 'error');
+                this.announceToScreenReader('You are on the last page');
+                return;
+            }
+
+            this.updateFeedback('Loading next page...', 'processing');
+            this.announceToScreenReader('Loading next page');
+            window.location.href = nextLink.href;
+        }
+
+        /**
+         * Go to previous page
+         */
+        goToPreviousPage() {
+            const prevLink = document.querySelector('.pagination a[aria-label*="previous"], .pagination a[aria-label*="Previous"]');
+            
+            if (!prevLink) {
+                this.updateFeedback('No previous page available', 'error');
+                this.announceToScreenReader('You are on the first page');
+                return;
+            }
+
+            this.updateFeedback('Loading previous page...', 'processing');
+            this.announceToScreenReader('Loading previous page');
+            window.location.href = prevLink.href;
+        }
+
+        /**
+         * Go to first page
+         */
+        goToFirstPage() {
+            const firstLink = document.querySelector('.pagination a[aria-label*="first"], .pagination a[aria-label*="First"]');
+            
+            if (!firstLink) {
+                this.updateFeedback('Already on first page', 'idle');
+                return;
+            }
+
+            this.updateFeedback('Loading first page...', 'processing');
+            this.announceToScreenReader('Loading first page');
+            window.location.href = firstLink.href;
+        }
+
+        /**
          * Add current product to cart (on product detail page)
          */
         async addCurrentProductToCart() {
@@ -2447,6 +3122,16 @@
                 'View reviews',
                 'Next image'
             ];
+            const dashboardExamples = [
+                'Like iPhone',
+                'Bookmark furniture',
+                'View property',
+                'Sort by price',
+                'Filter by electronics',
+                'Show newest first',
+                'Next product',
+                'Clear filters'
+            ];
 
             const modal = document.createElement('div');
             modal.id = 'voice-help-modal';
@@ -2517,6 +3202,13 @@
                             <h3>Product Detail Page</h3>
                             <ul class="voice-commands-list">
                                 ${productDetailExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="voice-help-section">
+                            <h3>Dashboard Page</h3>
+                            <ul class="voice-commands-list">
+                                ${dashboardExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
                             </ul>
                         </div>
                         
