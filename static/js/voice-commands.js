@@ -830,6 +830,91 @@
                 }
             }
 
+            // Phase 9: Purchase Detail Page commands (check these when on purchase detail)
+            const isPurchaseDetailPage = window.location.pathname.match(/\/auth\/purchase\/\d+\//);
+            
+            if (isPurchaseDetailPage) {
+                // Confirm payment
+                const confirmPaymentPatterns = [
+                    /^(confirm payment|payment confirmed|mark payment received|payment received)$/i,
+                    /^(payment done|payment complete)$/i
+                ];
+                
+                for (const pattern of confirmPaymentPatterns) {
+                    if (pattern.test(transcript)) {
+                        this.confirmPayment();
+                        return true;
+                    }
+                }
+
+                // Update delivery status
+                const updateDeliveryPatterns = [
+                    /^(update|change|set) delivery status (to )?(.+?)$/i,
+                    /^(mark|set) (as )?(.+?)(?: delivery)?$/i
+                ];
+                
+                for (const pattern of updateDeliveryPatterns) {
+                    const match = transcript.match(pattern);
+                    if (match) {
+                        const status = match[3] || match[2];
+                        this.updateDeliveryStatus(status.trim());
+                        return true;
+                    }
+                }
+
+                // Mark as delivered (specific command)
+                const markDeliveredPatterns = [
+                    /^(mark as delivered|mark delivered|set as delivered|delivered)$/i,
+                    /^(confirm delivery|delivery complete|item delivered)$/i
+                ];
+                
+                for (const pattern of markDeliveredPatterns) {
+                    if (pattern.test(transcript)) {
+                        this.markAsDelivered();
+                        return true;
+                    }
+                }
+
+                // Contact vendor/buyer
+                const contactPatterns = [
+                    /^(contact|message|chat with) (vendor|buyer|seller)$/i,
+                    /^(start chat|open chat|message)$/i
+                ];
+                
+                for (const pattern of contactPatterns) {
+                    if (pattern.test(transcript)) {
+                        this.contactPurchaseParty();
+                        return true;
+                    }
+                }
+
+                // View product
+                const viewProductPatterns = [
+                    /^(view|show|open|see) product$/i,
+                    /^(go to|navigate to) product$/i
+                ];
+                
+                for (const pattern of viewProductPatterns) {
+                    if (pattern.test(transcript)) {
+                        this.viewPurchaseProduct();
+                        return true;
+                    }
+                }
+
+                // Download receipt
+                const receiptPatterns = [
+                    /^(download|get|show) (receipt|invoice)$/i,
+                    /^(view|open) (receipt|invoice)$/i
+                ];
+                
+                for (const pattern of receiptPatterns) {
+                    if (pattern.test(transcript)) {
+                        this.downloadReceipt();
+                        return true;
+                    }
+                }
+            }
+
             // Phase 4: E-commerce commands (check these first)
             const addToCartPatterns = [
                 /add (.+?) to cart/i,
@@ -3318,6 +3403,267 @@
         }
 
         /**
+         * ============================================
+         * PURCHASE DETAIL PAGE METHODS
+         * ============================================
+         */
+
+        /**
+         * Confirm payment for purchase
+         */
+        confirmPayment() {
+            // Extract purchase ID from URL
+            const purchaseIdMatch = window.location.pathname.match(/\/auth\/purchase\/(\d+)\//);
+            if (!purchaseIdMatch) {
+                this.updateFeedback('Purchase ID not found', 'error');
+                return;
+            }
+
+            const purchaseId = purchaseIdMatch[1];
+            const confirmUrl = `/auth/purchase/${purchaseId}/confirm-payment/`;
+
+            this.updateFeedback('Confirming payment...', 'processing');
+            this.announceToScreenReader('Confirming payment. Please wait.');
+
+            // Navigate to confirm payment page
+            window.location.href = confirmUrl;
+        }
+
+        /**
+         * Update delivery status
+         */
+        updateDeliveryStatus(statusName) {
+            const deliveryStatusSelect = document.getElementById('delivery_status');
+            
+            if (!deliveryStatusSelect) {
+                this.updateFeedback('Delivery status form not found. You may need vendor permissions.', 'error');
+                this.announceToScreenReader('Delivery status form not found. Only vendors can update delivery status.');
+                return;
+            }
+
+            // Normalize status name
+            const normalizedStatus = statusName.toLowerCase().trim();
+            
+            // Map common status names to values
+            const statusMap = {
+                'pending': 'pending',
+                'processing': 'processing',
+                'shipped': 'shipped',
+                'in transit': 'shipped',
+                'on the way': 'shipped',
+                'delivered': 'delivered',
+                'delivery failed': 'delivery_failed',
+                'failed': 'delivery_failed',
+                'cancelled': 'cancelled',
+                'canceled': 'cancelled'
+            };
+
+            // Try to find matching option
+            const options = Array.from(deliveryStatusSelect.options);
+            let selectedValue = null;
+
+            // First try direct mapping
+            if (statusMap[normalizedStatus]) {
+                selectedValue = statusMap[normalizedStatus];
+            } else {
+                // Try to find by text match
+                for (const option of options) {
+                    const optionText = option.text.toLowerCase();
+                    if (optionText.includes(normalizedStatus) || normalizedStatus.includes(optionText.split(' ')[0])) {
+                        selectedValue = option.value;
+                        break;
+                    }
+                }
+            }
+
+            if (!selectedValue) {
+                this.updateFeedback(`Delivery status "${statusName}" not found`, 'error');
+                const availableStatuses = options.map(opt => opt.text).join(', ');
+                this.announceToScreenReader(`Delivery status "${statusName}" not found. Available statuses: ${availableStatuses}`);
+                return;
+            }
+
+            deliveryStatusSelect.value = selectedValue;
+            
+            // Trigger change event
+            const changeEvent = new Event('change', { bubbles: true });
+            deliveryStatusSelect.dispatchEvent(changeEvent);
+
+            const selectedOption = options.find(opt => opt.value === selectedValue);
+            const statusDisplayName = selectedOption ? selectedOption.text : statusName;
+
+            this.updateFeedback(`Delivery status set to ${statusDisplayName}`, 'success');
+            this.announceToScreenReader(`Delivery status changed to ${statusDisplayName}. Submit the form to save changes.`);
+        }
+
+        /**
+         * Mark purchase as delivered
+         */
+        markAsDelivered() {
+            const deliveryStatusSelect = document.getElementById('delivery_status');
+            
+            if (!deliveryStatusSelect) {
+                this.updateFeedback('Delivery status form not found. You may need vendor permissions.', 'error');
+                this.announceToScreenReader('Delivery status form not found. Only vendors can mark items as delivered.');
+                return;
+            }
+
+            // Find "delivered" option
+            const options = Array.from(deliveryStatusSelect.options);
+            const deliveredOption = options.find(opt => 
+                opt.value === 'delivered' || 
+                opt.text.toLowerCase().includes('delivered')
+            );
+
+            if (!deliveredOption) {
+                this.updateFeedback('Delivered status option not found', 'error');
+                return;
+            }
+
+            deliveryStatusSelect.value = deliveredOption.value;
+            
+            // Trigger change event
+            const changeEvent = new Event('change', { bubbles: true });
+            deliveryStatusSelect.dispatchEvent(changeEvent);
+
+            // Submit the form
+            const form = deliveryStatusSelect.closest('form');
+            if (form) {
+                this.updateFeedback('Marking as delivered...', 'processing');
+                this.announceToScreenReader('Marking purchase as delivered. Submitting form.');
+                form.submit();
+            } else {
+                this.updateFeedback('Delivery status set to delivered. Please submit the form.', 'success');
+                this.announceToScreenReader('Delivery status set to delivered. Please submit the form to save changes.');
+            }
+        }
+
+        /**
+         * Contact vendor or buyer (start chat)
+         */
+        contactPurchaseParty() {
+            // Extract purchase ID from URL
+            const purchaseIdMatch = window.location.pathname.match(/\/auth\/purchase\/(\d+)\//);
+            if (!purchaseIdMatch) {
+                this.updateFeedback('Purchase ID not found', 'error');
+                return;
+            }
+
+            const purchaseId = purchaseIdMatch[1];
+            
+            // Try to find product ID from the page
+            const productLink = document.querySelector('a[href*="/auth/post/"]');
+            if (productLink) {
+                const productIdMatch = productLink.href.match(/\/auth\/post\/(\d+)\//);
+                if (productIdMatch) {
+                    const productId = productIdMatch[1];
+                    const chatUrl = `/auth/chat/start/property/${productId}/`;
+                    
+                    this.updateFeedback('Opening chat...', 'processing');
+                    this.announceToScreenReader('Opening chat with vendor');
+                    window.location.href = chatUrl;
+                    return;
+                }
+            }
+
+            // Fallback: try to find chat link or button
+            const chatLink = document.querySelector('a[href*="chat"], button[onclick*="chat"]');
+            if (chatLink && chatLink.href) {
+                this.updateFeedback('Opening chat...', 'processing');
+                this.announceToScreenReader('Opening chat');
+                window.location.href = chatLink.href;
+            } else {
+                this.updateFeedback('Chat link not found', 'error');
+                this.announceToScreenReader('Chat link not available on this page');
+            }
+        }
+
+        /**
+         * View product from purchase
+         */
+        viewPurchaseProduct() {
+            // Try to find product link
+            const productLink = document.querySelector('a[href*="/auth/post/"]');
+            
+            if (productLink) {
+                this.updateFeedback('Opening product page...', 'processing');
+                this.announceToScreenReader('Opening product page');
+                window.location.href = productLink.href;
+                return;
+            }
+
+            // Try to extract product ID from page data
+            const productImage = document.querySelector('.product-image');
+            if (productImage && productImage.closest('a')) {
+                const link = productImage.closest('a');
+                this.updateFeedback('Opening product page...', 'processing');
+                this.announceToScreenReader('Opening product page');
+                window.location.href = link.href;
+                return;
+            }
+
+            // Fallback: try to find product title and construct URL
+            const productTitle = document.querySelector('.product-title');
+            if (productTitle) {
+                // Try to find product ID in data attributes or nearby elements
+                const productCard = productTitle.closest('.product-display, .order-info-card');
+                if (productCard) {
+                    // Look for any link that might be the product
+                    const allLinks = productCard.querySelectorAll('a');
+                    for (const link of allLinks) {
+                        if (link.href.includes('/auth/post/')) {
+                            this.updateFeedback('Opening product page...', 'processing');
+                            this.announceToScreenReader('Opening product page');
+                            window.location.href = link.href;
+                            return;
+                        }
+                    }
+                }
+            }
+
+            this.updateFeedback('Product link not found', 'error');
+            this.announceToScreenReader('Product link not found on this page');
+        }
+
+        /**
+         * Download receipt/invoice
+         */
+        downloadReceipt() {
+            // Extract purchase ID from URL
+            const purchaseIdMatch = window.location.pathname.match(/\/auth\/purchase\/(\d+)\//);
+            if (!purchaseIdMatch) {
+                this.updateFeedback('Purchase ID not found', 'error');
+                return;
+            }
+
+            const purchaseId = purchaseIdMatch[1];
+            
+            // Try to find download link or button
+            const downloadLink = document.querySelector('a[href*="receipt"], a[href*="invoice"], a[href*="download"], button[onclick*="download"]');
+            
+            if (downloadLink) {
+                if (downloadLink.href) {
+                    this.updateFeedback('Downloading receipt...', 'processing');
+                    this.announceToScreenReader('Downloading receipt');
+                    window.location.href = downloadLink.href;
+                } else if (downloadLink.onclick) {
+                    downloadLink.click();
+                    this.updateFeedback('Downloading receipt...', 'processing');
+                    this.announceToScreenReader('Downloading receipt');
+                } else {
+                    this.updateFeedback('Receipt download not available', 'error');
+                    this.announceToScreenReader('Receipt download link not available');
+                }
+            } else {
+                // Try to construct receipt URL (common patterns)
+                const receiptUrl = `/auth/purchase/${purchaseId}/receipt/`;
+                
+                this.updateFeedback('Receipt download not available', 'error');
+                this.announceToScreenReader('Receipt download is not available for this purchase');
+            }
+        }
+
+        /**
          * Add current product to cart (on product detail page)
          */
         async addCurrentProductToCart() {
@@ -3550,6 +3896,14 @@
                 'Show total',
                 'Focus on phone'
             ];
+            const purchaseDetailExamples = [
+                'Confirm payment',
+                'Mark as delivered',
+                'Update delivery status to shipped',
+                'Contact vendor',
+                'View product',
+                'Download receipt'
+            ];
 
             const modal = document.createElement('div');
             modal.id = 'voice-help-modal';
@@ -3634,6 +3988,13 @@
                             <h3>Checkout Page</h3>
                             <ul class="voice-commands-list">
                                 ${checkoutExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="voice-help-section">
+                            <h3>Purchase Detail Page</h3>
+                            <ul class="voice-commands-list">
+                                ${purchaseDetailExamples.map(cmd => `<li>"${cmd}"</li>`).join('')}
                             </ul>
                         </div>
                         

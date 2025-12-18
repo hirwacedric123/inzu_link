@@ -230,6 +230,35 @@ InzuLink now supports voice commands for navigation and interaction! You can con
 
 ---
 
+### **Phase 9: Purchase Detail Page Commands** 📦
+
+**Available only on Purchase Detail Page (`/auth/purchase/<id>/`):**
+
+| Command | What It Does |
+|---------|-------------|
+| "Confirm payment" / "Payment confirmed" | Navigates to payment confirmation page |
+| "Mark as delivered" / "Delivered" | Sets delivery status to delivered (vendor only) |
+| "Update delivery status to [status]" | Changes delivery status (vendor only) |
+| "Set delivery status [status]" | Changes delivery status (vendor only) |
+| "Contact vendor" / "Contact buyer" | Opens chat with vendor/buyer |
+| "Start chat" / "Message" | Opens chat conversation |
+| "View product" / "Show product" | Navigates to product detail page |
+| "Download receipt" / "Get invoice" | Downloads purchase receipt (if available) |
+
+**Examples:**
+- "Confirm payment" → navigates to payment confirmation page
+- "Mark as delivered" → sets delivery status to delivered and submits form
+- "Update delivery status to shipped" → changes status to shipped
+- "Contact vendor" → opens chat with the vendor
+- "View product" → opens the product detail page
+
+**Note:**
+- These commands only work on purchase detail pages
+- Delivery status commands require vendor permissions
+- Some commands may not be available depending on purchase status
+
+---
+
 ### **Phase 5: Browser Control & Advanced Features** ⚡
 
 | Command | What It Does |
@@ -407,6 +436,7 @@ Voice commands work on mobile devices, but:
 - ✅ **Product Detail Page** - Complete set of commands for product pages
 - ✅ **Dashboard Page** - Complete set of commands for dashboard page
 - ✅ **Checkout Page** - Complete set of commands for checkout
+- ✅ **Purchase Detail Page** - Complete set of commands for purchase details
 - ⏳ **Other Pages** - Coming soon
 
 ## ✅ **Core Phases Complete!**
