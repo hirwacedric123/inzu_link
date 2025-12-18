@@ -76,3 +76,20 @@ If you need true real-time WebSocket support, consider migrating to:
 - No changes needed to your PythonAnywhere configuration
 - The fallback is automatic and transparent to users
 
+## Voice Commands Compatibility
+
+**Good News:** Voice commands work perfectly on PythonAnywhere!
+
+- ✅ Voice commands use **Web Speech API** (browser-based), not WebSocket
+- ✅ PythonAnywhere's HTTPS is sufficient for microphone access
+- ✅ No special configuration needed for voice commands
+- ✅ Works out of the box after deploying static files
+
+**Deployment Steps:**
+1. Run `collectstatic` to include `voice-commands.js`
+2. Ensure `/static/` URL mapping is configured
+3. Reload web app
+4. Voice commands will work automatically
+
+See [PYTHONANYWHERE_STATIC_MEDIA_FIX.md](PYTHONANYWHERE_STATIC_MEDIA_FIX.md) for detailed deployment instructions.
+

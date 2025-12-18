@@ -31,16 +31,31 @@ On PythonAnywhere, static files (CSS, JavaScript, images) and media files (user 
 
 ## Step-by-Step Fix for PythonAnywhere
 
-### Step 1: Collect Static Files
+### Step 1: Collect Static Files (Including Voice Commands)
 
-First, make sure all static files are collected:
+First, make sure all static files are collected, including the new voice commands JavaScript files:
 
 ```bash
 cd /home/yourusername/KoraQuest-main  # Replace with your actual path
 python3.10 manage.py collectstatic --noinput
 ```
 
-This will copy all static files to the `staticfiles` directory.
+This will copy all static files to the `staticfiles` directory, including:
+- CSS files (`static/css/`)
+- JavaScript files (`static/js/`) - **including `voice-commands.js`**
+- Images (`static/images/`)
+- Admin static files
+
+**Important for Voice Commands:**
+- The voice commands feature requires `static/js/voice-commands.js` to be collected
+- Verify the file exists after running collectstatic:
+  ```bash
+  ls -la /home/yourusername/KoraQuest-main/staticfiles/js/voice-commands.js
+  ```
+- If the file is missing, check that it exists in the source:
+  ```bash
+  ls -la /home/yourusername/KoraQuest-main/static/js/voice-commands.js
+  ```
 
 ### Step 2: Configure Static Files in PythonAnywhere Dashboard
 
@@ -86,6 +101,11 @@ After reloading, check:
 2. **Media files:** Visit `https://yourusername.pythonanywhere.com/media/posts/someimage.jpg`
    - Should load the image (if it exists)
 
+3. **Voice Commands JavaScript:** Visit `https://yourusername.pythonanywhere.com/static/js/voice-commands.js`
+   - Should load the JavaScript file (not 404)
+   - Check browser console for any JavaScript errors
+   - Verify the microphone button appears on pages
+
 ## Important Notes
 
 ### Static Files Configuration
@@ -129,6 +149,50 @@ After reloading, check:
    ```bash
    chmod -R 755 /home/yourusername/KoraQuest-main/staticfiles
    ```
+
+### Voice Commands Not Working
+
+If voice commands are not working after deployment:
+
+1. **Verify JavaScript file is collected:**
+   ```bash
+   # Check if voice-commands.js exists in staticfiles
+   ls -la /home/yourusername/KoraQuest-main/staticfiles/js/voice-commands.js
+   
+   # Check file size (should be substantial, not empty)
+   du -h /home/yourusername/KoraQuest-main/staticfiles/js/voice-commands.js
+   ```
+
+2. **Check browser console for errors:**
+   - Open browser Developer Tools (F12)
+   - Check Console tab for JavaScript errors
+   - Look for 404 errors related to `voice-commands.js`
+
+3. **Verify static files URL mapping:**
+   - In PythonAnywhere dashboard, ensure `/static/` maps to `/home/yourusername/KoraQuest-main/staticfiles`
+   - The voice commands file should be accessible at: `https://yourusername.pythonanywhere.com/static/js/voice-commands.js`
+
+4. **Check HTTPS requirement:**
+   - Voice commands require HTTPS for microphone access
+   - PythonAnywhere provides HTTPS by default
+   - If using custom domain, ensure SSL certificate is configured
+
+5. **Test microphone permissions:**
+   - Browser will prompt for microphone permission on first use
+   - Check browser settings if permission was denied
+   - Voice commands require microphone access to work
+
+6. **Re-collect static files after code updates:**
+   ```bash
+   # After pulling latest code with voice commands updates
+   cd /home/yourusername/KoraQuest-main
+   python3.10 manage.py collectstatic --noinput
+   # Then reload web app in PythonAnywhere dashboard
+   ```
+
+7. **Clear browser cache:**
+   - Hard refresh: Ctrl+Shift+R (Windows/Linux) or Cmd+Shift+R (Mac)
+   - Or clear browser cache to ensure latest JavaScript is loaded
 
 ### Media Files Still Not Loading
 
@@ -184,6 +248,20 @@ The main issue was that PythonAnywhere serves static and media files through ngi
 1. ✅ Fixed `STATIC_URL` to have leading slash
 2. ✅ Updated code comments for clarity
 3. ✅ Created this guide for PythonAnywhere configuration
+4. ✅ Added voice commands deployment instructions
+
+## Voice Commands Deployment Checklist
+
+When deploying voice commands feature:
+
+- [ ] Pull latest code with voice commands updates
+- [ ] Run `python3.10 manage.py collectstatic --noinput`
+- [ ] Verify `staticfiles/js/voice-commands.js` exists and has content
+- [ ] Ensure `/static/` URL mapping is configured in PythonAnywhere dashboard
+- [ ] Reload web app in PythonAnywhere dashboard
+- [ ] Test voice commands on live site (check for microphone button)
+- [ ] Verify microphone permission prompt appears
+- [ ] Test a voice command (e.g., "go to home")
 
 **Remember:** After making changes, always reload your web app in the PythonAnywhere dashboard!
 

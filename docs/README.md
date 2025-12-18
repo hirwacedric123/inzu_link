@@ -146,10 +146,21 @@ Ready to deploy your InzuLink app to PythonAnywhere? We've got you covered!
 - ✅ [DEPLOYMENT_CHECKLIST_PYTHONANYWHERE.md](DEPLOYMENT_CHECKLIST_PYTHONANYWHERE.md) - Complete checklist
 - ⚡ [QUICK_DEPLOY_COMMANDS.md](QUICK_DEPLOY_COMMANDS.md) - Copy-paste commands
 
+**Deployment Guides:**
+- 🔧 [PYTHONANYWHERE_STATIC_MEDIA_FIX.md](PYTHONANYWHERE_STATIC_MEDIA_FIX.md) - Static files & voice commands deployment
+- 🔌 [PYTHONANYWHERE_WEBSOCKET_FIX.md](PYTHONANYWHERE_WEBSOCKET_FIX.md) - WebSocket fallback & voice commands compatibility
+
 **One-Line Deploy:**
 ```bash
 git clone https://github.com/hirwacedric123/inzu_link.git KoraQuest && cd KoraQuest && chmod +x pythonanywhere_setup.sh && ./pythonanywhere_setup.sh
 ```
+
+**Voice Commands Deployment:**
+After deploying, ensure voice commands are included:
+1. Run `python3.10 manage.py collectstatic --noinput` to collect JavaScript files
+2. Verify `/static/` URL mapping in PythonAnywhere dashboard
+3. Reload web app
+4. See [PYTHONANYWHERE_STATIC_MEDIA_FIX.md](PYTHONANYWHERE_STATIC_MEDIA_FIX.md) for detailed instructions
 
 For other deployment platforms:
 - 🚀 Render: See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
