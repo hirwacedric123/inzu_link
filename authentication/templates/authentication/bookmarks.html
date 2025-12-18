@@ -12,6 +12,7 @@
         margin: 0 auto;
         padding: 2rem;
         min-height: calc(100vh - 100px);
+        width: 100%;
     }
 
     /* Header with shimmer effect */
@@ -20,11 +21,12 @@
         margin-bottom: 2rem;
         background: linear-gradient(135deg, #4A7C59 0%, #6B9080 50%, #A4C3B2 100%);
         color: white;
-        padding: 3rem 2rem;
+        padding: 2.5rem 2rem;
         border-radius: 24px;
         box-shadow: 0 20px 40px rgba(107, 144, 128, 0.25);
         position: relative;
         overflow: hidden;
+        width: 100%;
     }
 
     .page-header::before {
@@ -67,16 +69,16 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 2rem;
+        width: 100%;
     }
 
     /* Card Styles */
     .bookmark-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.8);
+        background: white;
+        border: 1px solid #E5E7EB;
         border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 8px 32px rgba(107, 144, 128, 0.1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         flex-direction: column;
@@ -85,13 +87,13 @@
 
     .bookmark-card:hover {
         transform: translateY(-8px);
-        box-shadow: 0 16px 40px rgba(107, 144, 128, 0.2);
-        border-color: var(--inzu-primary-light);
+        box-shadow: 0 12px 40px rgba(107, 144, 128, 0.15);
+        border-color: #6B9080;
     }
 
     .card-image-container {
         position: relative;
-        height: 240px;
+        height: 260px;
         background: #F3F4F6;
         overflow: hidden;
     }
@@ -183,17 +185,17 @@
     }
 
     .card-content {
-        padding: 1.5rem;
+        padding: 1.75rem;
         flex: 1;
         display: flex;
         flex-direction: column;
     }
 
     .card-title {
-        font-size: 1.125rem;
+        font-size: 1.25rem;
         font-weight: 600;
         color: #1a1a1a;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.875rem;
         line-height: 1.4;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -202,10 +204,10 @@
     }
 
     .card-price {
-        font-size: 1.5rem;
+        font-size: 1.625rem;
         font-weight: 700;
         color: #6B9080;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.875rem;
     }
 
     .card-property-details {
@@ -269,9 +271,9 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 1rem 1.5rem;
+        padding: 1.25rem 1.75rem;
         background: #F9FAFB;
-        border-top: 1px solid #F3F4F6;
+        border-top: 1px solid #E5E7EB;
         margin-top: auto;
     }
 
@@ -282,8 +284,8 @@
     }
 
     .vendor-avatar {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         background: linear-gradient(135deg, #6B9080 0%, #A4C3B2 100%);
         display: flex;
@@ -291,12 +293,12 @@
         justify-content: center;
         color: white;
         font-weight: 600;
-        font-size: 0.813rem;
+        font-size: 0.875rem;
         object-fit: cover;
     }
 
     .vendor-name {
-        font-size: 0.875rem;
+        font-size: 0.938rem;
         font-weight: 500;
         color: #374151;
     }
@@ -309,49 +311,55 @@
     /* Empty State */
     .empty-state {
         text-align: center;
-        padding: 4rem 2rem;
+        padding: 5rem 3rem;
         background: white;
         border-radius: 16px;
         border: 1px solid #E5E7EB;
+        width: 100%;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
 
     .empty-icon {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto 1.5rem;
+        width: 96px;
+        height: 96px;
+        margin: 0 auto 2rem;
         border-radius: 50%;
         background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2.5rem;
+        font-size: 3rem;
         color: #D97706;
     }
 
     .empty-state h3 {
-        font-size: 1.5rem;
+        font-size: 1.75rem;
         font-weight: 600;
         color: #1a1a1a;
-        margin-bottom: 0.75rem;
+        margin-bottom: 1rem;
     }
 
     .empty-state p {
-        font-size: 1rem;
+        font-size: 1.063rem;
         color: #6B7280;
-        margin-bottom: 2rem;
+        margin-bottom: 2.5rem;
         line-height: 1.6;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .btn-browse {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.875rem 2rem;
+        padding: 1rem 2.5rem;
         background: #6B9080;
         color: white;
         text-decoration: none;
         border-radius: 10px;
         font-weight: 500;
+        font-size: 1rem;
         transition: all 0.2s ease;
     }
 
@@ -374,7 +382,8 @@
     /* Responsive */
     @media (max-width: 1200px) {
         .bookmarks-grid {
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
         }
     }
 

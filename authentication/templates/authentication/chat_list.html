@@ -16,6 +16,7 @@
             margin: 0 auto;
             padding: 2rem;
             min-height: calc(100vh - 100px);
+            width: 100%;
         }
 
         /* Header with shimmer effect - matching dashboard */
@@ -24,11 +25,12 @@
             margin-bottom: 2rem;
             background: linear-gradient(135deg, #4A7C59 0%, #6B9080 50%, #A4C3B2 100%);
             color: white;
-            padding: 3rem 2rem;
+            padding: 2.5rem 2rem;
             border-radius: 24px;
             box-shadow: 0 20px 40px rgba(107, 144, 128, 0.25);
             position: relative;
             overflow: hidden;
+            width: 100%;
         }
 
         .chat-header::before {
@@ -82,35 +84,35 @@
 
         /* Conversations list - frosted glass effect */
         .conversations-list {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            background: white;
+            border: 1px solid #E5E7EB;
             border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(107, 144, 128, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             min-height: 600px;
+            width: 100%;
         }
 
         .conversations-list-header {
-            padding: 1.5rem 2rem;
-            border-bottom: 2px solid var(--inzu-light-gray);
-            background: var(--inzu-background);
+            padding: 1.75rem 2rem;
+            border-bottom: 2px solid #E5E7EB;
+            background: #FAFAFA;
         }
 
         .conversations-list-header h2 {
             margin: 0;
             font-size: 1.5rem;
             font-weight: 600;
-            color: var(--inzu-text);
+            color: #1a1a1a;
             letter-spacing: -0.02em;
         }
 
         .conversations-scroll {
             flex: 1;
             overflow-y: auto;
-            padding: 1rem;
+            padding: 1.5rem;
         }
 
         /* Custom scrollbar */
@@ -136,39 +138,39 @@
         .conversation-item {
             display: flex;
             align-items: center;
-            padding: 1.25rem;
-            margin-bottom: 0.75rem;
-            background: var(--inzu-card-bg);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: white;
             border-radius: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 2px solid transparent;
+            border: 1px solid #E5E7EB;
             text-decoration: none;
             color: inherit;
-            box-shadow: 0 2px 8px rgba(107, 144, 128, 0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         .conversation-item:hover {
-            background: var(--inzu-hover-bg);
-            border-color: var(--inzu-primary-light);
+            background: #F9FAFB;
+            border-color: #6B9080;
             transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(107, 144, 128, 0.2);
+            box-shadow: 0 8px 24px rgba(107, 144, 128, 0.15);
         }
 
         .conversation-avatar {
             width: 64px;
             height: 64px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--inzu-primary), var(--inzu-primary-dark));
+            background: linear-gradient(135deg, #6B9080, #4A7C59);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: 700;
             font-size: 1.5rem;
-            margin-right: 1rem;
+            margin-right: 1.25rem;
             flex-shrink: 0;
-            border: 3px solid var(--inzu-primary-light);
+            border: 3px solid #A4C3B2;
             box-shadow: 0 4px 12px rgba(107, 144, 128, 0.2);
         }
 
@@ -193,8 +195,8 @@
 
         .conversation-name {
             font-weight: 600;
-            font-size: 1.125rem;
-            color: var(--inzu-text);
+            font-size: 1.188rem;
+            color: #1a1a1a;
             margin: 0;
             letter-spacing: -0.01em;
         }
@@ -255,22 +257,22 @@
         /* Empty state */
         .empty-state {
             text-align: center;
-            padding: 4rem 2rem;
-            color: var(--inzu-text-secondary);
+            padding: 5rem 3rem;
+            color: #6B7280;
         }
 
         .empty-state i {
             font-size: 5rem;
-            margin-bottom: 1.5rem;
-            color: var(--inzu-gray);
-            opacity: 0.5;
+            margin-bottom: 2rem;
+            color: #D1D5DB;
+            opacity: 0.6;
         }
 
         .empty-state h3 {
             font-size: 1.75rem;
             font-weight: 600;
-            margin-bottom: 0.75rem;
-            color: var(--inzu-text);
+            margin-bottom: 1rem;
+            color: #1a1a1a;
             letter-spacing: -0.02em;
         }
 
